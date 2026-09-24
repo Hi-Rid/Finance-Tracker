@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/layout/sidebar'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { Header } from '@/components/layout/header'
 import { AuthGuard } from '@/components/shared/auth-guard'
+import { CommandPalette } from '@/components/shared/command-palette'
 
 export default async function AppLayout({
   children,
@@ -37,6 +38,7 @@ export default async function AppLayout({
           <BottomNav />
         </div>
       </div>
+      <CommandPalette />
     </AuthGuard>
   )
 }

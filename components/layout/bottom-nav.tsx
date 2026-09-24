@@ -8,7 +8,7 @@ import { Home, List, Plus, Wallet, User } from 'lucide-react'
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/transactions', label: 'Transaksi', icon: List },
-  { href: '/transactions/new', label: 'Add', icon: Plus, isCenter: true },
+  { href: '/transactions?new=1', label: 'Add', icon: Plus, isCenter: true },
   { href: '/budget', label: 'Budget', icon: Wallet },
   { href: '/settings', label: 'Profil', icon: User },
 ]
@@ -21,11 +21,12 @@ export function BottomNav() {
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const Icon = item.icon
+          // Untuk tombol + (isCenter), gak pernah dianggap active
+          // Untuk item biasa, cek pathname tanpa query
+          const cleanHref = item.href.split('?')[0]
           const isActive =
-            pathname === item.href ||
-            (item.href !== '/dashboard' &&
-              !item.isCenter &&
-              pathname.startsWith(item.href))
+            !item.isCenter &&
+            (pathname === cleanHref || pathname.startsWith(cleanHref + '/'))
 
           if (item.isCenter) {
             return (

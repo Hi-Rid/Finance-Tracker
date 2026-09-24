@@ -36,19 +36,23 @@ function DialogOverlay({ className, ...props }: React.ComponentProps<typeof Dial
 
 function DialogContent({
   className,
+  overlayClassName,
   children,
   showCloseButton = true,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & { showCloseButton?: boolean }) {
+}: React.ComponentProps<typeof DialogPrimitive.Content> & {
+  showCloseButton?: boolean
+  overlayClassName?: string
+}) {
   return (
     <DialogPortal data-slot="dialog-portal">
-      <DialogOverlay />
+      <DialogOverlay className={overlayClassName} />
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-[60] grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-2xl p-6 duration-200 sm:max-w-lg",
           "bg-white text-slate-900 border border-slate-200 shadow-2xl",
-          "dark:bg-white/[0.08] dark:backdrop-blur-2xl dark:text-white dark:border-white/15 dark:shadow-[0_8px_32px_rgba(0,0,0,0.6)]",
+          "dark:bg-[#0E2148] dark:text-white dark:border-white/15 dark:shadow-[0_8px_32px_rgba(0,0,0,0.6)]",
           className
         )}
         {...props}

@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
   Receipt,
+  ScanLine,
   Wallet,
   Target,
   Heart,
@@ -17,6 +18,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { LogoutButton } from '@/components/shared/logout-button'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -27,6 +29,7 @@ const navItems = [
   { href: '/split-bill', label: 'Split Bill', icon: Users },
   { href: '/investments', label: 'Investasi', icon: TrendingUp },
   { href: '/trips', label: 'Travel', icon: Plane },
+  { href: '/receipts', label: 'Struk', icon: ScanLine },
   { href: '/reports', label: 'Laporan', icon: FileText },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
@@ -49,16 +52,16 @@ export function Sidebar({ userEmail }: SidebarProps) {
         {/* Logo */}
         <div className="relative p-6 pb-4">
           <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 rounded-2xl bg-brand flex items-center justify-center font-bold text-lg text-brand-foreground shadow-lg shadow-brand/30 transition-transform group-hover:scale-105">
-              F
+            <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center font-bold text-lg text-white shadow-lg shadow-brand/30 transition-transform group-hover:scale-105">
+              S
               <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-sidebar" />
             </div>
             <div>
               <div className="text-lg font-bold tracking-tight leading-none">
-                Finance
+                Synmony
               </div>
               <div className="text-[10px] text-sidebar-muted uppercase tracking-wider mt-0.5">
-                Personal Tracker
+                Second Brain for Money
               </div>
             </div>
           </Link>
@@ -68,8 +71,18 @@ export function Sidebar({ userEmail }: SidebarProps) {
         <nav className="relative flex-1 overflow-y-auto px-3 py-2 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive =
+            let isActive =
               pathname === item.href || pathname.startsWith(item.href + '/')
+
+            // Related sub-routes: /cash-flow dianggap bagian dari /transactions
+            if (item.href === '/transactions') {
+              if (
+                pathname.startsWith('/cash-flow') ||
+                pathname.startsWith('/receipts')
+              ) {
+                isActive = true
+              }
+            }
 
             return (
               <Link
@@ -93,10 +106,10 @@ export function Sidebar({ userEmail }: SidebarProps) {
         </nav>
 
         {/* User card */}
-        <div className="relative p-3">
+        <div className="relative p-3 space-y-2">
           <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-3 flex items-center gap-3">
             <Avatar className="size-9 ring-2 ring-white/20">
-              <AvatarFallback className="bg-brand text-brand-foreground font-semibold text-sm">
+              <AvatarFallback className="bg-gradient-to-br from-primary-400 to-primary-700 text-white font-semibold text-sm">
                 {initial}
               </AvatarFallback>
             </Avatar>
@@ -110,8 +123,10 @@ export function Sidebar({ userEmail }: SidebarProps) {
               </div>
             </div>
           </div>
+
+          <LogoutButton variant="sidebar" />
           <div className="text-[10px] text-sidebar-muted text-center mt-2 opacity-60">
-            v0.1.0
+            Synmony v0.1.0
           </div>
         </div>
       </div>

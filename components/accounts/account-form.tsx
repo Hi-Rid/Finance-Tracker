@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -84,7 +85,9 @@ export function AccountForm({
       name: toUppercase(data.name),
       profile_id: profileId,
       currency: 'IDR',
-      current_balance: isEdit ? account!.current_balance : data.initial_balance,
+      // Saat edit, current_balance = initial_balance 
+      // (nanti kalau ada transaksi, trigger akan adjust otomatis)
+      current_balance: data.initial_balance,
     }
 
     if (isEdit && account) {
@@ -153,13 +156,10 @@ export function AccountForm({
                 {isEdit ? 'Saldo Awal' : 'Saldo Saat Ini'}
               </FormLabel>
               <FormControl>
-                <Input
-                  type="number"
+                <CurrencyInput
+                  value={field.value}
+                  onChange={field.onChange}
                   placeholder="0"
-                  {...field}
-                  onChange={(e) =>
-                    field.onChange(e.target.value === '' ? 0 : Number(e.target.value))
-                  }
                 />
               </FormControl>
               <FormMessage />

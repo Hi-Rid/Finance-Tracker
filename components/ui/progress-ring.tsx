@@ -29,20 +29,21 @@ export function ProgressRing({
   label,
   variant = 'auto',
 }: ProgressRingProps) {
-  const clamped = Math.min(100, Math.max(0, value))
+  const displayValue = Math.round(value)
+  const clamped = Math.min(100, Math.max(0, displayValue))
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (clamped / 100) * circumference
 
-  // Auto-detect: <50 hijau, 50-80 kuning, 80-100 orange, >100 merah
+  // Auto-detect: <50 hijau, 50-80 kuning, 80-99 orange, >=100 merah
   const autoVariant =
-    clamped > 100
+    displayValue >= 100
       ? 'danger'
-      : clamped >= 80
-      ? 'critical'
-      : clamped >= 50
-      ? 'warning'
-      : 'success'
+      : displayValue >= 80
+        ? 'critical'
+        : displayValue >= 50
+          ? 'warning'
+          : 'success'
 
   const finalVariant = variant === 'auto' ? autoVariant : variant
   const { stroke, text } = COLORS[finalVariant]
@@ -60,7 +61,7 @@ export function ProgressRing({
           stroke="currentColor"
           strokeWidth={strokeWidth}
           fill="none"
-          className="text-primary-100 dark:text-primary-100/20"
+          className="text-slate-200 dark:text-white/15"
         />
         <circle
           cx={size / 2}
@@ -79,9 +80,9 @@ export function ProgressRing({
 
       {showLabel && (
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={cn('text-2xl font-bold tabular-nums', text)}>
-            {Math.round(clamped)}%
-          </span>
+          <div className={cn('text-2xl font-bold tabular-nums', text)}>
+            {displayValue}%
+          </div>
           {label && (
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
               {label}

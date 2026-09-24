@@ -15,7 +15,11 @@ export function useTransactions() {
   const supabase = createClient()
 
   const createTransaction = useCallback(
-    async (data: TransactionInput, profileId: string) => {
+    async (
+      data: TransactionInput,
+      profileId: string,
+      receiptId?: string | null
+    ) => {
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -35,6 +39,7 @@ export function useTransactions() {
         account_id: data.account_id,
         to_account_id: data.type === 'transfer' ? data.to_account_id : null,
         category_id: data.category_id || null,
+        daily_item_id: data.daily_item_id || null,
         amount: data.amount,
         amount_idr: data.amount, // asumsi IDR untuk sekarang
         currency: 'IDR',
@@ -49,12 +54,28 @@ export function useTransactions() {
         exclude_from_reports: data.exclude_from_reports,
       }
 
-      const { error } = await supabase.from('transactions').insert(normalized)
+      const { data: created, error } = await supabase
+        .from('transactions')
+        .insert(normalized)
+        .select()
+        .single()
 
-      if (error) {
+      if (error || !created) {
         console.error('Create transaction error:', error)
-        toast.error(error.message)
+        toast.error(error?.message || 'Gagal menyimpan')
         return { success: false, error }
+      }
+
+      // Link receipt → transaction
+      if (receiptId) {
+        const { error: linkError } = await supabase
+          .from('receipts')
+          .update({ transaction_id: created.id })
+          .eq('id', receiptId)
+
+        if (linkError) {
+          console.error('Failed to link receipt:', linkError)
+        }
       }
 
       toast.success('Transaksi tersimpan')
@@ -82,6 +103,7 @@ export function useTransactions() {
         account_id: data.account_id,
         to_account_id: data.type === 'transfer' ? data.to_account_id : null,
         category_id: data.category_id || null,
+        daily_item_id: data.daily_item_id || null,
         amount: data.amount,
         amount_idr: data.amount,
         merchant: data.merchant ? smartCapitalize(data.merchant) : null,
@@ -147,4 +169,42 @@ export function useTransactions() {
   )
 
   return { createTransaction, updateTransaction, deleteTransaction }
+  const bulkDeleteTransactions = useCallback(
+    async (ids: string[]) => {
+      if (ids.length === 0) return { success: false }
+
+      const { data: updated, error } = await supabase
+        .from('transactions')
+        .update({
+          is_deleted: true,
+          deleted_at: new Date().toISOString(),
+        })
+        .in('id', ids)
+        .select('id')
+
+      if (error) {
+        toast.error(error.message)
+        return { success: false, error }
+      }
+
+      if (!updated || updated.length === 0) {
+        toast.error('Gagal hapus: akses ditolak')
+        return { success: false }
+      }
+
+      toast.success(`${updated.length} transaksi dihapus`, {
+        description: 'Bisa di-restore dari Trash dalam 30 hari.',
+      })
+      router.refresh()
+      return { success: true, count: updated.length }
+    },
+    [supabase, router]
+  )
+
+  return {
+    createTransaction,
+    updateTransaction,
+    deleteTransaction,
+    bulkDeleteTransactions,
+  }
 }

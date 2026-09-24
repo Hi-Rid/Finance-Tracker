@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test OCR Upload</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+
+        h1 {
+            color: #334DAF;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin: 16px 0;
+            padding: 12px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        button {
+            background: #334DAF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        pre {
+            background: #0f172a;
+            color: #a5f3fc;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            max-height: 500px;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+
+        .status.info {
+            background: #e0effd;
+            color: #1e40af;
+        }
+
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Test OCR Upload</h1>
+    <div class="card">
+        <p>Upload struk (JPG, PNG, PDF — max 10MB)</p>
+        <input type="file" id="fileInput" accept="image/*,application/pdf">
+        <button id="uploadBtn" disabled>Scan Struk</button>
+        <div id="status"></div>
+        <pre id="output" style="display:none;"></pre>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput')
+        const uploadBtn = document.getElementById('uploadBtn')
+        const status = document.getElementById('status')
+        const output = document.getElementById('output')
+
+        fileInput.addEventListener('change', () => {
+            uploadBtn.disabled = !fileInput.files[0]
+            status.className = ''
+            status.textContent = ''
+            output.style.display = 'none'
+        })
+
+        uploadBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0]
+            if (!file) return
+
+            uploadBtn.disabled = true
+            status.className = 'status info'
+            status.textContent = `Uploading & scanning ${file.name}...`
+
+            const formData = new FormData()
+            formData.append('file', file)
+
+            const startTime = Date.now()
+
+            try {
+                const res = await fetch('/api/ocr/scan', {
+                    method: 'POST',
+                    body: formData,
+                })
+
+                const data = await res.json()
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
+
+                if (!res.ok) {
+                    status.className = 'status error'
+                    status.textContent = `Error (${elapsed}s): ${data.error}`
+                    output.textContent = JSON.stringify(data, null, 2)
+                    output.style.display = 'block'
+                } else {
+                    status.className = 'status success'
+                    status.textContent = `✅ Berhasil dalam ${elapsed}s — Receipt ID: ${data.receiptId}`
+                    output.textContent = JSON.stringify(data.parsed, null, 2)
+                    output.style.display = 'block'
+                }
+            } catch (err) {
+                status.className = 'status error'
+                status.textContent = 'Network error: ' + err.message
+            } finally {
+                uploadBtn.disabled = false
+            }
+        })
+    </script>
+</body>
+
+</html>

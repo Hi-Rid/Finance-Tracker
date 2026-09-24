@@ -5,26 +5,83 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { PinInput } from '@/components/shared/pin-input'
 import { Button } from '@/components/ui/button'
-import { verifyPin, hasPin, clearPin } from '@/lib/hooks/use-pin'
+import {
+  verifyPinHash,
+  unlockSession,
+  isSessionUnlocked,
+  lockSession,
+} from '@/lib/hooks/use-pin'
 import { createClient } from '@/lib/supabase/client'
-import { Lock } from 'lucide-react'
+import { Lock, Loader2 } from 'lucide-react'
 
 export default function UnlockPage() {
   const router = useRouter()
   const [pin, setPin] = useState('')
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(true)
 
   useEffect(() => {
-    // Kalau gak punya PIN, redirect ke setup
-    if (!hasPin()) {
-      router.push('/setup-pin')
+    async function check() {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.replace('/login')
+        return
+      }
+
+      // Cek PIN dulu
+      const { data: settings } = await supabase
+        .from('user_settings')
+        .select('pin_hash')
+        .eq('user_id', user.id)
+        .single()
+
+      // Kalau belum punya PIN → /setup-pin (prioritas)
+      if (!settings?.pin_hash) {
+        router.replace('/setup-pin')
+        return
+      }
+
+      // Baru cek session
+      if (isSessionUnlocked()) {
+        router.replace('/dashboard')
+        return
+      }
+
+      setChecking(false)
     }
+    check()
   }, [router])
 
   const handleComplete = async (value: string) => {
     setLoading(true)
-    const ok = await verifyPin(value)
+
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      router.replace('/login')
+      return
+    }
+
+    const { data: settings } = await supabase
+      .from('user_settings')
+      .select('pin_hash')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!settings?.pin_hash) {
+      router.replace('/setup-pin')
+      return
+    }
+
+    const ok = await verifyPinHash(value, settings.pin_hash)
 
     if (!ok) {
       setError(true)
@@ -36,6 +93,7 @@ export default function UnlockPage() {
       return
     }
 
+    unlockSession()
     router.push('/dashboard')
     router.refresh()
   }
@@ -43,9 +101,17 @@ export default function UnlockPage() {
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    clearPin()
+    lockSession()
     toast.success('Logged out')
     router.push('/login')
+  }
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-brand" />
+      </div>
+    )
   }
 
   return (
@@ -85,6 +151,10 @@ export default function UnlockPage() {
             Logout
           </Button>
         </div>
+
+        <p className="text-center text-[10px] text-muted-foreground/60 mt-6">
+          Synmony v0.1.0
+        </p>
       </div>
     </div>
   )

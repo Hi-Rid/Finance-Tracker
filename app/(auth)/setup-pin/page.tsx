@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { PinInput } from '@/components/shared/pin-input'
 import { Button } from '@/components/ui/button'
-import { setPin, hasPin } from '@/lib/hooks/use-pin'
-import { Lock, ShieldCheck } from 'lucide-react'
+import { hashPin, unlockSession, lockSession } from '@/lib/hooks/use-pin'
+import { createClient } from '@/lib/supabase/client'
+import { Lock, ShieldCheck, Loader2 } from 'lucide-react'
 
 export default function SetupPinPage() {
   const router = useRouter()
@@ -15,12 +16,38 @@ export default function SetupPinPage() {
   const [confirmPin, setConfirmPin] = useState('')
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(true)
 
   useEffect(() => {
-    // Kalau udah punya PIN, redirect ke dashboard
-    if (hasPin()) {
-      router.push('/dashboard')
+    async function check() {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.replace('/login')
+        return
+      }
+
+      // Clear session lama (biar gak nyangkut)
+      lockSession()
+
+      // Kalau udah punya PIN di DB → ke /unlock
+      const { data: settings } = await supabase
+        .from('user_settings')
+        .select('pin_hash')
+        .eq('user_id', user.id)
+        .single()
+
+      if (settings?.pin_hash) {
+        router.replace('/unlock')
+        return
+      }
+
+      setChecking(false)
     }
+    check()
   }, [router])
 
   const handleSetComplete = (value: string) => {
@@ -42,14 +69,45 @@ export default function SetupPinPage() {
 
     setLoading(true)
     try {
-      await setPin(value)
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.replace('/login')
+        return
+      }
+
+      const pinHash = await hashPin(value)
+
+      const { error: updateError } = await supabase
+        .from('user_settings')
+        .update({ pin_hash: pinHash })
+        .eq('user_id', user.id)
+
+      if (updateError) {
+        toast.error('Gagal menyimpan PIN')
+        setLoading(false)
+        return
+      }
+
+      unlockSession()
       toast.success('PIN berhasil dibuat!')
       router.push('/dashboard')
       router.refresh()
     } catch (err) {
-      toast.error('Gagal menyimpan PIN')
+      toast.error('Terjadi kesalahan')
       setLoading(false)
     }
+  }
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-brand" />
+      </div>
+    )
   }
 
   return (
@@ -108,6 +166,7 @@ export default function SetupPinPage() {
                 setConfirmPin('')
                 setError(false)
               }}
+              disabled={loading}
             >
               Kembali
             </Button>
@@ -115,7 +174,10 @@ export default function SetupPinPage() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          PIN cuma disimpan di browser ini. Gak dikirim ke server.
+          PIN disimpan dengan aman di server. Cuma lu yang tau.
+        </p>
+        <p className="text-center text-[10px] text-muted-foreground/60 mt-3">
+          Synmony v0.1.0
         </p>
       </div>
     </div>

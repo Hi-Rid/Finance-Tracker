@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* ============================================
      COLOR PALETTE — Royal Navy / Steel Blue
@@ -14,7 +16,7 @@
   --color-offwhite: #F9FBFF;
 
   /* Primary scale */
-  --color-primary-50:  #F9FBFF;
+  --color-primary-50: #F9FBFF;
   --color-primary-100: #E8F2FE;
   --color-primary-200: #D0E4FE;
   --color-primary-300: #A8C5E8;
@@ -55,7 +57,7 @@
   --color-brand-soft: #E8F2FE;
   --color-brand-soft-foreground: #334DAF;
 
-    /* Popover / Dropdown */
+  /* Popover / Dropdown */
   --color-popover: #FFFFFF;
   --color-popover-foreground: #091F5C;
   --color-accent: #E8F2FE;
@@ -79,10 +81,10 @@
 .dark {
   --color-background: #050F2E;
   --color-foreground: #E8F2FE;
-  --color-card: #0A1A40;
+  --color-card: #0E2148;
   --color-card-foreground: #E8F2FE;
-  --color-border: #1F3680;
-  --color-muted: #091F5C;
+  --color-border: #1F3A6B;
+  --color-muted: #0A1A40;
   --color-muted-foreground: #A8C5E8;
 
   /* Sidebar dark — lebih gelap dari bg */
@@ -112,7 +114,7 @@
   --color-brand-soft: rgba(51, 77, 175, 0.15);
   --color-brand-soft-foreground: #A8C5E8;
 
-    /* Popover / Dropdown */
+  /* Popover / Dropdown */
   --color-popover: #0A1A40;
   --color-popover-foreground: #E8F2FE;
   --color-accent: #1F3680;
@@ -202,22 +204,57 @@ body {
 /* ============================================
    SCROLLBAR
    ============================================ */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: var(--color-primary-300);
-  border-radius: 4px;
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.25);
+  border-radius: 999px;
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary-400);
+  background: rgba(100, 116, 139, 0.4);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.25) transparent;
+}
+
+.dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
 /* ============================================
    UTILITY
    ============================================ */
-.text-balance { text-wrap: balance; }
-.tabular-nums { font-variant-numeric: tabular-nums; }
-.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+.text-balance {
+  text-wrap: balance;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
 
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -226,9 +263,26 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-  20%, 40%, 60%, 80% { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
 }
 
 .animate-shake {
@@ -283,4 +337,23 @@ textarea::placeholder {
 
 .dark [data-slot="select-trigger"] svg {
   color: #94a3b8 !important;
+}
+
+/* ============================================
+   DATE FILTER BUTTON — paksa warna
+   ============================================ */
+.date-filter-btn,
+.date-filter-btn span,
+.date-filter-btn svg {
+  color: #0f172a !important;
+}
+
+.dark .date-filter-btn,
+.dark .date-filter-btn span,
+.dark .date-filter-btn svg {
+  color: #ffffff !important;
+}
+
+.date-filter-btn svg {
+  opacity: 0.5;
 }

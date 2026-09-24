@@ -39,6 +39,7 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/setup-pin') ||
     pathname.startsWith('/unlock') ||
     pathname.startsWith('/auth') ||
+    pathname.startsWith('/api/ocr/file') ||
     pathname.startsWith('/_next') ||
     pathname === '/favicon.ico'
 

@@ -84,9 +84,12 @@ export function LineChart({
           />
 
           <Legend
-            wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
+            wrapperStyle={{ fontSize: '12px', paddingTop: '24px' }}
             iconType="circle"
             iconSize={8}
+            formatter={(value) => (
+              <span style={{ marginRight: '96px' }}>{value}</span>
+            )}
           />
 
           {series.map((s) => (

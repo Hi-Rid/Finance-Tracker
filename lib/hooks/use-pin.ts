@@ -1,48 +1,50 @@
 'use client'
 
-const PIN_HASH_KEY = 'finance_pin_hash'
-const PIN_UNLOCKED_KEY = 'finance_pin_unlocked'
+const SESSION_KEY = 'synmony_unlocked'
 
-async function hashPin(pin: string): Promise<string> {
+/**
+ * Hash PIN pakai SHA-256 + salt.
+ * Simple, cukup buat app personal.
+ */
+export async function hashPin(pin: string): Promise<string> {
   const encoder = new TextEncoder()
-  const data = encoder.encode(pin + 'finance_salt_v1')
+  const data = encoder.encode(pin + 'synmony_salt_v1')
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-export async function setPin(pin: string): Promise<void> {
+/**
+ * Verify PIN input dengan hash yang tersimpan.
+ */
+export async function verifyPinHash(
+  pin: string,
+  storedHash: string
+): Promise<boolean> {
   const hash = await hashPin(pin)
-  localStorage.setItem(PIN_HASH_KEY, hash)
-  sessionStorage.setItem(PIN_UNLOCKED_KEY, 'true')
+  return hash === storedHash
 }
 
-export async function verifyPin(pin: string): Promise<boolean> {
-  const stored = localStorage.getItem(PIN_HASH_KEY)
-  if (!stored) return false
-  const hash = await hashPin(pin)
-  if (hash === stored) {
-    sessionStorage.setItem(PIN_UNLOCKED_KEY, 'true')
-    return true
-  }
-  return false
-}
-
-export function hasPin(): boolean {
+/**
+ * Cek apakah session ini udah unlock (per-tab).
+ */
+export function isSessionUnlocked(): boolean {
   if (typeof window === 'undefined') return false
-  return !!localStorage.getItem(PIN_HASH_KEY)
+  return sessionStorage.getItem(SESSION_KEY) === 'true'
 }
 
-export function isUnlocked(): boolean {
-  if (typeof window === 'undefined') return false
-  return sessionStorage.getItem(PIN_UNLOCKED_KEY) === 'true'
+/**
+ * Tandai session ini sebagai unlocked.
+ */
+export function unlockSession(): void {
+  if (typeof window === 'undefined') return
+  sessionStorage.setItem(SESSION_KEY, 'true')
 }
 
-export function lock(): void {
-  sessionStorage.removeItem(PIN_UNLOCKED_KEY)
-}
-
-export function clearPin(): void {
-  localStorage.removeItem(PIN_HASH_KEY)
-  sessionStorage.removeItem(PIN_UNLOCKED_KEY)
+/**
+ * Clear session unlock flag (dipanggil saat logout/lock).
+ */
+export function lockSession(): void {
+  if (typeof window === 'undefined') return
+  sessionStorage.removeItem(SESSION_KEY)
 }

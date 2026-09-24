@@ -11,8 +11,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Finance — Personal Finance Tracker",
-  description: "Track everything about your money.",
+  title: "Synmony — Your Second Brain for Money",
+  description:
+    "Semua tentang uang lu dalam satu sistem. Transaksi, budget, aset, investasi, dan tujuan — terhubung dalam harmoni.",
+  applicationName: "Synmony",
 };
 
 export default function RootLayout({
@@ -36,4 +38,3 @@ export default function RootLayout({
     </html>
   );
 }
-

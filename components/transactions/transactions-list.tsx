@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Plus,
   Receipt,
@@ -14,6 +14,7 @@ import {
   SlidersHorizontal,
   X,
 } from 'lucide-react'
+import { AnimatedCheckbox } from '@/components/ui/animated-checkbox'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -47,50 +48,42 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { TransactionForm } from './transaction-form'
+import { TransactionDetail } from './transaction-detail'
 import { useTransactions } from '@/lib/hooks/use-transactions'
 import { formatRupiah } from '@/lib/normalize'
+import { DateFilter } from '@/components/shared/date-filter'
+import {
+  type DateRange,
+  EMPTY_DATE_RANGE,
+  isDateInRange,
+} from '@/lib/utils/date-range'
+import { usePagination } from '@/lib/hooks/use-pagination'
+import { Pagination } from '@/components/shared/pagination'
+import { BulkActionBar } from '@/components/shared/bulk-action-bar'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+import { formatDateGroupWIB, formatTimeWIB, getDateKeyWIB } from '@/lib/utils/datetime'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/types/database'
 
 type Account = Database['public']['Tables']['accounts']['Row']
 type Category = Database['public']['Tables']['categories']['Row']
 type Transaction = Database['public']['Tables']['transactions']['Row']
+type DailyItem = Database['public']['Tables']['daily_budget_items']['Row']
+type ReceiptRow = Database['public']['Tables']['receipts']['Row']
 
 type TransactionsListProps = {
   transactions: Transaction[]
   accounts: Account[]
   categories: Category[]
+  receipts: ReceiptRow[]
+  dailyItems: DailyItem[]
   profileId: string
 }
 
-function formatDate(dateStr: string) {
-  const date = new Date(dateStr)
-  const today = new Date()
-  const yesterday = new Date(today)
-  yesterday.setDate(yesterday.getDate() - 1)
-
-  if (date.toDateString() === today.toDateString()) return 'Hari ini'
-  if (date.toDateString() === yesterday.toDateString()) return 'Kemarin'
-
-  return date.toLocaleDateString('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'short',
-    year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
-  })
-}
-
-function formatTime(dateStr: string) {
-  return new Date(dateStr).toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-function groupByDate(transactions: Transaction[]) {
+function groupByDateKey(transactions: Transaction[]) {
   const groups: Record<string, Transaction[]> = {}
   transactions.forEach((t) => {
-    const key = new Date(t.date).toDateString()
+    const key = getDateKeyWIB(t.date)
     if (!groups[key]) groups[key] = []
     groups[key].push(t)
   })
@@ -101,16 +94,37 @@ export function TransactionsList({
   transactions,
   accounts,
   categories,
+  receipts,
+  dailyItems,
   profileId,
 }: TransactionsListProps) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Transaction | null>(null)
+  const [detailTx, setDetailTx] = useState<Transaction | null>(null)
   const [search, setSearch] = useState('')
   const [filterType, setFilterType] = useState<string>('all')
   const [filterAccount, setFilterAccount] = useState<string>('all')
+  const [dateRange, setDateRange] = useState<DateRange>(EMPTY_DATE_RANGE)
   const [filterOpen, setFilterOpen] = useState(false)
-  const { deleteTransaction } = useTransactions()
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  const { deleteTransaction, bulkDeleteTransactions } = useTransactions()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setEditing(null)
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+        setSheetOpen(true)
+      } else {
+        setDialogOpen(true)
+      }
+      router.replace(pathname, { scroll: false })
+    }
+  }, [searchParams, router, pathname])
 
   const filtered = useMemo(() => {
     return transactions.filter((t) => {
@@ -118,14 +132,72 @@ export function TransactionsList({
         return false
       if (filterType !== 'all' && t.type !== filterType) return false
       if (filterAccount !== 'all' && t.account_id !== filterAccount) return false
+      if (!isDateInRange(t.date, dateRange)) return false
       return true
     })
-  }, [transactions, search, filterType, filterAccount])
+  }, [transactions, search, filterType, filterAccount, dateRange])
 
-  const grouped = useMemo(() => groupByDate(filtered), [filtered])
+  // Pagination
+  const pagination = usePagination(filtered, 20)
+  const {
+    page,
+    perPage,
+    totalItems,
+    totalPages,
+    paginatedItems,
+    setPage,
+    setPerPage,
+    canNext,
+    canPrev,
+    nextPage,
+    prevPage,
+    from,
+    to,
+    reset: resetPage,
+  } = pagination
+
+  // Group paginated items
+  const grouped = useMemo(() => groupByDateKey(paginatedItems), [paginatedItems])
   const sortedDates = Object.keys(grouped).sort(
     (a, b) => new Date(b).getTime() - new Date(a).getTime()
   )
+
+  // Selection state
+  const pageIds = paginatedItems.map((t) => t.id)
+  const allOnPageSelected =
+    pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id))
+  const someOnPageSelected =
+    !allOnPageSelected && pageIds.some((id) => selectedIds.has(id))
+
+  function toggleSelectAllOnPage() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (allOnPageSelected) {
+        pageIds.forEach((id) => next.delete(id))
+      } else {
+        pageIds.forEach((id) => next.add(id))
+      }
+      return next
+    })
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set())
+  }
+
+  // Reset page kalau filter berubah
+  useEffect(() => {
+    resetPage()
+  }, [search, filterType, filterAccount, dateRange])
 
   const totalIncome = filtered
     .filter((t) => t.type === 'income')
@@ -134,7 +206,10 @@ export function TransactionsList({
     .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + Number(t.amount_idr), 0)
 
-  const hasActiveFilter = filterType !== 'all' || filterAccount !== 'all'
+  const hasActiveFilter =
+    filterType !== 'all' ||
+    filterAccount !== 'all' ||
+    dateRange.preset !== 'all'
 
   function openCreate() {
     setEditing(null)
@@ -163,11 +238,23 @@ export function TransactionsList({
   function resetFilters() {
     setFilterType('all')
     setFilterAccount('all')
+    setDateRange(EMPTY_DATE_RANGE)
+  }
+
+  async function handleBulkDelete() {
+    if (selectedIds.size === 0) return
+    const count = selectedIds.size
+    if (!confirm(`Hapus ${count} transaksi? Bisa di-restore dari Trash.`)) return
+
+    const result = await bulkDeleteTransactions(Array.from(selectedIds))
+    if (result.success) {
+      clearSelection()
+    }
   }
 
   return (
     <>
-      {/* Summary + Add */}
+      {/* Summary */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex gap-5">
           <div>
@@ -193,7 +280,7 @@ export function TransactionsList({
         </Button>
       </div>
 
-      {/* Compact search + filter */}
+      {/* Search + filter */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
@@ -214,7 +301,6 @@ export function TransactionsList({
           )}
         </div>
 
-        {/* Mobile: filter button + sheet */}
         <Button
           variant="outline"
           size="icon"
@@ -227,7 +313,10 @@ export function TransactionsList({
           )}
         </Button>
 
-        {/* Desktop: 2 dropdown langsung */}
+        <div className="hidden md:block">
+          <DateFilter value={dateRange} onChange={setDateRange} />
+        </div>
+
         <Select value={filterType} onValueChange={setFilterType}>
           <SelectTrigger className="hidden md:flex md:w-40 h-10">
             <SelectValue />
@@ -255,12 +344,16 @@ export function TransactionsList({
         </Select>
       </div>
 
-      {/* Active filter chips */}
+      {/* Active chips */}
       {hasActiveFilter && (
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           {filterType !== 'all' && (
             <Badge variant="default" className="gap-1">
-              {filterType === 'income' ? 'Income' : filterType === 'expense' ? 'Expense' : 'Transfer'}
+              {filterType === 'income'
+                ? 'Income'
+                : filterType === 'expense'
+                  ? 'Expense'
+                  : 'Transfer'}
               <button
                 onClick={() => setFilterType('all')}
                 className="cursor-pointer hover:opacity-70"
@@ -280,6 +373,52 @@ export function TransactionsList({
               </button>
             </Badge>
           )}
+          {dateRange.preset !== 'all' && (
+            <Badge variant="default" className="gap-1">
+              {dateRange.preset === 'today'
+                ? 'Hari ini'
+                : dateRange.preset === '7days'
+                  ? '7 hari'
+                  : dateRange.preset === '30days'
+                    ? '30 hari'
+                    : dateRange.preset === 'thisMonth'
+                      ? 'Bulan ini'
+                      : dateRange.preset === 'lastMonth'
+                        ? 'Bulan lalu'
+                        : 'Custom'}
+              <button
+                onClick={() => setDateRange(EMPTY_DATE_RANGE)}
+                className="cursor-pointer hover:opacity-70"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </Badge>
+          )}
+        </div>
+      )}
+
+      {/* Select-all bar */}
+      {paginatedItems.length > 0 && (
+        <div className="flex items-center justify-between gap-3 mb-3 px-1">
+          <div
+            onClick={toggleSelectAllOnPage}
+            className="flex items-center gap-2.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer select-none group"
+          >
+            <AnimatedCheckbox
+              checked={allOnPageSelected}
+              indeterminate={someOnPageSelected && !allOnPageSelected}
+              onCheckedChange={toggleSelectAllOnPage}
+              ariaLabel="Pilih semua di halaman ini"
+            />
+            <span>
+              {allOnPageSelected
+                ? `Semua di halaman ini (${pageIds.length})`
+                : 'Pilih semua di halaman'}
+            </span>
+          </div>
+          <p className="text-[11px] text-muted-foreground tabular-nums">
+            {from}–{to} dari {totalItems}
+          </p>
         </div>
       )}
 
@@ -289,7 +428,9 @@ export function TransactionsList({
           <CardContent>
             <EmptyState
               icon={Receipt}
-              title={search || hasActiveFilter ? 'Gak ada hasil' : 'Belum ada transaksi'}
+              title={
+                search || hasActiveFilter ? 'Gak ada hasil' : 'Belum ada transaksi'
+              }
               description={
                 search || hasActiveFilter
                   ? 'Coba ubah filter atau search keyword.'
@@ -319,12 +460,12 @@ export function TransactionsList({
             return (
               <div key={dateKey}>
                 <div className="flex items-center justify-between mb-2 px-1">
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                    {formatDate(items[0].date)}
+                  <p className="text-[10px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    {formatDateGroupWIB(items[0].date)}
                   </p>
                   <p
                     className={cn(
-                      'text-xs font-semibold tabular-nums',
+                      'text-[10px] sm:text-xs font-semibold tabular-nums',
                       dayTotal >= 0 ? 'text-emerald-600' : 'text-red-600'
                     )}
                   >
@@ -338,103 +479,138 @@ export function TransactionsList({
                     <div className="space-y-0.5">
                       {items.map((tx) => {
                         const account = accounts.find((a) => a.id === tx.account_id)
-                        const toAccount = accounts.find((a) => a.id === tx.to_account_id)
-                        const category = categories.find((c) => c.id === tx.category_id)
+                        const toAccount = accounts.find(
+                          (a) => a.id === tx.to_account_id
+                        )
+                        const category = categories.find(
+                          (c) => c.id === tx.category_id
+                        )
                         const isIncome = tx.type === 'income'
                         const isTransfer = tx.type === 'transfer'
+                        const isSelected = selectedIds.has(tx.id)
 
                         return (
                           <div
                             key={tx.id}
-                            className="group flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                            className={cn(
+                              'group flex items-center gap-2 py-2.5 px-2 rounded-xl transition-colors',
+                              isSelected
+                                ? 'bg-brand/5 dark:bg-brand/10'
+                                : 'hover:bg-slate-50 dark:hover:bg-white/5'
+                            )}
                           >
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                              <div
-                                className={cn(
-                                  'w-9 h-9 rounded-xl flex items-center justify-center shrink-0',
-                                  isIncome
-                                    ? 'bg-emerald-500/10 text-emerald-600'
-                                    : isTransfer
-                                    ? 'bg-brand/10 text-brand'
-                                    : 'bg-red-500/10 text-red-600'
-                                )}
-                              >
-                                {isIncome ? (
-                                  <TrendingUp className="w-4 h-4" />
-                                ) : isTransfer ? (
-                                  <ArrowLeftRight className="w-4 h-4" />
-                                ) : (
-                                  <TrendingDown className="w-4 h-4" />
-                                )}
-                              </div>
+                            {/* Checkbox */}
+                            <AnimatedCheckbox
+                              checked={isSelected}
+                              onCheckedChange={() => toggleSelect(tx.id)}
+                              ariaLabel={`Pilih ${tx.name}`}
+                            />
 
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium truncate leading-tight">
-                                  {tx.name}
-                                </p>
-                                <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
-                                  <span className="tabular-nums">
-                                    {formatTime(tx.date)}
-                                  </span>
-                                  <span>·</span>
-                                  <span className="truncate">
-                                    {isTransfer
-                                      ? `${account?.name} → ${toAccount?.name}`
-                                      : account?.name}
-                                  </span>
-                                  {category && !isTransfer && (
-                                    <>
-                                      <span>·</span>
-                                      <span className="truncate">{category.name}</span>
-                                    </>
+                            {/* Clickable content */}
+                            <div
+                              onClick={() => setDetailTx(tx)}
+                              className="flex items-center justify-between flex-1 min-w-0 cursor-pointer gap-2"
+                            >
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div
+                                  className={cn(
+                                    'w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0',
+                                    isIncome
+                                      ? 'bg-emerald-500/10 text-emerald-600'
+                                      : isTransfer
+                                        ? 'bg-brand/10 text-brand'
+                                        : 'bg-red-500/10 text-red-600'
                                   )}
-                                  {tx.exclude_from_daily_budget && (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-[9px] px-1 py-0 ml-0.5"
-                                    >
-                                      no-daily
-                                    </Badge>
+                                >
+                                  {isIncome ? (
+                                    <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                  ) : isTransfer ? (
+                                    <ArrowLeftRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                  ) : (
+                                    <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                   )}
                                 </div>
-                              </div>
-                            </div>
 
-                            <div className="flex items-center gap-1 shrink-0">
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs sm:text-sm font-medium truncate leading-tight">
+                                    {tx.name}
+                                  </p>
+                                  <div className="flex items-center gap-1.5 mt-0.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
+                                    <span className="tabular-nums">
+                                      {formatTimeWIB(tx.date)}
+                                    </span>
+                                    <span>·</span>
+                                    <span className="truncate">
+                                      {isTransfer
+                                        ? `${account?.name} → ${toAccount?.name}`
+                                        : account?.name}
+                                    </span>
+                                    {category && !isTransfer && (
+                                      <>
+                                        <span>·</span>
+                                        <span className="truncate">
+                                          {category.name}
+                                        </span>
+                                      </>
+                                    )}
+                                    {tx.exclude_from_daily_budget && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-[9px] px-1 py-0 ml-0.5"
+                                      >
+                                        no-daily
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
                               <p
                                 className={cn(
-                                  'text-sm font-semibold tabular-nums',
+                                  'text-xs sm:text-sm font-semibold tabular-nums shrink-0',
                                   isIncome
                                     ? 'text-emerald-600'
                                     : isTransfer
-                                    ? 'text-brand'
-                                    : 'text-slate-900 dark:text-white'
+                                      ? 'text-brand'
+                                      : 'text-slate-900 dark:text-white'
                                 )}
                               >
                                 {isIncome ? '+' : isTransfer ? '' : '-'}
                                 {formatRupiah(Number(tx.amount_idr))}
                               </p>
+                            </div>
 
+                            {/* Actions */}
+                            <div
+                              className="shrink-0"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button
                                     variant="ghost"
                                     size="icon-sm"
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="opacity-100"
                                   >
                                     <MoreVertical className="w-4 h-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => openEdit(tx)}>
-                                    <Edit3 className="w-4 h-4 mr-2" />
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="min-w-[160px]"
+                                >
+                                  <DropdownMenuItem
+                                    onSelect={() => openEdit(tx)}
+                                    className="whitespace-nowrap"
+                                  >
+                                    <Edit3 className="w-4 h-4 mr-2 shrink-0" />
                                     Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
-                                    onClick={() => deleteTransaction(tx.id)}
-                                    className="text-red-600 focus:text-red-600"
+                                    onSelect={() => deleteTransaction(tx.id)}
+                                    className="text-red-600 focus:text-red-600 whitespace-nowrap"
                                   >
-                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    <Trash2 className="w-4 h-4 mr-2 shrink-0" />
                                     Hapus
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -449,10 +625,35 @@ export function TransactionsList({
               </div>
             )
           })}
+
+          {/* Pagination */}
+          <Pagination
+            page={page}
+            perPage={perPage}
+            totalItems={totalItems}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            onPerPageChange={setPerPage}
+          />
         </div>
       )}
 
-      {/* Filter Sheet (mobile) */}
+      {/* Bulk Action Bar */}
+      <BulkActionBar
+        selectedCount={selectedIds.size}
+        totalOnPage={pageIds.length}
+        onClearSelection={clearSelection}
+        actions={[
+          {
+            label: 'Hapus',
+            icon: <Trash2 className="w-4 h-4" />,
+            onClick: handleBulkDelete,
+            variant: 'destructive',
+          },
+        ]}
+      />
+
+      {/* Filter Sheet mobile */}
       <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
         <SheetContent side="bottom" className="md:hidden">
           <SheetHeader>
@@ -490,6 +691,10 @@ export function TransactionsList({
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Tanggal</label>
+              <DateFilter value={dateRange} onChange={setDateRange} fullWidth />
+            </div>
             <div className="flex gap-2 pt-2">
               <Button
                 variant="outline"
@@ -501,10 +706,7 @@ export function TransactionsList({
               >
                 Reset
               </Button>
-              <Button
-                className="flex-1"
-                onClick={() => setFilterOpen(false)}
-              >
+              <Button className="flex-1" onClick={() => setFilterOpen(false)}>
                 Terapkan
               </Button>
             </div>
@@ -512,7 +714,83 @@ export function TransactionsList({
         </SheetContent>
       </Sheet>
 
-      {/* Form Sheet (mobile) */}
+      {/* Detail Sheet mobile */}
+      <Sheet
+        open={
+          !!detailTx &&
+          typeof window !== 'undefined' &&
+          window.innerWidth < 768
+        }
+        onOpenChange={(o) => !o && setDetailTx(null)}
+      >
+        <SheetContent
+          side="bottom"
+          className="md:hidden p-0 max-h-[92vh] flex flex-col gap-0 overflow-hidden rounded-t-3xl"
+        >
+          <div className="pt-3 pb-1 flex justify-center shrink-0">
+            <div className="w-10 h-1 rounded-full bg-slate-300 dark:bg-white/20" />
+          </div>
+          {detailTx && (
+            <TransactionDetail
+              transaction={detailTx}
+              account={accounts.find((a) => a.id === detailTx.account_id)}
+              toAccount={accounts.find((a) => a.id === detailTx.to_account_id)}
+              category={categories.find((c) => c.id === detailTx.category_id)}
+              receipt={
+                receipts.find((r) => r.transaction_id === detailTx.id) || null
+              }
+              onEdit={() => {
+                const tx = detailTx
+                setDetailTx(null)
+                setTimeout(() => openEdit(tx), 200)
+              }}
+              onDelete={() => {
+                if (confirm('Yakin hapus transaksi ini?')) {
+                  deleteTransaction(detailTx.id)
+                  setDetailTx(null)
+                }
+              }}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Detail Dialog desktop */}
+      <Dialog
+        open={
+          !!detailTx &&
+          typeof window !== 'undefined' &&
+          window.innerWidth >= 768
+        }
+        onOpenChange={(o) => !o && setDetailTx(null)}
+      >
+        <DialogContent className="hidden md:flex sm:max-w-2xl p-0 max-h-[90vh] flex-col gap-0 overflow-hidden">
+          {detailTx && (
+            <TransactionDetail
+              transaction={detailTx}
+              account={accounts.find((a) => a.id === detailTx.account_id)}
+              toAccount={accounts.find((a) => a.id === detailTx.to_account_id)}
+              category={categories.find((c) => c.id === detailTx.category_id)}
+              receipt={
+                receipts.find((r) => r.transaction_id === detailTx.id) || null
+              }
+              onEdit={() => {
+                const tx = detailTx
+                setDetailTx(null)
+                setTimeout(() => openEdit(tx), 200)
+              }}
+              onDelete={() => {
+                if (confirm('Yakin hapus transaksi ini?')) {
+                  deleteTransaction(detailTx.id)
+                  setDetailTx(null)
+                }
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Form Sheet mobile */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="bottom" className="md:hidden max-h-[90vh] overflow-y-auto">
           <SheetHeader>
@@ -526,6 +804,7 @@ export function TransactionsList({
               profileId={profileId}
               accounts={accounts}
               categories={categories}
+              dailyItems={dailyItems}
               transaction={editing}
               onSuccess={closeForm}
               onCancel={closeForm}
@@ -534,7 +813,7 @@ export function TransactionsList({
         </SheetContent>
       </Sheet>
 
-      {/* Form Dialog (desktop) */}
+      {/* Form Dialog desktop */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="hidden md:block sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -547,6 +826,7 @@ export function TransactionsList({
             profileId={profileId}
             accounts={accounts}
             categories={categories}
+            dailyItems={dailyItems}
             transaction={editing}
             onSuccess={closeForm}
             onCancel={closeForm}

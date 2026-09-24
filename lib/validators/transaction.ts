@@ -8,6 +8,7 @@ export const transactionSchema = z
     account_id: z.string().uuid('Pilih akun'),
     to_account_id: z.string().uuid().nullable().optional(),
     category_id: z.string().uuid().nullable().optional(),
+    daily_item_id: z.string().uuid().nullable().optional(),
     amount: z.coerce
       .number()
       .positive('Jumlah harus lebih dari 0'),

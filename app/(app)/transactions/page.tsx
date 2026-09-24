@@ -34,7 +34,13 @@ export default async function TransactionsPage() {
   }
 
   // Fetch all in parallel
-  const [accountsRes, categoriesRes, transactionsRes] = await Promise.all([
+  const [
+    accountsRes,
+    categoriesRes,
+    transactionsRes,
+    receiptsRes,
+    dailyItemsRes,
+  ] = await Promise.all([
     supabase
       .from('accounts')
       .select('*')
@@ -53,7 +59,17 @@ export default async function TransactionsPage() {
       .eq('profile_id', profile.id)
       .eq('is_deleted', false)
       .order('date', { ascending: false })
-      .limit(200),
+      .limit(1000),
+    supabase
+      .from('receipts')
+      .select('*')
+      .eq('user_id', user.id)
+      .not('transaction_id', 'is', null),
+    supabase
+      .from('daily_budget_items')
+      .select('*')
+      .eq('profile_id', profile.id)
+      .order('sort_order', { ascending: true }),
   ])
 
   return (
@@ -66,6 +82,8 @@ export default async function TransactionsPage() {
         transactions={transactionsRes.data || []}
         accounts={accountsRes.data || []}
         categories={categoriesRes.data || []}
+        receipts={receiptsRes.data || []}
+        dailyItems={dailyItemsRes.data || []}
         profileId={profile.id}
       />
     </PageWrapper>
