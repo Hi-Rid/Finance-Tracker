@@ -19,6 +19,7 @@ type StatCardProps = {
   trendLabel?: string
   sparklineData?: number[]
   sparklineLabels?: string[]
+  sparklineYAxisPadding?: number
   chartSlot?: React.ReactNode
   toolbarSlot?: React.ReactNode
   topRightSlot?: React.ReactNode
@@ -37,6 +38,7 @@ export function StatCard({
   trendLabel = 'dari bulan lalu',
   sparklineData,
   sparklineLabels,
+  sparklineYAxisPadding,
   chartSlot,
   toolbarSlot,
   topRightSlot,
@@ -156,9 +158,9 @@ export function StatCard({
               <div className="mt-1">
                 <Sparkline
                   data={sparklineData}
-                  labels={sparklineLabels}
                   color={accentColor}
                   height={64}
+                  yAxisPadding={sparklineYAxisPadding}
                 />
               </div>
             )
@@ -223,9 +225,9 @@ export function StatCard({
             <div className="mt-4 -mx-1">
               <Sparkline
                 data={sparklineData}
-                labels={sparklineLabels}
                 color={accentColor}
-                height={36}
+                height={64}
+                yAxisPadding={sparklineYAxisPadding}
               />
             </div>
           )}

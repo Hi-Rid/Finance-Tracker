@@ -27,6 +27,10 @@ import { computeDailyBudget, getTodayWIBRange } from '@/lib/utils/daily-budget'
 import { getMonthRange, getCurrentMonth, formatMonthShort } from '@/lib/utils/month'
 import { Amount } from '@/components/ui/amount'
 import { cn } from '@/lib/utils'
+import {
+  computeInvestmentHistory,
+  formatInvestmentMonth,
+} from '@/lib/investments/history'
 
 function formatDateGroup(dateStr: string) {
   const d = new Date(dateStr)
@@ -151,6 +155,16 @@ export default async function DashboardPage() {
     const currentMonth = getCurrentMonth()
     const { start: monthStart, end: monthEnd } = getMonthRange(currentMonth)
 
+    // Fetch investment assets dulu (butuh ID-nya buat subquery investment_transactions)
+    const { data: investmentAssets } = await supabase
+      .from('assets')
+      .select('id, type, current_value, purchase_price, quantity')
+      .eq('profile_id', profileId)
+      .in('type', ['stock', 'crypto', 'mutual_fund', 'gold'])
+      .eq('is_archived', false)
+
+    const investmentAssetIds = (investmentAssets || []).map((a) => a.id)
+
     const [
       itemsRes,
       todayTxRes,
@@ -163,6 +177,7 @@ export default async function DashboardPage() {
       expenseByCategoryRes,
       budgetPeriodsRes,
       budgetsRes,
+      invTxsRes,
     ] = await Promise.all([
       supabase
         .from('daily_budget_items')
@@ -188,21 +203,23 @@ export default async function DashboardPage() {
       supabase.from('categories').select('*').eq('user_id', user.id),
       supabase
         .from('accounts')
-        .select('id, name, type')
-        .eq('profile_id', profileId),
+        .select('id, name, type, current_balance')
+        .eq('profile_id', profileId)
+        .eq('is_archived', false),
       supabase.rpc('get_net_worth_history', {
         p_profile_id: profileId,
         p_months: 12,
       }),
+      // allAccountsRes — EXCLUDE archived
       supabase
         .from('accounts')
         .select('type, current_balance')
-        .eq('profile_id', profileId),
+        .eq('profile_id', profileId)
+        .eq('is_archived', false),
       supabase.rpc('get_cash_flow_history', {
         p_profile_id: profileId,
         p_months: 12,
       }),
-      // Expense by category — bulan ini
       supabase
         .from('transactions')
         .select('category_id, amount_idr')
@@ -222,6 +239,14 @@ export default async function DashboardPage() {
         .select('category_id, amount')
         .eq('profile_id', profileId)
         .eq('month', currentMonth),
+      // Investment transactions — buat sparkline
+      investmentAssetIds.length > 0
+        ? supabase
+          .from('investment_transactions')
+          .select('type, quantity, amount, date, asset_id')
+          .in('asset_id', investmentAssetIds)
+          .order('date', { ascending: true })
+        : Promise.resolve({ data: [], error: null } as any),
     ])
 
     // ============ Daily budget ============
@@ -260,17 +285,48 @@ export default async function DashboardPage() {
       account_name: tx.account_id ? accMap.get(tx.account_id) || null : null,
     }))
 
-    // ============ Net worth + Investment ============
+    // ============ Net worth ============
     let totalNetWorth = 0
-    let totalInvestment = 0
       ; (allAccountsRes.data || []).forEach((a) => {
         const balance = Number(a.current_balance)
         totalNetWorth += balance
-        if (a.type === 'investment') totalInvestment += balance
       })
     currentNetWorth = totalNetWorth
-    currentInvestment = totalInvestment
 
+    // ============ Investment — portfolio value aja ============
+    let portfolioValue = 0
+      ; (investmentAssets || []).forEach((a) => {
+        portfolioValue += Number(a.current_value)
+      })
+
+    currentInvestment = portfolioValue
+
+    // ============ Investment sparkline ============
+    const invHistory = computeInvestmentHistory(
+      (invTxsRes?.data || []) as any,
+      6
+    )
+
+    if (invHistory.length > 0 && invHistory.some((h) => h.value > 0)) {
+      investmentSparkline = invHistory.map((h) => h.value)
+      investmentLabels = invHistory.map((h) => formatInvestmentMonth(h.month))
+
+      if (invHistory.length >= 2) {
+        const curr = invHistory[invHistory.length - 1].value
+        const prev = invHistory[invHistory.length - 2].value
+        if (prev > 0) {
+          investmentTrend = ((curr - prev) / prev) * 100
+        } else if (curr > 0) {
+          investmentTrend = 100
+        }
+      }
+    } else {
+      investmentSparkline = [currentInvestment, currentInvestment]
+      investmentLabels = ['Sekarang', 'Sekarang']
+      investmentTrend = 0
+    }
+
+    // ============ Net worth history ============
     const historyRaw = (netWorthHistoryRes.data || []) as Array<{
       month: string
       net_worth: number | string
@@ -327,12 +383,7 @@ export default async function DashboardPage() {
       })
     })
 
-    // Investment sparkline (flat dulu karena belum ada history investasi)
-    investmentSparkline = [currentInvestment, currentInvestment]
-    investmentLabels = ['Sekarang', 'Sekarang']
-    investmentTrend = 0
-
-    // ============ Expense by category (real) ============
+    // ============ Expense by category ============
     const catAgg = new Map<string, number>()
       ; (expenseByCategoryRes.data || []).forEach((tx) => {
         if (!tx.category_id) return
@@ -358,7 +409,7 @@ export default async function DashboardPage() {
       ]
     }
 
-    // ============ Monthly trend (real, 12 bulan) ============
+    // ============ Monthly trend ============
     monthlyTrend = cfAsc.map((m) => ({
       name: formatMonthShort(m.month),
       income: Number(m.income) / 1_000_000,
@@ -366,7 +417,7 @@ export default async function DashboardPage() {
       saving: Number(m.net) / 1_000_000,
     }))
 
-    // ============ Budget progress (real) ============
+    // ============ Budget progress ============
     const budgetsRaw = (budgetsRes.data || []) as Array<{
       category_id: string
       amount: number | string
@@ -451,7 +502,6 @@ export default async function DashboardPage() {
       {/* Row 3 — Transaksi + Pengeluaran */}
       <FadeIn delay={0.1}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
-          {/* Transaksi Terakhir */}
           <Card className="lg:col-span-2 flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -571,7 +621,6 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Pengeluaran per Kategori */}
           <Card className="flex flex-col">
             <CardHeader>
               <CardTitle>Pengeluaran per Kategori</CardTitle>
@@ -618,7 +667,7 @@ export default async function DashboardPage() {
         </div>
       </FadeIn>
 
-      {/* Row 4 — Trend Bulanan (full width) */}
+      {/* Row 4 — Trend Bulanan */}
       <FadeIn delay={0.15}>
         <Card className="mb-8">
           <CardHeader>

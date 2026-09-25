@@ -19,19 +19,15 @@ export function InvestmentCard({
     sparklineData,
     sparklineLabels,
 }: InvestmentCardProps) {
-    const startIdx = sparklineData.findIndex((v) => v !== 0)
-    const trimmedData = startIdx === -1 ? [0] : sparklineData.slice(startIdx)
-    const trimmedLabels =
-        startIdx === -1
-            ? ['Sekarang']
-            : (sparklineLabels || []).slice(startIdx)
+    // Jangan trim leading zeros — kita mau liat growth dari 0 → sekarang
+    // Cuma pastiin minimal ada 2 titik biar chart render
+    let displayData = sparklineData
+    let displayLabels = sparklineLabels || []
 
-    let displayData = trimmedData
-    let displayLabels = trimmedLabels
-
-    if (trimmedData.length === 1) {
-        displayData = [trimmedData[0], trimmedData[0]]
-        displayLabels = [trimmedLabels[0] || '', trimmedLabels[0] || '']
+    if (displayData.length < 2) {
+        const v = displayData[0] || 0
+        displayData = [0, v]
+        displayLabels = ['Awal', 'Sekarang']
     }
 
     return (
@@ -40,10 +36,11 @@ export function InvestmentCard({
             value={value}
             icon={<TrendingUp className="w-5 h-5" />}
             trend={trend}
-            trendLabel="dari bulan lalu"
+            trendLabel="pertumbuhan modal"
             accentColor={CHART_COLORS.warning}
             sparklineData={displayData}
             sparklineLabels={displayLabels}
+            sparklineYAxisPadding={0.15}
             topRightSlot={
                 <Link
                     href="/investments"
@@ -52,8 +49,8 @@ export function InvestmentCard({
                         'text-brand hover:bg-brand/5 dark:hover:bg-brand/10'
                     )}
                 >
-                    <span className="hidden sm:inline">Lihat History</span>
-                    <span className="sm:hidden">History</span>
+                    <span className="hidden sm:inline">Lihat Portfolio</span>
+                    <span className="sm:hidden">Portfolio</span>
                     <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/link:translate-x-0.5" />
                 </Link>
             }

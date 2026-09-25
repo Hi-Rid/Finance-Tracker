@@ -100,7 +100,7 @@ export function CategoryForm({
         }
     }
 
-    const PreviewIcon = getCategoryIcon(watchedIcon)
+    const PreviewIcon = getCategoryIcon(watchedIcon ?? null)
 
     return (
         <Form {...form}>

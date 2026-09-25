@@ -113,7 +113,11 @@ export function Header({ userEmail }: HeaderProps) {
             className="relative"
           >
             <Bell className="w-5 h-5" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-background" />
+            {/* TODO: uncomment setelah notification system jadi
+            {unreadCount > 0 && (
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-background" />
+            )}
+            */}
           </Button>
 
           <Avatar className="size-8 ml-1 ring-2 ring-primary-400/30">

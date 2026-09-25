@@ -168,7 +168,6 @@ export function useTransactions() {
     [supabase, router]
   )
 
-  return { createTransaction, updateTransaction, deleteTransaction }
   const bulkDeleteTransactions = useCallback(
     async (ids: string[]) => {
       if (ids.length === 0) return { success: false }

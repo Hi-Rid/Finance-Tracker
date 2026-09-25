@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { useEffect, useState } from 'react'
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,19 +24,13 @@ import {
 } from '@/components/ui/select'
 import { useAccounts } from '@/lib/hooks/use-accounts'
 import { toUppercase } from '@/lib/normalize'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Lock, Info } from 'lucide-react'
+import { createAccountSchema, type CreateAccountInput } from '@/lib/validators/account'
 import type { Database } from '@/types/database'
 
 type Account = Database['public']['Tables']['accounts']['Row']
 
-const accountSchema = z.object({
-  name: z.string().min(1, 'Nama wajib diisi'),
-  type: z.enum(['cash', 'bank', 'ewallet', 'credit', 'paylater', 'investment', 'other']),
-  initial_balance: z.coerce.number(),
-  note: z.string().optional(),
-})
-
-type AccountFormValues = z.infer<typeof accountSchema>
+type AccountFormValues = CreateAccountInput
 
 const accountTypes = [
   { value: 'cash', label: 'Cash' },
@@ -51,6 +45,7 @@ const accountTypes = [
 type AccountFormProps = {
   profileId: string
   account?: Account | null
+  hasTransactions?: boolean
   onSuccess?: () => void
   onCancel?: () => void
 }
@@ -58,18 +53,22 @@ type AccountFormProps = {
 export function AccountForm({
   profileId,
   account,
+  hasTransactions = false,
   onSuccess,
   onCancel,
 }: AccountFormProps) {
   const { createAccount, updateAccount } = useAccounts()
   const isEdit = !!account
 
+  // Saldo awal read-only kalau edit akun yang udah punya transaksi
+  const isBalanceLocked = isEdit && hasTransactions
+
   const form = useForm<AccountFormValues>({
-    resolver: zodResolver(accountSchema),
+    resolver: zodResolver(createAccountSchema) as any,
     defaultValues: {
       name: account?.name || '',
       type: (account?.type as AccountFormValues['type']) || 'bank',
-      initial_balance: account?.initial_balance || 0,
+      initial_balance: account?.initial_balance ? Number(account.initial_balance) : 0,
       note: account?.note || '',
     },
   })
@@ -79,25 +78,28 @@ export function AccountForm({
   } = form
 
   async function onSubmit(data: AccountFormValues) {
-    // Normalize nama akun → UPPERCASE
     const normalized = {
       ...data,
       name: toUppercase(data.name),
-      profile_id: profileId,
-      currency: 'IDR',
-      // Saat edit, current_balance = initial_balance 
-      // (nanti kalau ada transaksi, trigger akan adjust otomatis)
-      current_balance: data.initial_balance,
     }
 
     if (isEdit && account) {
-      const result = await updateAccount(account.id, normalized)
+      // Update: JANGAN update balance, cuma nama/tipe/catatan
+      const result = await updateAccount(account.id, {
+        name: normalized.name,
+        type: normalized.type,
+        note: normalized.note?.trim() || null,
+      })
       if (result.success) {
         onSuccess?.()
         form.reset()
       }
     } else {
-      const result = await createAccount(normalized)
+      // Create
+      const result = await createAccount({
+        ...normalized,
+        profileId,
+      })
       if (result.success) {
         onSuccess?.()
         form.reset()
@@ -154,14 +156,33 @@ export function AccountForm({
             <FormItem>
               <FormLabel>
                 {isEdit ? 'Saldo Awal' : 'Saldo Saat Ini'}
+                {isBalanceLocked && (
+                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                    <Lock className="w-3 h-3" />
+                    Terkunci
+                  </span>
+                )}
               </FormLabel>
               <FormControl>
                 <CurrencyInput
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="0"
+                  disabled={isBalanceLocked}
                 />
               </FormControl>
+
+              {isBalanceLocked && (
+                <div className="rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 p-2.5 flex gap-2 mt-2">
+                  <Info className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+                    Saldo awal terkunci karena ada transaksi. Pakai tombol{' '}
+                    <strong>Tambah Saldo</strong> atau <strong>Koreksi Saldo</strong>{' '}
+                    untuk penyesuaian.
+                  </p>
+                </div>
+              )}
+
               <FormMessage />
             </FormItem>
           )}
@@ -192,11 +213,7 @@ export function AccountForm({
               Batal
             </Button>
           )}
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex-1"
-          >
+          <Button type="submit" disabled={isSubmitting} className="flex-1">
             {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
             {isEdit ? 'Simpan' : 'Tambah'}
           </Button>

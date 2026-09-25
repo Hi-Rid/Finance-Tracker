@@ -276,9 +276,9 @@ export function DailyItemForm({
                                             <span>
                                                 Sisa budget harian kategori ini:{' '}
                                                 <strong>
-                                                    {formatRupiah(Math.round(budgetInfo.remainingPerDay))}
+                                                    {formatRupiah(Math.round(budgetInfo.remainingPerDay ?? 0))}
                                                 </strong>{' '}
-                                                (dari {formatRupiah(budgetInfo.remainingBudget)} ÷{' '}
+                                                (dari {formatRupiah(budgetInfo.remainingBudget ?? 0)} ÷{' '}
                                                 {budgetInfo.daysInMonth} hari).
                                             </span>
                                         </>

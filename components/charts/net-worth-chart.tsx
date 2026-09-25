@@ -144,10 +144,10 @@ export function NetWorthChart({
                             color: 'var(--color-muted-foreground)',
                             marginBottom: '2px',
                         }}
-                        formatter={(value: number) => [
+                        formatter={((value: number) => [
                             `Rp ${value.toLocaleString('id-ID')}`,
                             'Net Worth',
-                        ]}
+                        ]) as any}
                     />
 
                     <Area

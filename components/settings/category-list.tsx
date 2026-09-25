@@ -175,7 +175,7 @@ export function CategoryList({ categories }: CategoryListProps) {
                 </div>
                 {archivedCount > 0 && (
                     <Button
-                        variant={showArchived ? 'default' : 'outline'}
+                        variant={showArchived ? 'primary' : 'outline'}
                         onClick={() => setShowArchived((v) => !v)}
                         className="shrink-0"
                     >

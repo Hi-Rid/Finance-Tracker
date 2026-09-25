@@ -44,6 +44,7 @@ export function CashFlowCard({
             accentColor={CHART_COLORS.success}
             sparklineData={displayData}
             sparklineLabels={displayLabels}
+            sparklineYAxisPadding={0.15}
             topRightSlot={
                 <Link
                     href="/cash-flow"

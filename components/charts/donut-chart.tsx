@@ -62,7 +62,7 @@ export function DonutChart({
               padding: '8px 12px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
             }}
-            formatter={(value: number) => [formatRupiah(value), '']}
+            formatter={((value: number) => [formatRupiah(value), '']) as any}
           />
         </PieChart>
       </ResponsiveContainer>

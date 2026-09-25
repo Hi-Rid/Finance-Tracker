@@ -130,7 +130,7 @@ export function Pagination({
                         ) : (
                             <Button
                                 key={p}
-                                variant={p === page ? 'default' : 'outline'}
+                                variant={p === page ? 'primary' : 'outline'}
                                 size="icon-sm"
                                 onClick={() => onPageChange(p)}
                                 className={cn(
