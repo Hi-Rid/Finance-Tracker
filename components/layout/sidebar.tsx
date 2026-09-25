@@ -60,8 +60,8 @@ export function Sidebar({ userEmail }: SidebarProps) {
               <div className="text-lg font-bold tracking-tight leading-none">
                 Synmony
               </div>
-              <div className="text-[10px] text-sidebar-muted uppercase tracking-wider mt-0.5">
-                Second Brain for Money
+              <div className="text-[10px] text-sidebar-muted tracking-wider mt-2">
+                Second Brain for Your Money
               </div>
             </div>
           </Link>
