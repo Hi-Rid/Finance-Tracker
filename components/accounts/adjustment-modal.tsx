@@ -3,7 +3,13 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
-import { Loader2, Calculator, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react'
+import {
+    Loader2,
+    Calculator,
+    TrendingUp,
+    TrendingDown,
+    AlertTriangle,
+} from 'lucide-react'
 import {
     Form,
     FormControl,
@@ -16,12 +22,12 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CurrencyInput } from '@/components/ui/currency-input'
+import { Amount } from '@/components/ui/amount'
 import { useAccounts } from '@/lib/hooks/use-accounts'
 import {
     adjustmentSchema,
     type AdjustmentInput,
 } from '@/lib/validators/account'
-import { formatRupiah } from '@/lib/normalize'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/types/database'
 
@@ -101,8 +107,12 @@ export function AdjustmentModal({
                         </span>
                     </div>
                     <p className="text-base font-bold">{account.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
-                        Saldo tercatat: {formatRupiah(currentBalance)}
+                    <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                        <span>Saldo tercatat:</span>
+                        <Amount
+                            value={currentBalance}
+                            className="inline text-xs font-medium"
+                        />
                     </p>
                 </div>
 
@@ -161,19 +171,22 @@ export function AdjustmentModal({
                                 Penyesuaian
                             </span>
                         </div>
-                        <p
+                        <Amount
+                            value={delta}
+                            sign={isPositive ? 'positive' : 'negative'}
                             className={cn(
-                                'text-2xl font-bold tabular-nums',
+                                'text-2xl font-bold',
                                 isPositive
                                     ? 'text-emerald-700 dark:text-emerald-300'
                                     : 'text-red-600 dark:text-red-400'
                             )}
-                        >
-                            {isPositive ? '+' : '−'}
-                            {formatRupiah(Math.abs(delta))}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">
-                            Saldo akan jadi {formatRupiah(actualBalance)}
+                        />
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <span>Saldo akan jadi</span>
+                            <Amount
+                                value={actualBalance}
+                                className="inline text-[10px] font-medium"
+                            />
                         </p>
                     </div>
                 )}
@@ -193,7 +206,7 @@ export function AdjustmentModal({
                     )}
                 />
 
-                {/* Note (required) */}
+                {/* Note */}
                 <FormField
                     control={form.control}
                     name="note"

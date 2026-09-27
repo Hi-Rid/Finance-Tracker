@@ -31,50 +31,84 @@ function extractFields(items: NanonetsItem[]) {
 }
 
 /**
- * Parse angka dari string format Indonesia.
- * - "25.000" → 25000
- * - "25.000,50" → 25000.5
- * - "1.234.567" → 1234567
- * - "25,5" → 25.5
- * - "25.5" → 25.5 (kalo cuma 1 titik + 1-2 digit di akhir)
+ * Smart parse angka — deteksi format US vs Indonesian otomatis.
+ *
+ * Aturan:
+ *   - Ada KOMA + TITIK: yang muncul terakhir = desimal
+ *     - "1.234,56" (ID) → 1234.56
+ *     - "1,234.56" (US) → 1234.56
+ *   - Cuma KOMA:
+ *     - 3 digit setelah koma → thousand (US): "43,500" → 43500
+ *     - 1-2 digit → decimal: "43,5" → 43.5
+ *   - Cuma TITIK:
+ *     - 3 digit setelah titik → thousand (ID): "43.500" → 43500
+ *     - 1-2 digit → decimal: "43.5" → 43.5
+ *   - Cuma angka: parse direct
  */
-function parseIndonesianNumber(
-    str: string | null | undefined
-): number {
+function parseNumberSmart(str: string | null | undefined): number {
     if (!str) return 0
 
     const cleaned = String(str).trim().replace(/[^\d.,-]/g, '')
     if (!cleaned) return 0
 
-    // Kalo ada koma = format Indonesia (koma = desimal)
-    if (cleaned.includes(',')) {
-        // Hapus titik (thousand), ganti koma jadi titik (desimal)
-        const normalized = cleaned.replace(/\./g, '').replace(',', '.')
-        return parseFloat(normalized) || 0
+    const hasComma = cleaned.includes(',')
+    const hasDot = cleaned.includes('.')
+
+    // ============ Case 1: ADA KOMA + TITIK ============
+    if (hasComma && hasDot) {
+        const lastComma = cleaned.lastIndexOf(',')
+        const lastDot = cleaned.lastIndexOf('.')
+
+        if (lastComma > lastDot) {
+            // Indonesian: titik = thousand, koma = decimal
+            // "1.234,56" → "1234.56"
+            const normalized = cleaned.replace(/\./g, '').replace(',', '.')
+            return parseFloat(normalized) || 0
+        } else {
+            // US: koma = thousand, titik = decimal
+            // "1,234.56" → "1234.56"
+            const normalized = cleaned.replace(/,/g, '')
+            return parseFloat(normalized) || 0
+        }
     }
 
-    // Gak ada koma, cek titik
-    const dots = cleaned.split('.')
+    // ============ Case 2: CUMA KOMA ============
+    if (hasComma) {
+        const parts = cleaned.split(',')
+        const lastPart = parts[parts.length - 1]
 
-    // Gak ada titik
-    if (dots.length === 1) {
+        // Multiple koma → thousand separator ("1,234,567")
+        if (parts.length > 2) {
+            return parseFloat(cleaned.replace(/,/g, '')) || 0
+        }
+
+        // 3 digit setelah koma → thousand (US) "43,500" → 43500
+        // 1-2 digit → decimal "43,5" → 43.5
+        if (lastPart.length === 3) {
+            return parseFloat(cleaned.replace(/,/g, '')) || 0
+        }
+        return parseFloat(cleaned.replace(',', '.')) || 0
+    }
+
+    // ============ Case 3: CUMA TITIK ============
+    if (hasDot) {
+        const parts = cleaned.split('.')
+        const lastPart = parts[parts.length - 1]
+
+        // Multiple titik → thousand separator ("1.234.567")
+        if (parts.length > 2) {
+            return parseFloat(cleaned.replace(/\./g, '')) || 0
+        }
+
+        // 3 digit setelah titik → thousand (ID) "43.500" → 43500
+        // 1-2 digit → decimal "43.5" → 43.5
+        if (lastPart.length === 3) {
+            return parseFloat(cleaned.replace(/\./g, '')) || 0
+        }
         return parseFloat(cleaned) || 0
     }
 
-    // Multiple titik = thousand separator ("1.234.567")
-    if (dots.length > 2) {
-        return parseFloat(cleaned.replace(/\./g, '')) || 0
-    }
-
-    // Cek 1 titik — thousand atau desimal?
-    const lastPart = dots[dots.length - 1]
-
-    // Kalo 3 digit di akhir = thousand separator ("25.000" = 25000)
-    if (lastPart.length === 3) {
-        return parseFloat(cleaned.replace(/\./g, '')) || 0
-    }
-
-    // Kalo 1-2 digit = desimal ("25.5" = 25.5)
+    // ============ Case 4: CUMA ANGKA ============
     return parseFloat(cleaned) || 0
 }
 
@@ -102,9 +136,9 @@ function parseTableItems(table: NanonetsTable): ParsedReceiptItem[] {
         const description = rowCells['Description']?.text?.trim() || ''
         if (!description) continue
 
-        const quantity = parseIndonesianNumber(rowCells['Quantity']?.text) || 1
-        const unitPrice = parseIndonesianNumber(rowCells['Price']?.text)
-        const lineAmount = parseIndonesianNumber(rowCells['Line_Amount']?.text)
+        const quantity = parseNumberSmart(rowCells['Quantity']?.text) || 1
+        const unitPrice = parseNumberSmart(rowCells['Price']?.text)
+        const lineAmount = parseNumberSmart(rowCells['Line_Amount']?.text)
         const total = lineAmount || unitPrice * quantity
 
         items.push({
@@ -123,6 +157,7 @@ function parseDateToISO(dateStr: string | null): string | null {
 
     const cleaned = dateStr.trim()
 
+    // DD-MM-YYYY atau DD/MM/YYYY (Indonesian)
     const dmyMatch = cleaned.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$/)
     if (dmyMatch) {
         let [, day, month, year] = dmyMatch
@@ -130,6 +165,7 @@ function parseDateToISO(dateStr: string | null): string | null {
         return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
     }
 
+    // YYYY-MM-DD (ISO)
     const isoMatch = cleaned.match(/^(\d{4})[./-](\d{1,2})[./-](\d{1,2})$/)
     if (isoMatch) {
         const [, year, month, day] = isoMatch
@@ -144,9 +180,6 @@ function parseDateToISO(dateStr: string | null): string | null {
     return null
 }
 
-/**
- * Parse jam dari berbagai format → "HH:MM" (24 jam).
- */
 function parseTimeToHHMM(timeStr: string | null): string | null {
     if (!timeStr) return null
 
@@ -196,9 +229,9 @@ export function parseReceiptResponse(raw: any): ParsedReceipt {
     const timeHHMM = parseTimeToHHMM(fields['Time']?.text || null)
     const datetime = combineDateAndTime(dateISO, timeHHMM)
 
-    // Pakai parseIndonesianNumber untuk amount
-    const totalAmount = parseIndonesianNumber(fields['Total_Amount']?.text)
-    const taxAmount = parseIndonesianNumber(fields['Tax_Amount']?.text)
+    // ✅ PAKAI SMART PARSER
+    const totalAmount = parseNumberSmart(fields['Total_Amount']?.text)
+    const taxAmount = parseNumberSmart(fields['Tax_Amount']?.text)
 
     const parsedItems = table ? parseTableItems(table) : []
 
@@ -217,9 +250,7 @@ export function parseReceiptResponse(raw: any): ParsedReceipt {
             ? keyScores.reduce((a, b) => a + b, 0) / keyScores.length
             : 0
 
-    // ============================================================
-    // EXTRACT FILE URLs
-    // ============================================================
+    // ============ EXTRACT FILE URLs ============
     const source = Array.isArray(raw) ? raw[0] : raw
     const result = raw?.result?.[0]
 

@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CurrencyInput } from '@/components/ui/currency-input'
+import { Amount } from '@/components/ui/amount'
 import {
     Select,
     SelectContent,
@@ -24,7 +25,6 @@ import {
 } from '@/components/ui/select'
 import { useInvestments } from '@/lib/hooks/use-investments'
 import { buyMoreSchema, type BuyMoreInput } from '@/lib/validators/investment'
-import { formatRupiah } from '@/lib/normalize'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/types/database'
 import type { InvestmentPosition } from '@/lib/investments/types'
@@ -50,6 +50,7 @@ function toDateTimeInputValue(date: Date): string {
 function getQuantityLabel(type: string): string {
     if (type === 'stock') return 'Lot'
     if (type === 'gold') return 'Gram'
+    if (type === 'bond') return 'Unit'
     return 'Jumlah'
 }
 
@@ -100,7 +101,6 @@ export function BuyMoreModal({
             ? (position.lot_held * position.avg_price + quantity * price) / newTotal
             : 0
 
-    // ============ Balance check ============
     const selectedAccount = investmentAccounts.find((a) => a.id === accountId)
     const availableBalance = selectedAccount
         ? Number(selectedAccount.current_balance)
@@ -134,8 +134,12 @@ export function BuyMoreModal({
                         {ticker} · {position.lot_held}{' '}
                         {getQuantityLabel(position.asset.type).toLowerCase()}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
-                        Avg {formatRupiah(position.avg_price)}
+                    <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                        <span>Avg</span>
+                        <Amount
+                            value={position.avg_price}
+                            className="inline text-xs font-medium"
+                        />
                     </p>
                 </div>
 
@@ -226,23 +230,28 @@ export function BuyMoreModal({
                                 : 'bg-brand/5 border-brand/20'
                         )}
                     >
-                        <div className="flex justify-between text-xs">
+                        <div className="flex justify-between items-center text-xs">
                             <span className="text-muted-foreground">Total Beli</span>
-                            <span className="font-medium tabular-nums">
-                                {formatRupiah(gross)}
-                            </span>
+                            <Amount
+                                value={gross}
+                                className="text-xs font-medium"
+                            />
                         </div>
                         {fee > 0 && (
-                            <div className="flex justify-between text-xs">
+                            <div className="flex justify-between items-center text-xs">
                                 <span className="text-muted-foreground">Biaya</span>
-                                <span className="font-medium tabular-nums">
-                                    +{formatRupiah(fee)}
-                                </span>
+                                <div className="flex items-center gap-0.5">
+                                    <span className="text-xs font-medium">+</span>
+                                    <Amount
+                                        value={fee}
+                                        className="text-xs font-medium"
+                                    />
+                                </div>
                             </div>
                         )}
                         <div
                             className={cn(
-                                'flex justify-between pt-2 border-t',
+                                'flex justify-between items-center pt-2 border-t',
                                 insufficientBalance
                                     ? 'border-red-200 dark:border-red-500/30'
                                     : 'border-brand/20'
@@ -251,26 +260,27 @@ export function BuyMoreModal({
                             <span
                                 className={cn(
                                     'text-xs font-semibold',
-                                    insufficientBalance ? 'text-red-700 dark:text-red-300' : 'text-brand'
+                                    insufficientBalance
+                                        ? 'text-red-700 dark:text-red-300'
+                                        : 'text-brand'
                                 )}
                             >
                                 Total Bayar
                             </span>
-                            <span
+                            <Amount
+                                value={total}
                                 className={cn(
-                                    'text-base font-bold tabular-nums',
+                                    'text-base font-bold',
                                     insufficientBalance
                                         ? 'text-red-600 dark:text-red-400'
                                         : 'text-brand'
                                 )}
-                            >
-                                {formatRupiah(total)}
-                            </span>
+                            />
                         </div>
                         {newAvg > 0 && (
                             <div
                                 className={cn(
-                                    'flex justify-between pt-2 border-t',
+                                    'flex justify-between items-center pt-2 border-t',
                                     insufficientBalance
                                         ? 'border-red-200/60 dark:border-red-500/20'
                                         : 'border-brand/10'
@@ -279,22 +289,29 @@ export function BuyMoreModal({
                                 <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
                                     Avg Baru
                                 </span>
-                                <span className="text-xs font-semibold tabular-nums text-slate-700 dark:text-slate-300">
-                                    {formatRupiah(newAvg)}
-                                </span>
+                                <Amount
+                                    value={newAvg}
+                                    className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+                                />
                             </div>
                         )}
 
                         {insufficientBalance && selectedAccount && (
                             <div className="mt-2 pt-2 border-t border-red-200 dark:border-red-500/30 flex items-start gap-2">
                                 <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-                                <div className="text-xs text-red-700 dark:text-red-300">
-                                    <p className="font-semibold mb-0.5">Saldo tidak cukup</p>
-                                    <p>
-                                        Saldo <strong>{selectedAccount.name}</strong>:{' '}
-                                        {formatRupiah(availableBalance)} · Kurang{' '}
-                                        <strong>{formatRupiah(total - availableBalance)}</strong>
-                                    </p>
+                                <div className="text-xs text-red-700 dark:text-red-300 flex flex-wrap items-center gap-1">
+                                    <span>
+                                        Saldo <strong>{selectedAccount.name}</strong> cuma
+                                    </span>
+                                    <Amount
+                                        value={availableBalance}
+                                        className="inline text-xs font-medium"
+                                    />
+                                    <span>— kurang</span>
+                                    <Amount
+                                        value={total - availableBalance}
+                                        className="inline text-xs font-bold"
+                                    />
                                 </div>
                             </div>
                         )}
@@ -334,9 +351,10 @@ export function BuyMoreModal({
                                         <SelectItem key={a.id} value={a.id}>
                                             <div className="flex items-center justify-between gap-3 w-full">
                                                 <span>{a.name}</span>
-                                                <span className="text-xs text-slate-500 tabular-nums">
-                                                    {formatRupiah(Number(a.current_balance))}
-                                                </span>
+                                                <Amount
+                                                    value={Number(a.current_balance)}
+                                                    className="text-xs text-slate-500"
+                                                />
                                             </div>
                                         </SelectItem>
                                     ))}

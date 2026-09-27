@@ -11,11 +11,13 @@ import {
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Amount } from '@/components/ui/amount'
 import {
     Dialog,
     DialogContent,
 } from '@/components/ui/dialog'
 import { EmptyState } from '@/components/ui/empty-state'
+import { HideAmountsButton } from '@/components/shared/hide-amounts-button'
 import { ReceiptDetail } from './receipt-detail'
 import { AnimatedCheckbox } from '@/components/ui/animated-checkbox'
 import { Pagination } from '@/components/shared/pagination'
@@ -168,7 +170,7 @@ export function ReceiptsList({ receipts }: ReceiptsListProps) {
 
     return (
         <>
-            {/* Search + Select All */}
+            {/* Search + Hide + Select All */}
             <div className="flex items-center gap-3 mb-4">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
@@ -189,10 +191,12 @@ export function ReceiptsList({ receipts }: ReceiptsListProps) {
                     )}
                 </div>
 
+                <HideAmountsButton size="icon-sm" />
+
                 {paginatedItems.length > 0 && (
                     <div
                         onClick={toggleSelectAllOnPage}
-                        className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer select-none shrink-0"
+                        className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer select-none shrink-0"
                     >
                         <AnimatedCheckbox
                             checked={allOnPageSelected}
@@ -200,7 +204,7 @@ export function ReceiptsList({ receipts }: ReceiptsListProps) {
                             onCheckedChange={toggleSelectAllOnPage}
                             ariaLabel="Pilih semua"
                         />
-                        <span className="hidden sm:inline whitespace-nowrap">
+                        <span className="whitespace-nowrap">
                             {allOnPageSelected ? 'Terpilih' : 'Pilih semua'}
                         </span>
                     </div>
@@ -240,7 +244,6 @@ export function ReceiptsList({ receipts }: ReceiptsListProps) {
                                             : 'border-slate-200/70 dark:border-white/15 hover:border-brand/40 hover:shadow-lg dark:hover:shadow-black/50'
                                     )}
                                 >
-                                    {/* Image */}
                                     <div className="relative w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-xl overflow-hidden bg-slate-100 dark:bg-white/5 shrink-0">
                                         {imageUrl ? (
                                             <img
@@ -257,9 +260,7 @@ export function ReceiptsList({ receipts }: ReceiptsListProps) {
                                         )}
                                     </div>
 
-                                    {/* Content */}
                                     <div className="flex-1 min-w-0 flex flex-col justify-between">
-                                        {/* Top: title + checkbox */}
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0 flex-1">
                                                 <p className="text-sm md:text-base font-semibold truncate leading-tight">
@@ -273,7 +274,6 @@ export function ReceiptsList({ receipts }: ReceiptsListProps) {
                                                 </p>
                                             </div>
 
-                                            {/* Checkbox — kanan atas */}
                                             <div
                                                 className="shrink-0"
                                                 onClick={(e) => e.stopPropagation()}
@@ -286,20 +286,19 @@ export function ReceiptsList({ receipts }: ReceiptsListProps) {
                                             </div>
                                         </div>
 
-                                        {/* Bottom: amount + badge checkmark */}
                                         <div className="flex items-end justify-between gap-2 mt-2">
                                             {parsed?.totalAmount ? (
-                                                <p className="text-base md:text-lg font-bold tabular-nums text-brand truncate leading-tight">
-                                                    {parsed.currency}{' '}
-                                                    {parsed.totalAmount.toLocaleString('id-ID')}
-                                                </p>
+                                                <Amount
+                                                    value={parsed.totalAmount}
+                                                    prefix={`${parsed.currency} `}
+                                                    className="text-base md:text-lg font-bold text-brand truncate leading-tight"
+                                                />
                                             ) : (
                                                 <p className="text-xs text-muted-foreground italic truncate">
                                                     No data
                                                 </p>
                                             )}
 
-                                            {/* Badge — kanan bawah (visual indicator, non-interactive) */}
                                             <div
                                                 className={cn(
                                                     'w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center shrink-0',
@@ -327,7 +326,6 @@ export function ReceiptsList({ receipts }: ReceiptsListProps) {
                 </>
             )}
 
-            {/* Bulk Action Bar */}
             <BulkActionBar
                 selectedCount={selectedIds.size}
                 totalOnPage={pageIds.length}
@@ -342,14 +340,12 @@ export function ReceiptsList({ receipts }: ReceiptsListProps) {
                 ]}
             />
 
-            {/* Detail Dialog */}
             <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
                 <DialogContent className="sm:max-w-lg max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden">
                     {selected && <ReceiptDetail receipt={selected} />}
                 </DialogContent>
             </Dialog>
 
-            {/* Confirm Dialog */}
             <ConfirmDialog />
         </>
     )

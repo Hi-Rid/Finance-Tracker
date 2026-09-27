@@ -19,7 +19,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Amount } from '@/components/ui/amount'
 import { EmptyState } from '@/components/ui/empty-state'
+import { HideAmountsButton } from '@/components/shared/hide-amounts-button'
 import {
   Sheet,
   SheetContent,
@@ -50,7 +52,6 @@ import {
 import { TransactionForm } from './transaction-form'
 import { TransactionDetail } from './transaction-detail'
 import { useTransactions } from '@/lib/hooks/use-transactions'
-import { formatRupiah } from '@/lib/normalize'
 import { DateFilter } from '@/components/shared/date-filter'
 import {
   type DateRange,
@@ -137,7 +138,6 @@ export function TransactionsList({
     })
   }, [transactions, search, filterType, filterAccount, dateRange])
 
-  // Pagination
   const pagination = usePagination(filtered, 20)
   const {
     page,
@@ -147,22 +147,16 @@ export function TransactionsList({
     paginatedItems,
     setPage,
     setPerPage,
-    canNext,
-    canPrev,
-    nextPage,
-    prevPage,
     from,
     to,
     reset: resetPage,
   } = pagination
 
-  // Group paginated items
   const grouped = useMemo(() => groupByDateKey(paginatedItems), [paginatedItems])
   const sortedDates = Object.keys(grouped).sort(
     (a, b) => new Date(b).getTime() - new Date(a).getTime()
   )
 
-  // Selection state
   const pageIds = paginatedItems.map((t) => t.id)
   const allOnPageSelected =
     pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id))
@@ -194,7 +188,6 @@ export function TransactionsList({
     setSelectedIds(new Set())
   }
 
-  // Reset page kalau filter berubah
   useEffect(() => {
     resetPage()
   }, [search, filterType, filterAccount, dateRange])
@@ -255,29 +248,37 @@ export function TransactionsList({
   return (
     <>
       {/* Summary */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex gap-5">
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex gap-5 flex-wrap">
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
               Income
             </p>
-            <p className="text-base font-bold tabular-nums text-emerald-600">
-              +{formatRupiah(totalIncome)}
-            </p>
+            <Amount
+              value={totalIncome}
+              sign="positive"
+              className="text-base font-bold text-emerald-600"
+            />
           </div>
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
               Expense
             </p>
-            <p className="text-base font-bold tabular-nums text-red-600">
-              -{formatRupiah(totalExpense)}
-            </p>
+            <Amount
+              value={totalExpense}
+              sign="negative"
+              className="text-base font-bold text-red-600"
+            />
           </div>
         </div>
-        <Button onClick={openCreate} variant="primary" size="sm">
-          <Plus className="w-4 h-4" />
-          Tambah
-        </Button>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <HideAmountsButton size="icon-sm" />
+          <Button onClick={openCreate} variant="primary" size="sm">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Tambah</span>
+          </Button>
+        </div>
       </div>
 
       {/* Search + filter */}
@@ -451,7 +452,7 @@ export function TransactionsList({
         <div className="space-y-5">
           {sortedDates.map((dateKey) => {
             const items = grouped[dateKey]
-            const dayTotal = items.reduce((sum, t) => {
+            const dayNet = items.reduce((sum, t) => {
               if (t.type === 'income') return sum + Number(t.amount_idr)
               if (t.type === 'expense') return sum - Number(t.amount_idr)
               return sum
@@ -463,22 +464,23 @@ export function TransactionsList({
                   <p className="text-[10px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     {formatDateGroupWIB(items[0].date)}
                   </p>
-                  <p
+                  <Amount
+                    value={dayNet}
+                    sign="auto"
                     className={cn(
-                      'text-[10px] sm:text-xs font-semibold tabular-nums',
-                      dayTotal >= 0 ? 'text-emerald-600' : 'text-red-600'
+                      'text-[10px] sm:text-xs font-semibold',
+                      dayNet >= 0 ? 'text-emerald-600' : 'text-red-600'
                     )}
-                  >
-                    {dayTotal >= 0 ? '+' : ''}
-                    {formatRupiah(Math.abs(dayTotal))}
-                  </p>
+                  />
                 </div>
 
                 <Card>
                   <CardContent className="p-1.5">
                     <div className="space-y-0.5">
                       {items.map((tx) => {
-                        const account = accounts.find((a) => a.id === tx.account_id)
+                        const account = accounts.find(
+                          (a) => a.id === tx.account_id
+                        )
                         const toAccount = accounts.find(
                           (a) => a.id === tx.to_account_id
                         )
@@ -499,14 +501,12 @@ export function TransactionsList({
                                 : 'hover:bg-slate-50 dark:hover:bg-white/5'
                             )}
                           >
-                            {/* Checkbox */}
                             <AnimatedCheckbox
                               checked={isSelected}
                               onCheckedChange={() => toggleSelect(tx.id)}
                               ariaLabel={`Pilih ${tx.name}`}
                             />
 
-                            {/* Clickable content */}
                             <div
                               onClick={() => setDetailTx(tx)}
                               className="flex items-center justify-between flex-1 min-w-0 cursor-pointer gap-2"
@@ -565,22 +565,26 @@ export function TransactionsList({
                                 </div>
                               </div>
 
-                              <p
+                              <Amount
+                                value={Number(tx.amount_idr)}
+                                sign={
+                                  isIncome
+                                    ? 'positive'
+                                    : isTransfer
+                                      ? 'none'
+                                      : 'negative'
+                                }
                                 className={cn(
-                                  'text-xs sm:text-sm font-semibold tabular-nums shrink-0',
+                                  'text-xs sm:text-sm font-semibold shrink-0',
                                   isIncome
                                     ? 'text-emerald-600'
                                     : isTransfer
                                       ? 'text-brand'
                                       : 'text-slate-900 dark:text-white'
                                 )}
-                              >
-                                {isIncome ? '+' : isTransfer ? '' : '-'}
-                                {formatRupiah(Number(tx.amount_idr))}
-                              </p>
+                              />
                             </div>
 
-                            {/* Actions */}
                             <div
                               className="shrink-0"
                               onClick={(e) => e.stopPropagation()}
@@ -626,7 +630,6 @@ export function TransactionsList({
             )
           })}
 
-          {/* Pagination */}
           <Pagination
             page={page}
             perPage={perPage}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ExternalLink, Eye, Store, X, ZoomIn } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Amount } from '@/components/ui/amount'
 import {
     DialogHeader,
     DialogTitle,
@@ -35,7 +36,6 @@ export function ReceiptDetail({ receipt }: { receipt: ReceiptRow }) {
 
     return (
         <>
-            {/* HEADER */}
             <DialogHeader className="p-5 md:p-6 pb-4 border-b border-slate-200 dark:border-white/15 shrink-0 pr-12">
                 <DialogTitle className="flex items-center gap-2 text-base md:text-lg">
                     <Store className="w-4 h-4 md:w-5 md:h-5 text-brand shrink-0" />
@@ -49,9 +49,7 @@ export function ReceiptDetail({ receipt }: { receipt: ReceiptRow }) {
                 </DialogDescription>
             </DialogHeader>
 
-            {/* CONTENT */}
             <div className="flex-1 overflow-y-auto p-5 md:p-6 pt-4 space-y-4">
-                {/* IMAGE PREVIEW */}
                 {imageUrl && !imageError && (
                     <button
                         type="button"
@@ -78,7 +76,6 @@ export function ReceiptDetail({ receipt }: { receipt: ReceiptRow }) {
                     </button>
                 )}
 
-                {/* CONFIDENCE */}
                 <div className="flex items-center gap-2 text-xs">
                     <span className="text-slate-500 dark:text-slate-400">
                         Confidence
@@ -96,11 +93,9 @@ export function ReceiptDetail({ receipt }: { receipt: ReceiptRow }) {
                     </Badge>
                 </div>
 
-                {/* INFO GRID */}
                 <div
                     className={cn(
                         'grid grid-cols-2 gap-3 p-3.5 rounded-xl border',
-                        // Dark: kasih bg yang lebih terang + border lebih tegas
                         'bg-slate-50 dark:bg-white/[0.06]',
                         'border-slate-200 dark:border-white/15'
                     )}
@@ -115,7 +110,6 @@ export function ReceiptDetail({ receipt }: { receipt: ReceiptRow }) {
                     {parsed.currency && <Info label="Mata Uang" value={parsed.currency} />}
                 </div>
 
-                {/* ADDRESS */}
                 {parsed.merchantAddress && (
                     <div
                         className={cn(
@@ -133,7 +127,6 @@ export function ReceiptDetail({ receipt }: { receipt: ReceiptRow }) {
                     </div>
                 )}
 
-                {/* ITEMS */}
                 {parsed.items.length > 0 && (
                     <div
                         className={cn(
@@ -158,7 +151,6 @@ export function ReceiptDetail({ receipt }: { receipt: ReceiptRow }) {
                                     key={i}
                                     className={cn(
                                         'flex items-center justify-between py-2.5 px-3.5 text-xs gap-2',
-                                        // Dark: background lebih terang dari dialog
                                         'bg-white dark:bg-white/[0.03]'
                                     )}
                                 >
@@ -166,47 +158,58 @@ export function ReceiptDetail({ receipt }: { receipt: ReceiptRow }) {
                                         <p className="font-medium truncate text-slate-900 dark:text-white">
                                             {item.description}
                                         </p>
-                                        <p className="text-slate-500 dark:text-slate-400">
-                                            {item.quantity}x @{' '}
-                                            {item.unitPrice.toLocaleString('id-ID')}
+                                        <p className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                            <span>{item.quantity}x @</span>
+                                            <Amount
+                                                value={item.unitPrice}
+                                                className="inline text-xs"
+                                            />
                                         </p>
                                     </div>
-                                    <p className="font-semibold tabular-nums shrink-0 text-slate-900 dark:text-white">
-                                        {item.total.toLocaleString('id-ID')}
-                                    </p>
+                                    <Amount
+                                        value={item.total}
+                                        className="text-xs font-semibold text-slate-900 dark:text-white shrink-0"
+                                    />
                                 </div>
                             ))}
                         </div>
                     </div>
                 )}
 
-                {/* TOTAL — pakai gradient brand biar "pop" */}
                 <div
                     className={cn(
                         'space-y-2 p-4 rounded-xl border-2',
-                        // Light
                         'bg-gradient-to-br from-brand/5 to-brand/10 border-brand/20',
-                        // Dark
                         'dark:from-brand/15 dark:to-brand/25 dark:border-brand/40'
                     )}
                 >
                     {parsed.subtotal > 0 && (
-                        <div className="flex justify-between text-xs">
+                        <div className="flex justify-between items-center text-xs">
                             <span className="text-slate-600 dark:text-slate-300">
                                 Subtotal
                             </span>
-                            <span className="font-medium tabular-nums text-slate-900 dark:text-white">
-                                {parsed.currency}{' '}
-                                {parsed.subtotal.toLocaleString('id-ID')}
+                            <span className="flex items-center gap-1">
+                                <span className="text-xs font-medium text-slate-500">
+                                    {parsed.currency}
+                                </span>
+                                <Amount
+                                    value={parsed.subtotal}
+                                    className="text-xs font-medium text-slate-900 dark:text-white"
+                                />
                             </span>
                         </div>
                     )}
                     {parsed.taxAmount > 0 && (
-                        <div className="flex justify-between text-xs">
+                        <div className="flex justify-between items-center text-xs">
                             <span className="text-slate-600 dark:text-slate-300">Pajak</span>
-                            <span className="font-medium tabular-nums text-slate-900 dark:text-white">
-                                {parsed.currency}{' '}
-                                {parsed.taxAmount.toLocaleString('id-ID')}
+                            <span className="flex items-center gap-1">
+                                <span className="text-xs font-medium text-slate-500">
+                                    {parsed.currency}
+                                </span>
+                                <Amount
+                                    value={parsed.taxAmount}
+                                    className="text-xs font-medium text-slate-900 dark:text-white"
+                                />
                             </span>
                         </div>
                     )}
@@ -219,14 +222,18 @@ export function ReceiptDetail({ receipt }: { receipt: ReceiptRow }) {
                         <span className="text-sm font-semibold text-slate-900 dark:text-white">
                             Total
                         </span>
-                        <span className="text-lg md:text-xl font-bold tabular-nums text-brand dark:text-sky-300">
-                            {parsed.currency}{' '}
-                            {parsed.totalAmount.toLocaleString('id-ID')}
+                        <span className="flex items-center gap-1.5">
+                            <span className="text-xs font-semibold text-brand dark:text-sky-300">
+                                {parsed.currency}
+                            </span>
+                            <Amount
+                                value={parsed.totalAmount}
+                                className="text-lg md:text-xl font-bold text-brand dark:text-sky-300"
+                            />
                         </span>
                     </div>
                 </div>
 
-                {/* BUTTON — Buka di Tab Baru */}
                 <a
                     href={imageUrl}
                     target="_blank"
@@ -242,7 +249,6 @@ export function ReceiptDetail({ receipt }: { receipt: ReceiptRow }) {
                     <ExternalLink className="w-3 h-3" />
                 </a>
 
-                {/* TRANSACTION LINK */}
                 {receipt.transaction_id && (
                     <div className="text-xs text-center text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-white/10">
                         ✓ Terhubung ke transaksi
@@ -250,7 +256,6 @@ export function ReceiptDetail({ receipt }: { receipt: ReceiptRow }) {
                 )}
             </div>
 
-            {/* FULL IMAGE VIEWER */}
             {imageUrl && showFullImage && (
                 <div
                     className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 cursor-zoom-out"

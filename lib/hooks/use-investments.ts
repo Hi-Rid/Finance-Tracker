@@ -17,6 +17,7 @@ const CATEGORY_MAP: Record<string, string> = {
     crypto: 'Crypto',
     mutual_fund: 'Mutual Fund',
     gold: 'Gold',
+    bond: 'Bond',
 }
 
 function getLotMultiplier(type: string): number {
@@ -26,6 +27,7 @@ function getLotMultiplier(type: string): number {
 function getUnitLabel(type: string): string {
     if (type === 'stock') return 'lot'
     if (type === 'gold') return 'gram'
+    if (type === 'bond') return 'unit'
     return 'unit'
 }
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { PageHeader } from '@/components/layout/page-wrapper'
+import { HideAmountsButton } from '@/components/shared/hide-amounts-button'
 import { MonthPicker } from './month-picker'
 import { DailyItemsList } from './daily-items-list'
 import { MonthSummaryCard } from './month-summary-card'
@@ -48,6 +49,7 @@ export function BudgetPage({
             <PageHeader
                 title="Budget"
                 description="Rencanakan & track pengeluaran lu"
+                action={<HideAmountsButton size="icon-sm" />}
             />
 
             <div className="flex flex-col md:flex-row md:items-center gap-3 mb-6">

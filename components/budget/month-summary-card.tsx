@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Wallet, TrendingUp, Pencil, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Amount } from '@/components/ui/amount'
 import {
     Dialog,
     DialogContent,
@@ -21,7 +22,6 @@ import {
 import { CurrencyInput } from '@/components/ui/currency-input'
 import { Label } from '@/components/ui/label'
 import { useBudgetPeriod } from '@/lib/hooks/use-budget-period'
-import { formatRupiah } from '@/lib/normalize'
 import { formatMonthDisplay } from '@/lib/utils/month'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
 import { cn } from '@/lib/utils'
@@ -129,13 +129,13 @@ export function MonthSummaryCard({
                         <StatBox
                             icon={Wallet}
                             label="Income"
-                            value={formatRupiah(income)}
+                            value={income}
                             highlight
                         />
                         <StatBox
                             icon={TrendingUp}
                             label="Budget Harian × 30"
-                            value={formatRupiah(totalDaily * 30)}
+                            value={totalDaily * 30}
                         />
                     </div>
 
@@ -162,18 +162,18 @@ export function MonthSummaryCard({
                                     }}
                                 />
                             </div>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2">
-                                Sisa untuk budget bulanan:{' '}
-                                <span className="font-semibold text-slate-900 dark:text-white">
-                                    {formatRupiah(Math.max(0, income - totalDaily * 30))}
-                                </span>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 flex items-center gap-1 flex-wrap">
+                                <span>Sisa untuk budget bulanan:</span>
+                                <Amount
+                                    value={Math.max(0, income - totalDaily * 30)}
+                                    className="inline text-[11px] font-semibold text-slate-900 dark:text-white"
+                                />
                             </p>
                         </div>
                     )}
                 </CardContent>
             </Card>
 
-            {/* Form */}
             {isMobile ? (
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto">
@@ -211,7 +211,7 @@ function StatBox({
 }: {
     icon: any
     label: string
-    value: string
+    value: number
     highlight?: boolean
 }) {
     return (
@@ -231,14 +231,13 @@ function StatBox({
                     {label}
                 </p>
             </div>
-            <p
+            <Amount
+                value={value}
                 className={cn(
-                    'text-lg font-bold tabular-nums',
+                    'text-lg font-bold',
                     highlight ? 'text-brand' : 'text-slate-900 dark:text-white'
                 )}
-            >
-                {value}
-            </p>
+            />
         </div>
     )
 }

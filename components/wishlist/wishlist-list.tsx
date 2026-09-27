@@ -15,7 +15,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
+import { Amount } from '@/components/ui/amount'
 import { EmptyState } from '@/components/ui/empty-state'
+import { HideAmountsButton } from '@/components/shared/hide-amounts-button'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -38,7 +40,6 @@ import {
 } from '@/components/ui/sheet'
 import { WishlistForm } from './wishlist-form'
 import { useWishlists } from '@/lib/hooks/use-wishlists'
-import { formatRupiah } from '@/lib/normalize'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
 import {
     PRIORITY_LABELS,
@@ -118,19 +119,33 @@ export function WishlistList({ wishlists, profileId }: WishlistListProps) {
         <>
             {/* Header */}
             <div className="flex items-start justify-between gap-3 mb-5">
-                <div>
+                <div className="min-w-0">
                     <h3 className="text-base font-semibold mb-0.5">Wishlist</h3>
-                    <p className="text-xs text-muted-foreground">
-                        {filtered.length} item · target {formatRupiah(totalTarget)}
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 flex-wrap">
+                        <span>{filtered.length} item · target</span>
+                        <Amount
+                            value={totalTarget}
+                            className="inline text-xs font-medium"
+                        />
                         {totalSaved > 0 && (
-                            <> · tersimpan {formatRupiah(totalSaved)}</>
+                            <>
+                                <span>· tersimpan</span>
+                                <Amount
+                                    value={totalSaved}
+                                    className="inline text-xs font-medium"
+                                />
+                            </>
                         )}
                     </p>
                 </div>
-                <Button onClick={openCreate} size="sm">
-                    <Plus className="w-4 h-4" />
-                    Tambah
-                </Button>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                    <HideAmountsButton size="icon-sm" />
+                    <Button onClick={openCreate} size="sm">
+                        <Plus className="w-4 h-4" />
+                        <span className="hidden sm:inline">Tambah</span>
+                    </Button>
+                </div>
             </div>
 
             {/* Search + filter */}
@@ -276,14 +291,21 @@ export function WishlistList({ wishlists, profileId }: WishlistListProps) {
                                         {w.name}
                                     </h4>
 
-                                    <p className="text-lg font-bold tabular-nums text-brand mb-3">
-                                        {formatRupiah(targetPrice)}
-                                    </p>
+                                    <Amount
+                                        value={targetPrice}
+                                        className="text-lg font-bold text-brand mb-3 block"
+                                    />
 
                                     {savedAmount > 0 && (
                                         <div className="mb-3">
                                             <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
-                                                <span>Tersimpan {formatRupiah(savedAmount)}</span>
+                                                <div className="flex items-center gap-1">
+                                                    <span>Tersimpan</span>
+                                                    <Amount
+                                                        value={savedAmount}
+                                                        className="inline text-[10px] font-medium"
+                                                    />
+                                                </div>
                                                 <span className="tabular-nums">
                                                     {Math.round(percent)}%
                                                 </span>
@@ -300,7 +322,7 @@ export function WishlistList({ wishlists, profileId }: WishlistListProps) {
 
                                     {w.reason && (
                                         <p className="text-[11px] text-muted-foreground line-clamp-2 italic">
-                                            "{w.reason}"
+                                            &quot;{w.reason}&quot;
                                         </p>
                                     )}
                                 </CardContent>

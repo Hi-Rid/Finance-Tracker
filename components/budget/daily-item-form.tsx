@@ -22,12 +22,12 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { CurrencyInput } from '@/components/ui/currency-input'
+import { Amount } from '@/components/ui/amount'
 import { useDailyBudget } from '@/lib/hooks/use-daily-budget'
 import {
     dailyBudgetItemSchema,
     type DailyBudgetItemInput,
 } from '@/lib/validators/budget'
-import { formatRupiah } from '@/lib/normalize'
 import { getDaysInMonth } from '@/lib/utils/month'
 import { cn } from '@/lib/utils'
 import { Loader2, Info, AlertTriangle } from 'lucide-react'
@@ -80,7 +80,6 @@ export function DailyItemForm({
     const selectedCategoryId = watch('category_id')
     const currentAmount = watch('amount')
 
-    // ============ Compute sisa budget ============
     const budgetInfo = useMemo(() => {
         if (!selectedCategoryId) return null
 
@@ -88,7 +87,6 @@ export function DailyItemForm({
             (b) => b.category_id === selectedCategoryId
         )
 
-        // Gak ada monthly budget untuk kategori ini
         if (!monthlyBudget) {
             return { hasBudget: false }
         }
@@ -96,7 +94,6 @@ export function DailyItemForm({
         const daysInMonth = getDaysInMonth(month)
         const monthlyTotal = Number(monthlyBudget.amount)
 
-        // Sum daily items AKTIF LAINNYA (exclude item yang sedang di-edit + nonaktif)
         const otherDailyItems = existingDailyItems.filter(
             (i) =>
                 i.category_id === selectedCategoryId &&
@@ -121,7 +118,14 @@ export function DailyItemForm({
             isOver: Number(currentAmount) > remainingPerDay,
             isNegative: remainingBudget <= 0,
         }
-    }, [selectedCategoryId, monthlyBudgets, existingDailyItems, item?.id, month, currentAmount])
+    }, [
+        selectedCategoryId,
+        monthlyBudgets,
+        existingDailyItems,
+        item?.id,
+        month,
+        currentAmount,
+    ])
 
     async function onSubmit(data: DailyBudgetItemInput) {
         if (isEdit && item) {
@@ -139,7 +143,6 @@ export function DailyItemForm({
         }
     }
 
-    // Filter cuma kategori expense
     const expenseCategories = categories.filter(
         (c) => c.type === 'expense' && !c.is_archived
     )
@@ -249,37 +252,52 @@ export function DailyItemForm({
                                     ) : budgetInfo.isNegative ? (
                                         <>
                                             <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                                            <span>
-                                                Budget kategori ini udah habis. Total{' '}
-                                                <strong>{formatRupiah(budgetInfo.usedBudget)}</strong>{' '}
-                                                dari{' '}
-                                                <strong>{formatRupiah(budgetInfo.monthlyTotal)}</strong>{' '}
-                                                udah kepake di daily items lain.
+                                            <span className="flex flex-wrap items-center gap-1">
+                                                <span>Budget kategori ini udah habis. Total</span>
+                                                <Amount
+                                                    value={budgetInfo.usedBudget}
+                                                    className="inline text-xs font-bold"
+                                                />
+                                                <span>dari</span>
+                                                <Amount
+                                                    value={budgetInfo.monthlyTotal}
+                                                    className="inline text-xs font-bold"
+                                                />
+                                                <span>udah kepake di daily items lain.</span>
                                             </span>
                                         </>
                                     ) : budgetInfo.isOver ? (
                                         <>
                                             <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                                            <span>
-                                                Melebihi sisa budget. Sisa budget harian kategori ini:{' '}
-                                                <strong>
-                                                    {formatRupiah(Math.round(budgetInfo.remainingPerDay))}
-                                                </strong>{' '}
-                                                (dari {formatRupiah(budgetInfo.remainingBudget)} ÷{' '}
-                                                {budgetInfo.daysInMonth} hari). Tetep bisa disimpan,
-                                                tapi bakal over budget bulanan.
+                                            <span className="flex flex-wrap items-center gap-1">
+                                                <span>Melebihi sisa budget. Sisa budget harian kategori ini:</span>
+                                                <Amount
+                                                    value={Math.round(budgetInfo.remainingPerDay)}
+                                                    className="inline text-xs font-bold"
+                                                />
+                                                <span>(dari</span>
+                                                <Amount
+                                                    value={budgetInfo.remainingBudget}
+                                                    className="inline text-xs font-bold"
+                                                />
+                                                <span>÷ {budgetInfo.daysInMonth} hari). Tetep bisa disimpan, tapi bakal over budget bulanan.</span>
                                             </span>
                                         </>
                                     ) : (
                                         <>
                                             <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                                            <span>
-                                                Sisa budget harian kategori ini:{' '}
-                                                <strong>
-                                                    {formatRupiah(Math.round(budgetInfo.remainingPerDay ?? 0))}
-                                                </strong>{' '}
-                                                (dari {formatRupiah(budgetInfo.remainingBudget ?? 0)} ÷{' '}
-                                                {budgetInfo.daysInMonth} hari).
+                                            <span className="flex flex-wrap items-center gap-1">
+                                                <span>Sisa budget harian kategori ini:</span>
+                                                <Amount
+                                                    value={Math.round(budgetInfo.remainingPerDay)}
+                                                    className="inline text-xs font-bold"
+                                                />
+                                                <span>(dari</span>
+                                                <Amount
+                                                    value={budgetInfo.remainingBudget}
+                                                    className="inline text-xs font-bold"
+                                                />
+                                                <span>÷ {budgetInfo.daysInMonth} hari).</span>
                                             </span>
                                         </>
                                     )}

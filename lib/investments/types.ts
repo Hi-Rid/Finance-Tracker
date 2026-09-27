@@ -53,7 +53,8 @@ export const INVESTMENT_ASSET_TYPES: AssetType[] = [
     'stock',
     'crypto',
     'mutual_fund',
-    'gold',   // ← tambah ini
+    'gold',
+    'bond',
 ]
 
 // Cache TTL

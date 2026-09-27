@@ -19,20 +19,19 @@ export function CashFlowCard({
     sparklineData,
     sparklineLabels,
 }: CashFlowCardProps) {
-    const startIdx = sparklineData.findIndex((v) => v !== 0)
-    const trimmedData = startIdx === -1 ? [0] : sparklineData.slice(startIdx)
-    const trimmedLabels =
-        startIdx === -1
-            ? ['Sekarang']
-            : (sparklineLabels || []).slice(startIdx)
+    // LOGIC SAMA PERSIS KAYAK INVESTMENT CARD
+    const data =
+        sparklineData.length > 0 && sparklineData[0] !== 0
+            ? [0, ...sparklineData]
+            : sparklineData
 
-    let displayData = trimmedData
-    let displayLabels = trimmedLabels
+    const labels =
+        data.length !== sparklineData.length
+            ? ['Awal', ...(sparklineLabels || [])]
+            : sparklineLabels || []
 
-    if (trimmedData.length === 1) {
-        displayData = [trimmedData[0], trimmedData[0]]
-        displayLabels = [trimmedLabels[0] || '', trimmedLabels[0] || '']
-    }
+    const finalData = data.length < 2 ? [0, 0] : data
+    const finalLabels = labels.length < 2 ? ['Awal', 'Sekarang'] : labels
 
     return (
         <StatCard
@@ -42,9 +41,8 @@ export function CashFlowCard({
             trend={trend}
             trendLabel="dari bulan lalu"
             accentColor={CHART_COLORS.success}
-            sparklineData={displayData}
-            sparklineLabels={displayLabels}
-            sparklineYAxisPadding={0.15}
+            sparklineData={finalData}
+            sparklineLabels={finalLabels}
             topRightSlot={
                 <Link
                     href="/cash-flow"

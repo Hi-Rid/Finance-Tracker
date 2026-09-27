@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { CurrencyInput } from '@/components/ui/currency-input'
+import { Amount } from '@/components/ui/amount'
 import {
     Select,
     SelectContent,
@@ -26,11 +27,11 @@ import {
 } from '@/components/ui/select'
 import { TickerSearch } from './ticker-search'
 import { useInvestments } from '@/lib/hooks/use-investments'
+import { useMaskedFormat } from '@/lib/hooks/use-masked-format'
 import {
     createInvestmentSchema,
     type CreateInvestmentInput,
 } from '@/lib/validators/investment'
-import { formatRupiah } from '@/lib/normalize'
 import { getBrokersFor } from '@/lib/investments/brokers'
 import { EXCHANGES } from '@/lib/investments/exchanges'
 import { cn } from '@/lib/utils'
@@ -60,12 +61,26 @@ const ASSET_TYPES = [
     { value: 'crypto', label: 'Crypto' },
     { value: 'mutual_fund', label: 'Reksadana' },
     { value: 'gold', label: 'Emas' },
+    { value: 'bond', label: 'Obligasi' },
 ] as const
 
 function getQuantityLabel(type: string): string {
     if (type === 'stock') return 'Lot'
     if (type === 'gold') return 'Gram'
+    if (type === 'bond') return 'Unit'
     return 'Jumlah'
+}
+
+function getQuantityUnit(type: string): string {
+    if (type === 'stock') return 'lot'
+    if (type === 'gold') return 'gram'
+    return 'unit'
+}
+
+function getPriceLabel(type: string): string {
+    if (type === 'stock') return 'Harga / Lembar'
+    if (type === 'gold') return 'Harga / Gram'
+    return 'Harga / Unit'
 }
 
 function getQuantityMultiplier(type: string): number {
@@ -79,8 +94,11 @@ export function InvestmentForm({
     onCancel,
 }: InvestmentFormProps) {
     const { createInvestment } = useInvestments()
+    const fmt = useMaskedFormat()
     const [submitting, setSubmitting] = useState(false)
-    const [selectedTicker, setSelectedTicker] = useState<SearchSuggestion | null>(null)
+    const [selectedTicker, setSelectedTicker] = useState<SearchSuggestion | null>(
+        null
+    )
 
     const form = useForm<CreateInvestmentInput>({
         resolver: zodResolver(createInvestmentSchema) as any,
@@ -101,7 +119,12 @@ export function InvestmentForm({
     })
 
     const { watch, setValue, formState } = form
-    const assetType = watch('asset_type') as 'stock' | 'crypto' | 'mutual_fund' | 'gold'
+    const assetType = watch('asset_type') as
+        | 'stock'
+        | 'crypto'
+        | 'mutual_fund'
+        | 'gold'
+        | 'bond'
     const quantity = Number(watch('quantity')) || 0
     const avgPrice = Number(watch('avg_price')) || 0
     const accountId = watch('account_id')
@@ -114,15 +137,18 @@ export function InvestmentForm({
         (a) => a.type === 'investment' && !a.is_archived
     )
 
-    // ============ Balance check ============
     const selectedAccount = investmentAccounts.find((a) => a.id === accountId)
-    const availableBalance = selectedAccount ? Number(selectedAccount.current_balance) : 0
+    const availableBalance = selectedAccount
+        ? Number(selectedAccount.current_balance)
+        : 0
     const insufficientBalance =
         estimatedTotal > 0 && estimatedTotal > availableBalance
 
-    const brokers = useMemo(() => getBrokersFor(assetType), [assetType])
+    const brokers = useMemo(() => getBrokersFor(assetType as any), [assetType])
     const isStock = assetType === 'stock'
     const isGold = assetType === 'gold'
+    const isBond = assetType === 'bond'
+    const isManual = isGold || isBond
 
     function handleAssetTypeChange(newType: typeof assetType) {
         setValue('asset_type', newType)
@@ -184,7 +210,8 @@ export function InvestmentForm({
                             Belum ada akun investasi
                         </p>
                         <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
-                            Bikin akun dengan tipe <strong>Investment</strong> dulu di halaman Akun. Contoh: RDN Stockbit, Bibit, Binance.
+                            Bikin akun dengan tipe <strong>Investment</strong> dulu di halaman
+                            Akun. Contoh: RDN Stockbit, Bibit, Binance.
                         </p>
                     </div>
                 </div>
@@ -197,8 +224,9 @@ export function InvestmentForm({
         )
     }
 
-    const tickerRequired = !isGold
-    const tickerFilled = !tickerRequired || (tickerValue && tickerValue.length > 0)
+    const tickerRequired = !isManual
+    const tickerFilled =
+        !tickerRequired || (tickerValue && tickerValue.length > 0)
 
     return (
         <Form {...form}>
@@ -206,7 +234,7 @@ export function InvestmentForm({
                 onSubmit={form.handleSubmit(onSubmit, onError)}
                 className="space-y-6"
             >
-                {/* ============ Jenis ============ */}
+                {/* Jenis */}
                 <FormField
                     control={form.control}
                     name="asset_type"
@@ -214,7 +242,7 @@ export function InvestmentForm({
                         <FormItem>
                             <FormLabel>Jenis Investasi</FormLabel>
                             <FormControl>
-                                <div className="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-white/5">
+                                <div className="grid grid-cols-3 md:grid-cols-5 gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-white/5">
                                     {ASSET_TYPES.map((t) => (
                                         <button
                                             key={t.value}
@@ -237,27 +265,43 @@ export function InvestmentForm({
                     )}
                 />
 
-                {/* ============ Identitas ============ */}
+                {/* Identitas */}
                 <div className="space-y-4">
                     <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                        {isGold ? 'Detail Emas' : 'Cari Aset'}
+                        {isGold ? 'Detail Emas' : isBond ? 'Detail Obligasi' : 'Cari Aset'}
                     </p>
 
-                    {isGold ? (
+                    {isManual ? (
                         <FormField
                             control={form.control}
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Nama Emas</FormLabel>
+                                    <FormLabel>
+                                        {isGold
+                                            ? 'Nama Emas'
+                                            : isBond
+                                                ? 'Nama Obligasi'
+                                                : 'Nama Aset'}
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="Emas Antam 10gr, Emas UBS 5gr..."
+                                            placeholder={
+                                                isGold
+                                                    ? 'Emas Antam 10gr, Emas UBS 5gr...'
+                                                    : isBond
+                                                        ? 'ORI023, SBR012, obligasi korporasi...'
+                                                        : 'Nama aset...'
+                                            }
                                             {...field}
                                         />
                                     </FormControl>
                                     <FormDescription className="text-xs">
-                                        Deskripsi singkat emas yang lu beli
+                                        {isGold
+                                            ? 'Deskripsi singkat emas yang lu beli'
+                                            : isBond
+                                                ? 'Nama seri obligasi atau instrumen'
+                                                : 'Deskripsi singkat aset'}
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
@@ -274,7 +318,7 @@ export function InvestmentForm({
                                             : 'Cari Reksadana'}
                                 </FormLabel>
                                 <TickerSearch
-                                    assetType={assetType}
+                                    assetType={assetType as any}
                                     value={selectedTicker}
                                     onChange={handleTickerSelect}
                                 />
@@ -294,7 +338,8 @@ export function InvestmentForm({
                                         </p>
                                         <p className="text-emerald-700 dark:text-emerald-300">
                                             {selectedTicker.name}
-                                            {selectedTicker.exchange && ` · ${selectedTicker.exchange}`}
+                                            {selectedTicker.exchange &&
+                                                ` · ${selectedTicker.exchange}`}
                                         </p>
                                     </div>
                                 </div>
@@ -303,7 +348,7 @@ export function InvestmentForm({
                     )}
                 </div>
 
-                {/* ============ Transaksi ============ */}
+                {/* Pembelian */}
                 <div className="space-y-4">
                     <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                         Pembelian Pertama
@@ -337,14 +382,7 @@ export function InvestmentForm({
                             name="avg_price"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>
-                                        Harga /{' '}
-                                        {assetType === 'stock'
-                                            ? 'Lembar'
-                                            : assetType === 'gold'
-                                                ? 'Gram'
-                                                : 'Unit'}
-                                    </FormLabel>
+                                    <FormLabel>{getPriceLabel(assetType)}</FormLabel>
                                     <FormControl>
                                         <div className="relative">
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400 pointer-events-none z-10">
@@ -397,17 +435,16 @@ export function InvestmentForm({
                             >
                                 Total Pembelian
                             </p>
-                            <p
+                            <Amount
+                                value={estimatedTotal}
                                 className={cn(
-                                    'text-2xl font-bold tabular-nums',
+                                    'text-2xl font-bold',
                                     insufficientBalance
                                         ? 'text-red-600 dark:text-red-400'
                                         : 'text-brand'
                                 )}
-                            >
-                                {formatRupiah(estimatedTotal)}
-                            </p>
-                            {assetType === 'stock' && (
+                            />
+                            {isStock && (
                                 <p
                                     className={cn(
                                         'text-[10px] mt-1',
@@ -416,10 +453,15 @@ export function InvestmentForm({
                                             : 'text-slate-600 dark:text-slate-400'
                                     )}
                                 >
-                                    {quantity} lot × {formatRupiah(avgPrice)} × 100 lembar
+                                    {quantity} lot ×{' '}
+                                    <Amount
+                                        value={avgPrice}
+                                        className="inline text-[10px] font-medium"
+                                    />{' '}
+                                    × 100 lembar
                                 </p>
                             )}
-                            {assetType === 'gold' && (
+                            {!isStock && (
                                 <p
                                     className={cn(
                                         'text-[10px] mt-1',
@@ -428,7 +470,11 @@ export function InvestmentForm({
                                             : 'text-slate-600 dark:text-slate-400'
                                     )}
                                 >
-                                    {quantity} gram × {formatRupiah(avgPrice)}
+                                    {quantity} {getQuantityUnit(assetType)} ×{' '}
+                                    <Amount
+                                        value={avgPrice}
+                                        className="inline text-[10px] font-medium"
+                                    />
                                 </p>
                             )}
 
@@ -437,12 +483,19 @@ export function InvestmentForm({
                                     <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
                                     <div className="text-xs text-red-700 dark:text-red-300">
                                         <p className="font-semibold mb-0.5">Saldo tidak cukup</p>
-                                        <p>
-                                            Saldo <strong>{selectedAccount.name}</strong>:{' '}
-                                            {formatRupiah(availableBalance)} · Kurang{' '}
-                                            <strong>
-                                                {formatRupiah(estimatedTotal - availableBalance)}
-                                            </strong>
+                                        <p className="flex flex-wrap items-center gap-1">
+                                            <span>
+                                                Saldo <strong>{selectedAccount.name}</strong>:
+                                            </span>
+                                            <Amount
+                                                value={availableBalance}
+                                                className="inline text-xs font-medium"
+                                            />
+                                            <span>· Kurang</span>
+                                            <Amount
+                                                value={estimatedTotal - availableBalance}
+                                                className="inline text-xs font-bold"
+                                            />
                                         </p>
                                     </div>
                                 </div>
@@ -451,7 +504,7 @@ export function InvestmentForm({
                     )}
                 </div>
 
-                {/* ============ Sumber Dana ============ */}
+                {/* Sumber Dana */}
                 <div className="space-y-4">
                     <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                         Sumber Dana
@@ -474,9 +527,10 @@ export function InvestmentForm({
                                             <SelectItem key={a.id} value={a.id}>
                                                 <div className="flex items-center justify-between gap-3 w-full">
                                                     <span>{a.name}</span>
-                                                    <span className="text-xs text-slate-500 tabular-nums">
-                                                        {formatRupiah(Number(a.current_balance))}
-                                                    </span>
+                                                    <Amount
+                                                        value={Number(a.current_balance)}
+                                                        className="text-xs text-slate-500"
+                                                    />
                                                 </div>
                                             </SelectItem>
                                         ))}
@@ -491,7 +545,7 @@ export function InvestmentForm({
                     />
                 </div>
 
-                {/* ============ Detail Opsional ============ */}
+                {/* Detail Opsional */}
                 <div className="space-y-4">
                     <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                         Detail (Opsional)
@@ -509,7 +563,11 @@ export function InvestmentForm({
                                             ? 'Exchange'
                                             : assetType === 'mutual_fund'
                                                 ? 'Platform'
-                                                : 'Sumber Emas'}
+                                                : isGold
+                                                    ? 'Sumber Emas'
+                                                    : isBond
+                                                        ? 'Penerbit'
+                                                        : 'Sumber'}
                                 </FormLabel>
                                 <Select
                                     onValueChange={field.onChange}
@@ -521,11 +579,15 @@ export function InvestmentForm({
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {brokers.map((b) => (
-                                            <SelectItem key={b.value} value={b.value}>
-                                                {b.label}
-                                            </SelectItem>
-                                        ))}
+                                        {brokers.length > 0 ? (
+                                            brokers.map((b) => (
+                                                <SelectItem key={b.value} value={b.value}>
+                                                    {b.label}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem value="Lainnya">Lainnya</SelectItem>
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -578,7 +640,7 @@ export function InvestmentForm({
                     />
                 </div>
 
-                {/* ============ Actions ============ */}
+                {/* Actions */}
                 <div className="flex gap-3 pt-2">
                     {onCancel && (
                         <Button

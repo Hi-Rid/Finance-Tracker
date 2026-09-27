@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { Plus, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { HideAmountsButton } from '@/components/shared/hide-amounts-button'
 import { SummaryBar } from './summary-bar'
 import { TypeFilter } from './type-filter'
 import { HoldingsTable } from './holdings-table'
@@ -41,7 +42,7 @@ export function PortfolioPage({ data, profileId, accounts }: PortfolioPageProps)
             <div className="space-y-4 md:space-y-6">
                 <SummaryBar summary={data.summary} />
 
-                {/* Toolbar: filter + tombol sejajar (semua breakpoint) */}
+                {/* Toolbar */}
                 {hasPositions && (
                     <div className="flex items-center justify-between gap-2 md:gap-3">
                         <div className="flex-1 min-w-0 overflow-hidden">
@@ -53,16 +54,19 @@ export function PortfolioPage({ data, profileId, accounts }: PortfolioPageProps)
                             />
                         </div>
 
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={openCreate}
-                            className="shrink-0 h-9 md:h-9"
-                        >
-                            <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                            <span className="hidden sm:inline">Tambah Investasi</span>
-                            <span className="sm:hidden">Tambah</span>
-                        </Button>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <HideAmountsButton size="icon-sm" />
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={openCreate}
+                                className="h-9"
+                            >
+                                <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                                <span className="hidden sm:inline">Tambah Investasi</span>
+                                <span className="sm:hidden">Tambah</span>
+                            </Button>
+                        </div>
                     </div>
                 )}
 

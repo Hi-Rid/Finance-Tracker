@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
+import { Amount } from '@/components/ui/amount'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
     DropdownMenu,
@@ -35,7 +36,6 @@ import {
 } from '@/components/ui/sheet'
 import { DailyItemForm } from './daily-item-form'
 import { useDailyBudget } from '@/lib/hooks/use-daily-budget'
-import { formatRupiah } from '@/lib/normalize'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/types/database'
@@ -100,11 +100,11 @@ export function DailyItemsList({
             onCancel={closeForm}
         />
     )
+
     return (
         <>
             <Card>
                 <CardContent className="pt-6">
-                    {/* Header */}
                     <div className="flex items-start justify-between gap-3 mb-5">
                         <div>
                             <h3 className="text-base font-semibold mb-1">Daily Budget</h3>
@@ -118,22 +118,21 @@ export function DailyItemsList({
                         </Button>
                     </div>
 
-                    {/* Total highlight */}
                     {activeItems.length > 0 && (
                         <div className="mb-5 p-4 rounded-2xl bg-gradient-to-br from-brand/10 to-brand/5 border border-brand/20">
                             <p className="text-[10px] font-semibold text-brand uppercase tracking-wider mb-1">
                                 Total Harian
                             </p>
-                            <p className="text-2xl font-bold tabular-nums text-brand">
-                                {formatRupiah(totalDaily)}
-                            </p>
+                            <Amount
+                                value={totalDaily}
+                                className="text-2xl font-bold text-brand"
+                            />
                             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                                 {activeItems.length} item aktif
                             </p>
                         </div>
                     )}
 
-                    {/* List */}
                     {items.length === 0 ? (
                         <EmptyState
                             icon={Target}
@@ -173,9 +172,10 @@ export function DailyItemsList({
                                                     </Badge>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-muted-foreground tabular-nums mt-0.5">
-                                                {formatRupiah(Number(item.amount))}
-                                            </p>
+                                            <Amount
+                                                value={Number(item.amount)}
+                                                className="text-xs text-muted-foreground mt-0.5"
+                                            />
                                         </div>
 
                                         <Switch
@@ -216,13 +216,9 @@ export function DailyItemsList({
                 </CardContent>
             </Card>
 
-            {/* Form: Mobile Sheet / Desktop Dialog */}
             {isMobile ? (
                 <Sheet open={open} onOpenChange={setOpen}>
-                    <SheetContent
-                        side="bottom"
-                        className="max-h-[90vh] overflow-y-auto"
-                    >
+                    <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto">
                         <SheetHeader>
                             <SheetTitle>
                                 {editing ? 'Edit Item' : 'Tambah Item'}

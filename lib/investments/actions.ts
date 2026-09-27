@@ -104,3 +104,134 @@ async function getTradingBalance(
 
     return (data || []).reduce((sum, a) => sum + Number(a.current_balance), 0)
 }
+
+// ============================================================
+// ASSET DETAIL — fetch 1 asset lengkap untuk /investments/[id]
+// ============================================================
+
+export type AssetDetailData = {
+    asset: any
+    detail: any | null
+    priceEntry: {
+        asset_id: string
+        price: number
+        currency: string
+        source: string
+        fetched_at: string
+    } | null
+    transactions: any[]
+    cashTransactions: any[]
+    accountMap: Record<string, string>
+    metrics: {
+        lotHeld: number
+        avgPrice: number
+        currentPrice: number
+        invested: number
+        marketValue: number
+        pl: number
+        plPercent: number
+    }
+}
+
+export async function getAssetDetail(
+    assetId: string,
+    profileId: string
+): Promise<AssetDetailData | null> {
+    const supabase = await createClient()
+
+    const { data: asset } = await supabase
+        .from('assets')
+        .select('*')
+        .eq('id', assetId)
+        .eq('profile_id', profileId)
+        .single()
+
+    if (!asset) return null
+
+    const [detailRes, invTxsRes] = await Promise.all([
+        supabase
+            .from('investment_details')
+            .select('*')
+            .eq('asset_id', assetId)
+            .maybeSingle(),
+        supabase
+            .from('investment_transactions')
+            .select('*')
+            .eq('asset_id', assetId)
+            .order('date', { ascending: false }),
+    ])
+
+    const detail = detailRes.data
+    const invTxs = (invTxsRes.data || []) as any[]
+
+    // ============ Latest price ============
+    const prices = await getLatestPrices([{ asset, detail }])
+    const priceEntryRaw = prices.get(assetId) || null
+
+    // ============ Metrics ============
+    const multiplier = asset.type === 'stock' ? 100 : 1
+    const lotHeld = Number(asset.quantity)
+    const avgPrice = detail?.avg_price ? Number(detail.avg_price) : 0
+    const currentPrice = priceEntryRaw?.price || 0
+    const invested = lotHeld * avgPrice * multiplier
+    const marketValue = lotHeld * currentPrice * multiplier
+    const pl = marketValue - invested
+    const plPercent = invested > 0 ? (pl / invested) * 100 : 0
+
+    // ============ Linked cash transactions ============
+    const txIds = invTxs
+        .map((t) => t.transaction_id)
+        .filter((id): id is string => !!id)
+
+    let cashTxs: any[] = []
+    if (txIds.length > 0) {
+        const { data } = await supabase
+            .from('transactions')
+            .select('id, name, type, amount_idr, account_id, date')
+            .in('id', txIds)
+        cashTxs = data || []
+    }
+
+    // ============ Account names map ============
+    const accountIds = Array.from(
+        new Set(cashTxs.map((t) => t.account_id).filter(Boolean))
+    )
+
+    const accountMap: Record<string, string> = {}
+    if (accountIds.length > 0) {
+        const { data } = await supabase
+            .from('accounts')
+            .select('id, name')
+            .in('id', accountIds as string[])
+
+            ; (data || []).forEach((a) => {
+                accountMap[a.id] = a.name
+            })
+    }
+
+    return {
+        asset,
+        detail,
+        priceEntry: priceEntryRaw
+            ? {
+                asset_id: assetId,
+                price: priceEntryRaw.price,
+                currency: priceEntryRaw.currency,
+                source: priceEntryRaw.source,
+                fetched_at: priceEntryRaw.fetched_at,
+            }
+            : null,
+        transactions: invTxs,
+        cashTransactions: cashTxs,
+        accountMap,
+        metrics: {
+            lotHeld,
+            avgPrice,
+            currentPrice,
+            invested,
+            marketValue,
+            pl,
+            plPercent,
+        },
+    }
+}

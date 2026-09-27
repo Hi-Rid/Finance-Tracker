@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CurrencyInput } from '@/components/ui/currency-input'
+import { Amount } from '@/components/ui/amount'
 import {
     Select,
     SelectContent,
@@ -25,7 +26,6 @@ import {
 } from '@/components/ui/select'
 import { useAccounts } from '@/lib/hooks/use-accounts'
 import { transferSchema, type TransferInput } from '@/lib/validators/account'
-import { formatRupiah } from '@/lib/normalize'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/types/database'
 
@@ -126,9 +126,10 @@ export function TransferModal({
                                 Dari
                             </p>
                             <p className="text-sm font-bold truncate">{sourceAccount.name}</p>
-                            <p className="text-xs text-muted-foreground tabular-nums mt-0.5">
-                                {formatRupiah(sourceBalance)}
-                            </p>
+                            <Amount
+                                value={sourceBalance}
+                                className="text-xs text-muted-foreground mt-0.5"
+                            />
                         </div>
                         <ArrowRight className="w-5 h-5 text-brand shrink-0" />
                         <div className="flex-1 min-w-0 text-right">
@@ -138,11 +139,14 @@ export function TransferModal({
                             <p className="text-sm font-bold truncate">
                                 {destAccount?.name || '—'}
                             </p>
-                            <p className="text-xs text-muted-foreground tabular-nums mt-0.5">
-                                {destAccount
-                                    ? formatRupiah(Number(destAccount.current_balance))
-                                    : '—'}
-                            </p>
+                            {destAccount ? (
+                                <Amount
+                                    value={Number(destAccount.current_balance)}
+                                    className="text-xs text-muted-foreground mt-0.5"
+                                />
+                            ) : (
+                                <p className="text-xs text-muted-foreground mt-0.5">—</p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -165,9 +169,10 @@ export function TransferModal({
                                         <SelectItem key={a.id} value={a.id}>
                                             <div className="flex items-center justify-between gap-3 w-full">
                                                 <span>{a.name}</span>
-                                                <span className="text-xs text-slate-500 tabular-nums">
-                                                    {formatRupiah(Number(a.current_balance))}
-                                                </span>
+                                                <Amount
+                                                    value={Number(a.current_balance)}
+                                                    className="text-xs text-slate-500"
+                                                />
                                             </div>
                                         </SelectItem>
                                     ))}
@@ -238,23 +243,22 @@ export function TransferModal({
                                 : 'bg-brand/5 border-brand/20'
                         )}
                     >
-                        <div className="flex justify-between text-xs">
+                        <div className="flex justify-between items-center text-xs">
                             <span className="text-muted-foreground">Jumlah</span>
-                            <span className="font-medium tabular-nums">
-                                {formatRupiah(amount)}
-                            </span>
+                            <Amount value={amount} className="text-xs font-medium" />
                         </div>
                         {fee > 0 && (
-                            <div className="flex justify-between text-xs">
+                            <div className="flex justify-between items-center text-xs">
                                 <span className="text-muted-foreground">Biaya</span>
-                                <span className="font-medium tabular-nums">
-                                    +{formatRupiah(fee)}
-                                </span>
+                                <div className="flex items-center gap-0.5">
+                                    <span className="text-xs font-medium">+</span>
+                                    <Amount value={fee} className="text-xs font-medium" />
+                                </div>
                             </div>
                         )}
                         <div
                             className={cn(
-                                'flex justify-between pt-2 border-t',
+                                'flex justify-between items-center pt-2 border-t',
                                 insufficientBalance
                                     ? 'border-red-200 dark:border-red-500/30'
                                     : 'border-brand/20'
@@ -270,24 +274,33 @@ export function TransferModal({
                             >
                                 Total Keluar
                             </span>
-                            <span
+                            <Amount
+                                value={totalDeduct}
                                 className={cn(
-                                    'text-base font-bold tabular-nums',
+                                    'text-base font-bold',
                                     insufficientBalance
                                         ? 'text-red-600 dark:text-red-400'
                                         : 'text-brand'
                                 )}
-                            >
-                                {formatRupiah(totalDeduct)}
-                            </span>
+                            />
                         </div>
                         {insufficientBalance && (
                             <div className="mt-2 pt-2 border-t border-red-200 dark:border-red-500/30 flex items-start gap-2">
                                 <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-                                <p className="text-xs text-red-600 dark:text-red-400">
-                                    Saldo {sourceAccount.name} cuma {formatRupiah(sourceBalance)} —
-                                    kurang {formatRupiah(totalDeduct - sourceBalance)}
-                                </p>
+                                <div className="text-xs text-red-600 dark:text-red-400 flex flex-wrap items-center gap-1">
+                                    <span>
+                                        Saldo {sourceAccount.name} cuma
+                                    </span>
+                                    <Amount
+                                        value={sourceBalance}
+                                        className="inline text-xs font-medium"
+                                    />
+                                    <span>— kurang</span>
+                                    <Amount
+                                        value={totalDeduct - sourceBalance}
+                                        className="inline text-xs font-bold"
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>

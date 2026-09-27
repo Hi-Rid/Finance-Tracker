@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
+import { Amount } from '@/components/ui/amount'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
     DropdownMenu,
@@ -34,7 +34,6 @@ import {
 } from '@/components/ui/sheet'
 import { MonthlyBudgetForm } from './monthly-budget-form'
 import { useMonthlyBudget } from '@/lib/hooks/use-monthly-budget'
-import { formatRupiah } from '@/lib/normalize'
 import { getCategoryIcon } from '@/lib/constants/category-icons'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
 import { cn } from '@/lib/utils'
@@ -124,7 +123,6 @@ export function MonthlyBudgetList({
         <>
             <Card>
                 <CardContent className="p-5 md:p-6">
-                    {/* Header */}
                     <div className="flex items-start justify-between gap-3 mb-4">
                         <div>
                             <h3 className="text-base font-semibold mb-0.5">Budget Bulanan</h3>
@@ -142,34 +140,32 @@ export function MonthlyBudgetList({
                         </Button>
                     </div>
 
-                    {/* Total Summary — compact */}
                     {budgets.length > 0 && (
                         <div className="mb-5 p-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-gradient-to-br from-brand/5 to-transparent">
                             <div className="flex items-baseline justify-between gap-3 mb-3">
-                                <div>
+                                <div className="min-w-0">
                                     <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                                         Terpakai
                                     </p>
-                                    <p className="text-xl font-bold tabular-nums text-slate-900 dark:text-white">
-                                        {formatRupiah(totalSpent)}
-                                    </p>
+                                    <Amount
+                                        value={totalSpent}
+                                        className="text-xl font-bold text-slate-900 dark:text-white"
+                                    />
                                 </div>
-                                <div className="text-right">
+                                <div className="text-right min-w-0">
                                     <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                                         {totalRemaining >= 0 ? 'Sisa' : 'Over'}
                                     </p>
-                                    <p
+                                    <Amount
+                                        value={Math.abs(totalRemaining)}
+                                        sign={totalRemaining >= 0 ? 'none' : 'negative'}
                                         className={cn(
-                                            'text-xl font-bold tabular-nums',
+                                            'text-xl font-bold',
                                             totalRemaining >= 0
                                                 ? 'text-emerald-600 dark:text-emerald-400'
                                                 : 'text-red-600 dark:text-red-400'
                                         )}
-                                    >
-                                        {totalRemaining >= 0
-                                            ? formatRupiah(totalRemaining)
-                                            : `-${formatRupiah(Math.abs(totalRemaining))}`}
-                                    </p>
+                                    />
                                 </div>
                             </div>
 
@@ -190,8 +186,12 @@ export function MonthlyBudgetList({
                             </div>
 
                             <div className="flex items-center justify-between mt-2">
-                                <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                                    dari {formatRupiah(totalBudget)}
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1 flex-wrap">
+                                    <span>dari</span>
+                                    <Amount
+                                        value={totalBudget}
+                                        className="inline text-[10px] font-medium"
+                                    />
                                 </p>
                                 <p
                                     className={cn(
@@ -211,7 +211,6 @@ export function MonthlyBudgetList({
                         </div>
                     )}
 
-                    {/* List */}
                     {budgets.length === 0 ? (
                         <EmptyState
                             icon={Target}
@@ -249,7 +248,6 @@ export function MonthlyBudgetList({
                                         className="group rounded-2xl border border-slate-200 dark:border-white/10 p-4 hover:border-brand/30 dark:hover:border-brand/30 transition-all"
                                     >
                                         <div className="flex items-start gap-3 mb-3">
-                                            {/* Icon */}
                                             <div
                                                 className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
                                                 style={{ backgroundColor: `${color}15` }}
@@ -257,7 +255,6 @@ export function MonthlyBudgetList({
                                                 <Icon className="w-5 h-5" style={{ color }} />
                                             </div>
 
-                                            {/* Info */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between gap-2 mb-1">
                                                     <p className="text-sm font-semibold truncate">
@@ -278,16 +275,19 @@ export function MonthlyBudgetList({
                                                         {Math.round(rawPercent)}%
                                                     </p>
                                                 </div>
-                                                <p className="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
-                                                    <span className="font-semibold text-slate-900 dark:text-white">
-                                                        {formatRupiah(spent)}
-                                                    </span>
-                                                    {' / '}
-                                                    {formatRupiah(amount)}
-                                                </p>
+                                                <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 tabular-nums flex-wrap">
+                                                    <Amount
+                                                        value={spent}
+                                                        className="inline text-[11px] font-semibold text-slate-900 dark:text-white"
+                                                    />
+                                                    <span>/</span>
+                                                    <Amount
+                                                        value={amount}
+                                                        className="inline text-[11px] font-medium"
+                                                    />
+                                                </div>
                                             </div>
 
-                                            {/* Actions */}
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button
@@ -320,7 +320,6 @@ export function MonthlyBudgetList({
                                             </DropdownMenu>
                                         </div>
 
-                                        {/* Progress bar */}
                                         <div className="relative w-full h-2 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden mb-2">
                                             <div
                                                 className={cn(
@@ -337,20 +336,28 @@ export function MonthlyBudgetList({
                                             />
                                         </div>
 
-                                        {/* Sisa */}
                                         <div className="flex items-center justify-between">
-                                            <p
-                                                className={cn(
-                                                    'text-[11px] font-medium tabular-nums',
-                                                    remaining >= 0
-                                                        ? 'text-emerald-600 dark:text-emerald-400'
-                                                        : 'text-red-600 dark:text-red-400'
-                                                )}
-                                            >
-                                                {remaining >= 0
-                                                    ? `Sisa ${formatRupiah(remaining)}`
-                                                    : `Over ${formatRupiah(Math.abs(remaining))}`}
-                                            </p>
+                                            <div className="flex items-center gap-1">
+                                                <span
+                                                    className={cn(
+                                                        'text-[11px] font-medium',
+                                                        remaining >= 0
+                                                            ? 'text-emerald-600 dark:text-emerald-400'
+                                                            : 'text-red-600 dark:text-red-400'
+                                                    )}
+                                                >
+                                                    {remaining >= 0 ? 'Sisa' : 'Over'}
+                                                </span>
+                                                <Amount
+                                                    value={Math.abs(remaining)}
+                                                    className={cn(
+                                                        'inline text-[11px] font-medium',
+                                                        remaining >= 0
+                                                            ? 'text-emerald-600 dark:text-emerald-400'
+                                                            : 'text-red-600 dark:text-red-400'
+                                                    )}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 )
@@ -360,7 +367,6 @@ export function MonthlyBudgetList({
                 </CardContent>
             </Card>
 
-            {/* Form */}
             {isMobile ? (
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto">

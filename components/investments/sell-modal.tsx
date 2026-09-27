@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CurrencyInput } from '@/components/ui/currency-input'
+import { Amount } from '@/components/ui/amount'
 import {
     Select,
     SelectContent,
@@ -25,7 +26,6 @@ import {
 } from '@/components/ui/select'
 import { useInvestments } from '@/lib/hooks/use-investments'
 import { sellSchema, type SellInput } from '@/lib/validators/investment'
-import { formatRupiah } from '@/lib/normalize'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/types/database'
 import type { InvestmentPosition } from '@/lib/investments/types'
@@ -43,12 +43,15 @@ function toDateTimeInputValue(date: Date): string {
     const y = date.getFullYear()
     const m = String(date.getMonth() + 1).padStart(2, '0')
     const d = String(date.getDate()).padStart(2, '0')
-    return `${y}-${m}-${d}`
+    const h = String(date.getHours()).padStart(2, '0')
+    const min = String(date.getMinutes()).padStart(2, '0')
+    return `${y}-${m}-${d}T${h}:${min}`
 }
 
 function getQuantityLabel(type: string): string {
     if (type === 'stock') return 'Lot'
     if (type === 'gold') return 'Gram'
+    if (type === 'bond') return 'Unit'
     return 'Jumlah'
 }
 
@@ -125,8 +128,12 @@ export function SellModal({
                     <p className="text-base font-bold">
                         {ticker} · {position.lot_held} {qtyLabel.toLowerCase()}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
-                        Avg {formatRupiah(position.avg_price)}
+                    <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                        <span>Avg</span>
+                        <Amount
+                            value={position.avg_price}
+                            className="inline text-xs font-medium"
+                        />
                     </p>
                 </div>
 
@@ -150,7 +157,9 @@ export function SellModal({
                                         placeholder="0"
                                         value={field.value || ''}
                                         onChange={(e) =>
-                                            field.onChange(e.target.value === '' ? 0 : Number(e.target.value))
+                                            field.onChange(
+                                                e.target.value === '' ? 0 : Number(e.target.value)
+                                            )
                                         }
                                     />
                                 </FormControl>
@@ -217,44 +226,55 @@ export function SellModal({
                 {/* Preview */}
                 {gross > 0 && (
                     <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 p-4 space-y-2">
-                        <div className="flex justify-between text-xs">
-                            <span className="text-emerald-700 dark:text-emerald-300">Bruto</span>
-                            <span className="font-medium tabular-nums text-emerald-900 dark:text-emerald-100">
-                                {formatRupiah(gross)}
+                        <div className="flex justify-between items-center text-xs">
+                            <span className="text-emerald-700 dark:text-emerald-300">
+                                Bruto
                             </span>
+                            <Amount
+                                value={gross}
+                                className="text-xs font-medium text-emerald-900 dark:text-emerald-100"
+                            />
                         </div>
                         {fee > 0 && (
-                            <div className="flex justify-between text-xs">
-                                <span className="text-emerald-700 dark:text-emerald-300">Biaya</span>
-                                <span className="font-medium tabular-nums text-emerald-900 dark:text-emerald-100">
-                                    −{formatRupiah(fee)}
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="text-emerald-700 dark:text-emerald-300">
+                                    Biaya
                                 </span>
+                                <div className="flex items-center gap-0.5">
+                                    <span className="text-xs font-medium text-emerald-900 dark:text-emerald-100">
+                                        −
+                                    </span>
+                                    <Amount
+                                        value={fee}
+                                        className="text-xs font-medium text-emerald-900 dark:text-emerald-100"
+                                    />
+                                </div>
                             </div>
                         )}
-                        <div className="flex justify-between pt-2 border-t border-emerald-200 dark:border-emerald-500/30">
+                        <div className="flex justify-between items-center pt-2 border-t border-emerald-200 dark:border-emerald-500/30">
                             <span className="text-xs font-semibold text-emerald-900 dark:text-emerald-100">
                                 Diterima Bersih
                             </span>
-                            <span className="text-base font-bold tabular-nums text-emerald-700 dark:text-emerald-300">
-                                {formatRupiah(net)}
-                            </span>
+                            <Amount
+                                value={net}
+                                className="text-base font-bold text-emerald-700 dark:text-emerald-300"
+                            />
                         </div>
                         {quantity > 0 && (
-                            <div className="flex justify-between pt-2 border-t border-emerald-200/60 dark:border-emerald-500/20">
+                            <div className="flex justify-between items-center pt-2 border-t border-emerald-200/60 dark:border-emerald-500/20">
                                 <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
                                     Estimasi P/L
                                 </span>
-                                <span
+                                <Amount
+                                    value={estimatedPl}
+                                    sign={isProfit ? 'positive' : 'negative'}
                                     className={cn(
-                                        'text-xs font-semibold tabular-nums',
+                                        'text-xs font-semibold',
                                         isProfit
                                             ? 'text-emerald-600 dark:text-emerald-400'
                                             : 'text-red-600 dark:text-red-400'
                                     )}
-                                >
-                                    {isProfit ? '+' : '−'}
-                                    {formatRupiah(Math.abs(estimatedPl))}
-                                </span>
+                                />
                             </div>
                         )}
                     </div>
@@ -276,7 +296,7 @@ export function SellModal({
                     name="date"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Tanggal & Waktu Jual</FormLabel>
+                            <FormLabel>Tanggal Jual</FormLabel>
                             <FormControl>
                                 <Input type="datetime-local" {...field} />
                             </FormControl>

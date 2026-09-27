@@ -1,8 +1,16 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Upload, Loader2, CheckCircle2, AlertCircle, ScanLine } from 'lucide-react'
+import {
+    Camera,
+    Upload,
+    Loader2,
+    CheckCircle2,
+    AlertCircle,
+    ScanLine,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Amount } from '@/components/ui/amount'
 import {
     Dialog,
     DialogContent,
@@ -41,13 +49,14 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
     const [result, setResult] = useState<ParsedReceipt | null>(null)
     const [receiptId, setReceiptId] = useState<string | null>(null)
-    const [suggestedCategoryId, setSuggestedCategoryId] = useState<string | null>(null)
+    const [suggestedCategoryId, setSuggestedCategoryId] = useState<string | null>(
+        null
+    )
     const [picking, setPicking] = useState(false)
 
     const cameraInputRef = useRef<HTMLInputElement>(null)
     const uploadInputRef = useRef<HTMLInputElement>(null)
 
-    // Reset picking state pas user balik dari file picker
     useEffect(() => {
         if (!picking) return
         const handleFocus = () => {
@@ -136,7 +145,6 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
         uploadInputRef.current?.click()
     }
 
-    // Prevent close pas file picker buka
     function handleInteractOutside(e: Event) {
         if (picking) {
             e.preventDefault()
@@ -145,7 +153,6 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
 
     const content = (
         <div className="space-y-4">
-            {/* Hidden inputs — sr-only biar iOS Safari bisa trigger .click() */}
             <input
                 ref={cameraInputRef}
                 type="file"
@@ -166,7 +173,6 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
 
             {state === 'idle' && (
                 <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
-                    {/* Camera — mobile only */}
                     <button
                         type="button"
                         onClick={handleCameraClick}
@@ -302,13 +308,33 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                         />
                         <DataRow
                             label="Total"
-                            value={`${result.currency} ${result.totalAmount.toLocaleString('id-ID')}`}
+                            valueNode={
+                                <span className="inline-flex items-center gap-1">
+                                    <span className="text-xs font-medium text-slate-500">
+                                        {result.currency}
+                                    </span>
+                                    <Amount
+                                        value={result.totalAmount}
+                                        className="text-base font-bold text-brand"
+                                    />
+                                </span>
+                            }
                             highlight
                         />
                         {result.taxAmount > 0 && (
                             <DataRow
                                 label="Pajak"
-                                value={`${result.currency} ${result.taxAmount.toLocaleString('id-ID')}`}
+                                valueNode={
+                                    <span className="inline-flex items-center gap-1">
+                                        <span className="text-xs font-medium text-slate-500">
+                                            {result.currency}
+                                        </span>
+                                        <Amount
+                                            value={result.taxAmount}
+                                            className="text-xs font-medium"
+                                        />
+                                    </span>
+                                }
                             />
                         )}
                         {result.receiptNumber && (
@@ -328,8 +354,14 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                                             <span className="text-slate-600 dark:text-slate-300 truncate flex-1">
                                                 {item.quantity}x {item.description}
                                             </span>
-                                            <span className="text-slate-900 dark:text-white font-medium tabular-nums shrink-0">
-                                                {result.currency} {item.total}
+                                            <span className="inline-flex items-center gap-1 shrink-0">
+                                                <span className="text-[10px] font-medium text-slate-500">
+                                                    {result.currency}
+                                                </span>
+                                                <Amount
+                                                    value={item.total}
+                                                    className="text-xs font-medium text-slate-900 dark:text-white"
+                                                />
                                             </span>
                                         </div>
                                     ))}
@@ -363,7 +395,6 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                 Scan Struk (OCR)
             </Button>
 
-            {/* Conditional render — cuma SATU yang muncul, biar ref gak ambigu */}
             {isMobile ? (
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetContent
@@ -403,28 +434,34 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
 function DataRow({
     label,
     value,
+    valueNode,
     highlight = false,
 }: {
     label: string
-    value: string | null
+    value?: string | null
+    valueNode?: React.ReactNode
     highlight?: boolean
 }) {
-    if (!value) return null
+    if (!value && !valueNode) return null
     return (
         <div className="flex items-start justify-between gap-3 text-xs">
             <span className="text-slate-500 dark:text-slate-400 shrink-0">
                 {label}
             </span>
-            <span
-                className={cn(
-                    'text-right font-medium truncate',
-                    highlight
-                        ? 'text-base font-bold text-brand tabular-nums'
-                        : 'text-slate-900 dark:text-white'
-                )}
-            >
-                {value}
-            </span>
+            {valueNode ? (
+                <span className="text-right shrink-0">{valueNode}</span>
+            ) : (
+                <span
+                    className={cn(
+                        'text-right font-medium truncate',
+                        highlight
+                            ? 'text-base font-bold text-brand tabular-nums'
+                            : 'text-slate-900 dark:text-white'
+                    )}
+                >
+                    {value}
+                </span>
+            )}
         </div>
     )
 }

@@ -2,7 +2,6 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useState } from 'react'
 import {
   Form,
   FormControl,
@@ -25,7 +24,10 @@ import {
 import { useAccounts } from '@/lib/hooks/use-accounts'
 import { toUppercase } from '@/lib/normalize'
 import { Loader2, Lock, Info } from 'lucide-react'
-import { createAccountSchema, type CreateAccountInput } from '@/lib/validators/account'
+import {
+  createAccountSchema,
+  type CreateAccountInput,
+} from '@/lib/validators/account'
 import type { Database } from '@/types/database'
 
 type Account = Database['public']['Tables']['accounts']['Row']
@@ -60,7 +62,6 @@ export function AccountForm({
   const { createAccount, updateAccount } = useAccounts()
   const isEdit = !!account
 
-  // Saldo awal read-only kalau edit akun yang udah punya transaksi
   const isBalanceLocked = isEdit && hasTransactions
 
   const form = useForm<AccountFormValues>({
@@ -68,7 +69,9 @@ export function AccountForm({
     defaultValues: {
       name: account?.name || '',
       type: (account?.type as AccountFormValues['type']) || 'bank',
-      initial_balance: account?.initial_balance ? Number(account.initial_balance) : 0,
+      initial_balance: account?.initial_balance
+        ? Number(account.initial_balance)
+        : 0,
       note: account?.note || '',
     },
   })
@@ -84,7 +87,6 @@ export function AccountForm({
     }
 
     if (isEdit && account) {
-      // Update: JANGAN update balance, cuma nama/tipe/catatan
       const result = await updateAccount(account.id, {
         name: normalized.name,
         type: normalized.type,
@@ -95,7 +97,6 @@ export function AccountForm({
         form.reset()
       }
     } else {
-      // Create
       const result = await createAccount({
         ...normalized,
         profileId,
@@ -177,8 +178,8 @@ export function AccountForm({
                   <Info className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                   <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
                     Saldo awal terkunci karena ada transaksi. Pakai tombol{' '}
-                    <strong>Tambah Saldo</strong> atau <strong>Koreksi Saldo</strong>{' '}
-                    untuk penyesuaian.
+                    <strong>Tambah Saldo</strong> atau{' '}
+                    <strong>Koreksi Saldo</strong> untuk penyesuaian.
                   </p>
                 </div>
               )}

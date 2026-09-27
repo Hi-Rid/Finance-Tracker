@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const createInvestmentSchema = z
     .object({
-        asset_type: z.enum(['stock', 'crypto', 'mutual_fund', 'gold']),
+        asset_type: z.enum(['stock', 'crypto', 'mutual_fund', 'gold', 'bond']),
         name: z.string().min(1, 'Nama wajib diisi'),
         ticker: z.string().optional(),
         exchange: z.string().optional(),

@@ -7,12 +7,6 @@ type SparklineProps = {
   color?: string
   height?: number | string
   showGradient?: boolean
-  /**
-   * Padding bawah (ratio terhadap max value).
-   * 0 = default (garis flat nempel bottom).
-   * 0.15 = tambah 15% ruang di bawah 0, biar area fill gak tipis.
-   */
-  yAxisPadding?: number
 }
 
 export function Sparkline({
@@ -20,20 +14,28 @@ export function Sparkline({
   color = '#5b86b6',
   height = 40,
   showGradient = true,
-  yAxisPadding = 0,
 }: SparklineProps) {
-  const chartData = data.map((value, index) => ({ index, value }))
-  const gradientId = `sparkline-grad-${color.replace('#', '')}`
-
+  // ============================================================
+  // 1. Normalize ke 0-100
+  // 2. Clamp minimum ke 15 — biar garis flat (nilai rendah) tetap kelihatan tebal
+  // ============================================================
   const maxValue = Math.max(...data, 1)
-  const yMin = yAxisPadding > 0 ? -maxValue * yAxisPadding : 0
+  const FLOOR = 15
+
+  const normalized = data.map((v) => {
+    const scaled = (v / maxValue) * 100
+    return Math.max(scaled, FLOOR)
+  })
+
+  const chartData = normalized.map((value, index) => ({ index, value }))
+  const gradientId = `sparkline-grad-${color.replace('#', '')}`
 
   return (
     <div
       style={{
         width: '100%',
         height,
-        pointerEvents: 'none',        // ← block semua interaksi
+        pointerEvents: 'none',
         userSelect: 'none',
       }}
     >
@@ -41,8 +43,6 @@ export function Sparkline({
         <AreaChart
           data={chartData}
           margin={{ top: 8, right: 4, left: 4, bottom: 0 }}
-          tabIndex={-1}                // ← prevent focus
-          style={{ outline: 'none' }}  // ← kill focus outline
         >
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -51,7 +51,7 @@ export function Sparkline({
             </linearGradient>
           </defs>
 
-          {yAxisPadding > 0 && <YAxis domain={[yMin, 'auto']} hide />}
+          <YAxis domain={[0, 100]} hide />
 
           <Area
             type="monotone"
@@ -62,7 +62,6 @@ export function Sparkline({
             isAnimationActive={false}
             dot={false}
             activeDot={false}
-            baseValue={yAxisPadding > 0 ? yMin : 0}
           />
         </AreaChart>
       </ResponsiveContainer>

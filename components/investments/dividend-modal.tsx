@@ -24,7 +24,6 @@ import {
 } from '@/components/ui/select'
 import { useInvestments } from '@/lib/hooks/use-investments'
 import { dividendSchema, type DividendInput } from '@/lib/validators/investment'
-import { Loader2 as Loader } from 'lucide-react'
 import type { Database } from '@/types/database'
 import type { InvestmentPosition } from '@/lib/investments/types'
 
@@ -41,7 +40,9 @@ function toDateTimeInputValue(date: Date): string {
     const y = date.getFullYear()
     const m = String(date.getMonth() + 1).padStart(2, '0')
     const d = String(date.getDate()).padStart(2, '0')
-    return `${y}-${m}-${d}`
+    const h = String(date.getHours()).padStart(2, '0')
+    const min = String(date.getMinutes()).padStart(2, '0')
+    return `${y}-${m}-${d}T${h}:${min}`
 }
 
 export function DividendModal({
@@ -125,7 +126,7 @@ export function DividendModal({
                     name="date"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Tanggal & Waktu Terima</FormLabel>
+                            <FormLabel>Tanggal Terima</FormLabel>
                             <FormControl>
                                 <Input type="datetime-local" {...field} />
                             </FormControl>
@@ -190,7 +191,7 @@ export function DividendModal({
                         disabled={submitting}
                         className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
                     >
-                        {submitting && <Loader className="w-4 h-4 animate-spin" />}
+                        {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                         Catat Dividend
                     </Button>
                 </div>

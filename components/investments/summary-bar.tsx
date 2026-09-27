@@ -2,7 +2,7 @@
 
 import { Wallet, TrendingUp, TrendingDown, Briefcase, PieChart, Activity } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { formatRupiah } from '@/lib/normalize'
+import { Amount } from '@/components/ui/amount'
 import type { PortfolioSummary } from '@/lib/investments/types'
 
 type SummaryBarProps = {
@@ -11,11 +11,9 @@ type SummaryBarProps = {
 
 export function SummaryBar({ summary }: SummaryBarProps) {
     const isProfit = summary.net_pl >= 0
-    const plAbs = Math.abs(summary.net_pl)
 
     return (
         <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card overflow-hidden shadow-sm">
-            {/* ============ HERO ROW ============ */}
             <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-white/5">
                 {/* Total Equity */}
                 <div className="relative p-3 md:p-6 overflow-hidden">
@@ -32,9 +30,10 @@ export function SummaryBar({ summary }: SummaryBarProps) {
                                 Total Equity
                             </span>
                         </div>
-                        <p className="text-base md:text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white leading-tight">
-                            {formatRupiah(summary.total_equity)}
-                        </p>
+                        <Amount
+                            value={summary.total_equity}
+                            className="text-base md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight"
+                        />
                         <p className="hidden md:block text-[10px] md:text-xs text-muted-foreground mt-1.5">
                             Balance + Portfolio value
                         </p>
@@ -72,17 +71,16 @@ export function SummaryBar({ summary }: SummaryBarProps) {
                                 Net P/L
                             </span>
                         </div>
-                        <p
+                        <Amount
+                            value={summary.net_pl}
+                            sign={isProfit ? 'positive' : 'negative'}
                             className={cn(
-                                'text-base md:text-3xl font-bold tabular-nums tracking-tight leading-tight',
+                                'text-base md:text-3xl font-bold tracking-tight leading-tight',
                                 isProfit
                                     ? 'text-emerald-600 dark:text-emerald-400'
                                     : 'text-red-600 dark:text-red-400'
                             )}
-                        >
-                            {isProfit ? '+' : '−'}
-                            {formatRupiah(plAbs)}
-                        </p>
+                        />
                         <p
                             className={cn(
                                 'text-[9px] md:text-xs font-semibold tabular-nums mt-0.5 md:mt-1.5',
@@ -99,25 +97,26 @@ export function SummaryBar({ summary }: SummaryBarProps) {
                 </div>
             </div>
 
-            {/* ============ SECONDARY ROW ============ */}
+            {/* Secondary */}
             <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-white/5 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01]">
                 <SecondaryMetric
                     icon={Wallet}
                     label="Trading"
                     labelFull="Trading Balance"
-                    value={formatRupiah(summary.trading_balance)}
+                    value={summary.trading_balance}
                 />
                 <SecondaryMetric
                     icon={PieChart}
                     label="Invested"
                     labelFull="Invested"
-                    value={formatRupiah(summary.total_invested)}
+                    value={summary.total_invested}
                 />
                 <SecondaryMetric
                     icon={Activity}
                     label="Positions"
                     labelFull="Positions"
                     value={`${summary.open_positions} aktif`}
+                    isCount
                 />
             </div>
         </div>
@@ -129,11 +128,13 @@ function SecondaryMetric({
     label,
     labelFull,
     value,
+    isCount = false,
 }: {
     icon: any
     label: string
     labelFull: string
-    value: string
+    value: number | string
+    isCount?: boolean
 }) {
     return (
         <div className="px-2 py-2 md:px-4 md:py-4 min-w-0">
@@ -144,9 +145,16 @@ function SecondaryMetric({
                     <span className="hidden md:inline">{labelFull}</span>
                 </p>
             </div>
-            <p className="text-[11px] md:text-base font-bold tabular-nums tracking-tight text-slate-900 dark:text-white truncate">
-                {value}
-            </p>
+            {isCount ? (
+                <p className="text-[11px] md:text-base font-bold tabular-nums tracking-tight text-slate-900 dark:text-white truncate">
+                    {value}
+                </p>
+            ) : (
+                <Amount
+                    value={typeof value === 'number' ? value : Number(value)}
+                    className="text-[11px] md:text-base font-bold tracking-tight text-slate-900 dark:text-white truncate"
+                />
+            )}
         </div>
     )
 }

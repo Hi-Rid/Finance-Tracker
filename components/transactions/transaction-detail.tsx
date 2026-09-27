@@ -21,13 +21,13 @@ import {
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Amount } from '@/components/ui/amount'
 import {
     Dialog,
     DialogContent,
 } from '@/components/ui/dialog'
 import { ReceiptDetail } from '@/components/receipts/receipt-detail'
 import { cn } from '@/lib/utils'
-import { formatRupiah } from '@/lib/normalize'
 import { formatDateLongWIB, formatTimeWIB } from '@/lib/utils/datetime'
 import type { Database } from '@/types/database'
 
@@ -70,8 +70,8 @@ export function TransactionDetail({
         ? {
             iconBg: 'from-emerald-400 to-emerald-600',
             icon: TrendingUp,
-            amount: 'text-emerald-600 dark:text-emerald-400',
-            prefix: '+',
+            amountColor: 'text-emerald-600 dark:text-emerald-400',
+            sign: 'positive' as const,
             status: 'success' as const,
             statusLabel: 'Pemasukan',
         }
@@ -79,16 +79,16 @@ export function TransactionDetail({
             ? {
                 iconBg: 'from-primary-400 to-primary-700',
                 icon: ArrowLeftRight,
-                amount: 'text-brand',
-                prefix: '',
+                amountColor: 'text-brand',
+                sign: 'none' as const,
                 status: 'default' as const,
                 statusLabel: 'Transfer',
             }
             : {
                 iconBg: 'from-red-400 to-red-600',
                 icon: TrendingDown,
-                amount: 'text-red-600 dark:text-red-400',
-                prefix: '−',
+                amountColor: 'text-red-600 dark:text-red-400',
+                sign: 'negative' as const,
                 status: 'danger' as const,
                 statusLabel: 'Pengeluaran',
             }
@@ -108,7 +108,7 @@ export function TransactionDetail({
     return (
         <>
             <div className="flex flex-col flex-1 min-h-0">
-                {/* ============ HEADER ============ */}
+                {/* HEADER */}
                 <div className="relative p-6 md:p-8 pb-5 border-b border-slate-200 dark:border-white/10">
                     <div
                         className={cn(
@@ -126,10 +126,11 @@ export function TransactionDetail({
                     </h2>
 
                     <div className="flex items-baseline gap-1 mb-3">
-                        <span className={cn('text-2xl md:text-3xl font-bold', accent.amount)}>
-                            {accent.prefix}
-                            {formatRupiah(Number(transaction.amount_idr))}
-                        </span>
+                        <Amount
+                            value={Number(transaction.amount_idr)}
+                            sign={accent.sign}
+                            className={cn('text-2xl md:text-3xl font-bold', accent.amountColor)}
+                        />
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
@@ -148,7 +149,7 @@ export function TransactionDetail({
                     </div>
                 </div>
 
-                {/* ============ CONTENT ============ */}
+                {/* CONTENT */}
                 <div className="flex-1 overflow-y-auto p-6 md:p-8 pt-5 space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {isTransfer ? (
@@ -191,7 +192,7 @@ export function TransactionDetail({
                         )}
                     </div>
 
-                    {/* Link ke struk asli (kalau hasil OCR) */}
+                    {/* Receipt link */}
                     {receipt && (
                         <button
                             type="button"
@@ -279,7 +280,7 @@ export function TransactionDetail({
                     </button>
                 </div>
 
-                {/* ============ ACTIONS ============ */}
+                {/* ACTIONS */}
                 {(onEdit || onDelete || onDuplicate) && (
                     <div className="shrink-0 p-4 md:p-5 border-t border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex flex-row gap-2">
                         {onDelete && (
@@ -312,7 +313,7 @@ export function TransactionDetail({
                 )}
             </div>
 
-            {/* ============ RECEIPT DETAIL DIALOG (nested) ============ */}
+            {/* RECEIPT DETAIL DIALOG */}
             {receipt && (
                 <Dialog open={showReceipt} onOpenChange={setShowReceipt}>
                     <DialogContent
@@ -357,9 +358,10 @@ function TaxRow({ label, value }: { label: string; value: number }) {
     return (
         <div className="flex items-center justify-between py-2.5 px-4 text-sm">
             <span className="text-slate-600 dark:text-slate-400">{label}</span>
-            <span className="font-semibold tabular-nums text-slate-900 dark:text-white">
-                {formatRupiah(value)}
-            </span>
+            <Amount
+                value={value}
+                className="text-sm font-semibold text-slate-900 dark:text-white"
+            />
         </div>
     )
 }

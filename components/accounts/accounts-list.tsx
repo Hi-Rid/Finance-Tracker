@@ -16,7 +16,9 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Amount } from '@/components/ui/amount'
 import { EmptyState } from '@/components/ui/empty-state'
+import { HideAmountsButton } from '@/components/shared/hide-amounts-button'
 import {
   Sheet,
   SheetContent,
@@ -43,9 +45,7 @@ import { TopupModal } from './topup-modal'
 import { TransferModal } from './transfer-modal'
 import { AdjustmentModal } from './adjustment-modal'
 import { useAccounts } from '@/lib/hooks/use-accounts'
-import { formatRupiah } from '@/lib/normalize'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
-import { cn } from '@/lib/utils'
 import type { Database } from '@/types/database'
 
 type Account = Database['public']['Tables']['accounts']['Row']
@@ -215,19 +215,25 @@ export function AccountsList({
   return (
     <>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between gap-3 mb-6">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
             Total Saldo
           </p>
-          <p className="text-2xl font-bold tabular-nums">
-            {formatRupiah(totalBalance)}
-          </p>
+          <Amount
+            value={totalBalance}
+            className="text-2xl font-bold"
+          />
         </div>
-        <Button onClick={openCreate} variant="primary">
-          <Plus className="w-4 h-4" />
-          Tambah Akun
-        </Button>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <HideAmountsButton size="icon-sm" />
+          <Button onClick={openCreate} variant="primary" size="sm">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Tambah Akun</span>
+            <span className="sm:hidden">Tambah</span>
+          </Button>
+        </div>
       </div>
 
       {/* List */}
@@ -266,17 +272,16 @@ export function AccountsList({
                   }}
                 />
 
-                {/* Accent bar kiri — solid */}
+                {/* Accent bar */}
                 <div
                   className="absolute left-0 top-0 bottom-0 w-1"
                   style={{ backgroundColor: accent }}
                 />
 
                 <div className="relative p-5 pl-6">
-                  {/* Header: icon + name + dropdown */}
+                  {/* Header */}
                   <div className="flex items-start justify-between gap-3 mb-5">
                     <div className="flex items-center gap-3 min-w-0">
-                      {/* Icon container solid tint */}
                       <div
                         className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
                         style={{ backgroundColor: `${accent}18` }}
@@ -357,9 +362,10 @@ export function AccountsList({
                     <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
                       Saldo
                     </p>
-                    <p className="text-3xl font-bold tabular-nums tracking-tight truncate">
-                      {formatRupiah(Number(account.current_balance))}
-                    </p>
+                    <Amount
+                      value={Number(account.current_balance)}
+                      className="text-3xl font-bold tracking-tight truncate"
+                    />
                     {account.note && (
                       <p className="text-[11px] text-muted-foreground mt-1.5 truncate">
                         {account.note}
@@ -400,13 +406,10 @@ export function AccountsList({
         </div>
       )}
 
-      {/* Mobile Sheet */}
+      {/* Mobile Sheet / Desktop Dialog */}
       {isMobile ? (
         <Sheet open={open} onOpenChange={(o) => !o && closeDialog()}>
-          <SheetContent
-            side="bottom"
-            className="max-h-[92vh] overflow-y-auto"
-          >
+          <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto">
             <SheetHeader>
               <SheetTitle>{title}</SheetTitle>
               <SheetDescription>{description}</SheetDescription>

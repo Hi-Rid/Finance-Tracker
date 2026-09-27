@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
-import { Loader2, TrendingUp, Plus } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
 import {
     Form,
     FormControl,
@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CurrencyInput } from '@/components/ui/currency-input'
+import { Amount } from '@/components/ui/amount'
 import {
     Select,
     SelectContent,
@@ -25,7 +26,6 @@ import {
 } from '@/components/ui/select'
 import { useAccounts } from '@/lib/hooks/use-accounts'
 import { topupSchema, type TopupInput } from '@/lib/validators/account'
-import { formatRupiah } from '@/lib/normalize'
 import type { Database } from '@/types/database'
 
 type Account = Database['public']['Tables']['accounts']['Row']
@@ -94,8 +94,12 @@ export function TopupModal({
                         </span>
                     </div>
                     <p className="text-base font-bold">{account.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
-                        Saldo saat ini: {formatRupiah(Number(account.current_balance))}
+                    <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                        <span>Saldo saat ini:</span>
+                        <Amount
+                            value={Number(account.current_balance)}
+                            className="inline text-xs font-medium"
+                        />
                     </p>
                 </div>
 
@@ -130,9 +134,10 @@ export function TopupModal({
                         <p className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider mb-1.5">
                             Saldo Setelah
                         </p>
-                        <p className="text-2xl font-bold tabular-nums text-emerald-700 dark:text-emerald-300">
-                            {formatRupiah(previewBalance)}
-                        </p>
+                        <Amount
+                            value={previewBalance}
+                            className="text-2xl font-bold text-emerald-700 dark:text-emerald-300"
+                        />
                     </div>
                 )}
 

@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { Amount } from '@/components/ui/amount'
 import {
   Select,
   SelectContent,
@@ -42,7 +43,6 @@ import {
   transactionSchema,
   type TransactionInput,
 } from '@/lib/validators/transaction'
-import { formatRupiah } from '@/lib/normalize'
 import { cn } from '@/lib/utils'
 import { CurrencyInput } from '@/components/ui/currency-input'
 import { ReceiptScanner } from '@/components/receipts/receipt-scanner'
@@ -130,14 +130,12 @@ export function TransactionForm({
   const watchedCategoryId = watch('category_id')
   const watchedDailyItemId = watch('daily_item_id')
 
-  // Filter categories by type
   const filteredCategories = useMemo(() => {
     if (watchedType === 'transfer') return []
     const catType = watchedType === 'income' ? 'income' : 'expense'
     return categories.filter((c) => c.type === catType && !c.is_archived)
   }, [categories, watchedType])
 
-  // Filter daily items by kategori
   const filteredDailyItems = useMemo(() => {
     if (!watchedCategoryId) return []
     return dailyItems.filter(
@@ -145,7 +143,6 @@ export function TransactionForm({
     )
   }, [dailyItems, watchedCategoryId])
 
-  // Kalau kategori ganti, reset daily item
   useEffect(() => {
     if (
       watchedDailyItemId &&
@@ -155,7 +152,6 @@ export function TransactionForm({
     }
   }, [watchedCategoryId, filteredDailyItems, watchedDailyItemId, setValue])
 
-  // Real-time preview
   const selectedAccount = accounts.find((a) => a.id === watchedAccountId)
   const previewBalance = useMemo(() => {
     if (!selectedAccount) return 0
@@ -188,17 +184,13 @@ export function TransactionForm({
       form.setValue('merchant', parsed.merchant)
     }
 
-    // Set tanggal: prioritas datetime lengkap → date + jam sekarang → date aja
     if (parsed.datetime) {
-      // parsed.datetime = "2026-09-22T12:08:00+07:00"
-      // Ambil langsung string local WIB dari string-nya (slice sebelum "+07:00")
       form.setValue('date', parsed.datetime.slice(0, 16))
     } else if (parsed.date) {
       const time = parsed.time || toLocalDateTimeInputValue(new Date()).slice(11)
       form.setValue('date', `${parsed.date}T${time}`)
     }
 
-    // Auto-set kategori kalau ketemu
     if (suggestedCategoryId) {
       form.setValue('category_id', suggestedCategoryId)
     }
@@ -225,7 +217,7 @@ export function TransactionForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* ============ 1. TYPE SELECTOR ============ */}
+        {/* TYPE SELECTOR */}
         <FormField
           control={form.control}
           name="type"
@@ -260,12 +252,12 @@ export function TransactionForm({
           )}
         />
 
-        {/* ============ 2. OCR SCAN ============ */}
+        {/* OCR SCAN */}
         {!isEdit && watchedType !== 'transfer' && (
           <ReceiptScanner onScanned={handleScanned} />
         )}
 
-        {/* ============ 3. NAMA TRANSAKSI ============ */}
+        {/* NAMA */}
         <FormField
           control={form.control}
           name="name"
@@ -280,7 +272,7 @@ export function TransactionForm({
           )}
         />
 
-        {/* ============ 4. NOMINAL ============ */}
+        {/* NOMINAL */}
         <FormField
           control={form.control}
           name="amount"
@@ -305,7 +297,7 @@ export function TransactionForm({
           )}
         />
 
-        {/* ============ 5. AKUN ============ */}
+        {/* AKUN */}
         <FormField
           control={form.control}
           name="account_id"
@@ -325,9 +317,10 @@ export function TransactionForm({
                     <SelectItem key={a.id} value={a.id}>
                       <div className="flex items-center justify-between gap-3 w-full">
                         <span>{a.name}</span>
-                        <span className="text-xs text-slate-500 tabular-nums">
-                          {formatRupiah(Number(a.current_balance))}
-                        </span>
+                        <Amount
+                          value={Number(a.current_balance)}
+                          className="text-xs text-slate-500"
+                        />
                       </div>
                     </SelectItem>
                   ))}
@@ -345,16 +338,15 @@ export function TransactionForm({
               <Wallet className="w-3.5 h-3.5" />
               <span>Saldo {selectedAccount.name} setelah transaksi</span>
             </div>
-            <p
+            <Amount
+              value={previewBalance}
               className={cn(
-                'text-lg font-bold tabular-nums',
+                'text-lg font-bold',
                 previewBalance < 0
                   ? 'text-red-500'
                   : 'text-slate-900 dark:text-white'
               )}
-            >
-              {formatRupiah(previewBalance)}
-            </p>
+            />
             {previewBalance < 0 && (
               <p className="text-xs text-red-500 mt-0.5">
                 ⚠️ Saldo bakal minus
@@ -363,7 +355,7 @@ export function TransactionForm({
           </div>
         )}
 
-        {/* ============ 6. TO AKUN (transfer only) ============ */}
+        {/* TO AKUN (transfer) */}
         {watchedType === 'transfer' && (
           <FormField
             control={form.control}
@@ -396,7 +388,7 @@ export function TransactionForm({
           />
         )}
 
-        {/* ============ 7. KATEGORI ============ */}
+        {/* KATEGORI */}
         {watchedType !== 'transfer' && (
           <FormField
             control={form.control}
@@ -430,7 +422,7 @@ export function TransactionForm({
           />
         )}
 
-        {/* ============ 8. DAILY ITEM ============ */}
+        {/* DAILY ITEM */}
         {watchedType !== 'transfer' &&
           watchedType !== 'income' &&
           filteredDailyItems.length > 0 && (
@@ -464,9 +456,10 @@ export function TransactionForm({
                         <SelectItem key={d.id} value={d.id}>
                           <div className="flex items-center justify-between gap-3 w-full">
                             <span>{d.name}</span>
-                            <span className="text-xs text-slate-500 tabular-nums">
-                              {formatRupiah(Number(d.amount))}
-                            </span>
+                            <Amount
+                              value={Number(d.amount)}
+                              className="text-xs text-slate-500"
+                            />
                           </div>
                         </SelectItem>
                       ))}
@@ -481,7 +474,7 @@ export function TransactionForm({
             />
           )}
 
-        {/* ============ 9. DETAIL LAINNYA (Advanced) ============ */}
+        {/* DETAIL LAINNYA */}
         <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
           <CollapsibleTrigger asChild>
             <button
@@ -672,7 +665,7 @@ export function TransactionForm({
           </CollapsibleContent>
         </Collapsible>
 
-        {/* ============ ACTIONS ============ */}
+        {/* ACTIONS */}
         <div className="flex gap-3 pt-2">
           {onCancel && (
             <Button
