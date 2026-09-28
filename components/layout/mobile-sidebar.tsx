@@ -82,7 +82,7 @@ export function MobileSidebar({ userEmail }: MobileSidebarProps) {
                                 Synmony
                             </div>
                             <div className="text-[10px] text-sidebar-muted uppercase tracking-wider mt-0.5">
-                                Second Brain for Money
+                                Second Brain for Your Money
                             </div>
                         </div>
                     </Link>

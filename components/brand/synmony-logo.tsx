@@ -73,7 +73,7 @@ export function SynmonyLogo({
                             s.tagline
                         )}
                     >
-                        Second Brain for Money
+                        Second Brain for Your Money
                     </span>
                 )}
             </div>

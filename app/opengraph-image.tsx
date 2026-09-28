@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'Synmony — Your Second Brain for Money'
+export const alt = 'Synmony — Your Second Brain for Your Money'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -92,7 +92,7 @@ export default async function Image() {
                         letterSpacing: '0.02em',
                     }}
                 >
-                    Your second brain for money.
+                    Your Second Brain for Your Money.
                 </div>
             </div>
         ),

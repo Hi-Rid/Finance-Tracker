@@ -40,11 +40,7 @@ export function useEvents() {
                 .eq('name', 'Split Bill')
                 .maybeSingle()
 
-            // ============ 1. Insert event ============
-            const payerParticipant = data.participants.find(
-                (p) => p.temp_id === data.payer_participant_id
-            )
-
+            // 1. Event
             const { data: event, error: evtErr } = await supabase
                 .from('events')
                 .insert({
@@ -76,7 +72,7 @@ export function useEvents() {
                 return { success: false }
             }
 
-            // ============ 2. Items ============
+            // 2. Items
             const itemInserts = data.items.map((it, idx) => ({
                 event_id: event.id,
                 name: it.name.trim() || `Item ${idx + 1}`,
@@ -91,7 +87,7 @@ export function useEvents() {
                 .insert(itemInserts)
                 .select()
 
-            // ============ 3. Participants ============
+            // 3. Participants
             const participantInserts = result.participants.map((p) => ({
                 event_id: event.id,
                 contact_id: null,
@@ -121,7 +117,6 @@ export function useEvents() {
                 tempToReal[p.temp_id] = insertedParticipants[i].id
             })
 
-            // Update event with real payer_participant_id
             const realPayerId = tempToReal[data.payer_participant_id]
             if (realPayerId) {
                 await supabase
@@ -130,7 +125,7 @@ export function useEvents() {
                     .eq('id', event.id)
             }
 
-            // ============ 4. Item shares ============
+            // 4. Item shares
             if (insertedItems && insertedItems.length > 0) {
                 const itemShareInserts: Array<{
                     item_id: string
@@ -164,7 +159,7 @@ export function useEvents() {
                 }
             }
 
-            // ============ 5. Receipts ============
+            // 5. Receipts
             if (data.receipt_ids.length > 0) {
                 const links = data.receipt_ids.map((rid, idx) => ({
                     event_id: event.id,
@@ -174,11 +169,9 @@ export function useEvents() {
                 await supabase.from('event_receipts').insert(links)
             }
 
-            // ============ 6. CONDITIONAL: Expense + Receivables/Payable ============
+            // 6. Expense + debts
             if (result.payer_is_user) {
-                // ---- User yang bayar ----
-                // Expense full grand_total dari akun user
-                const { data: tx, error: txErr } = await supabase
+                const { data: tx } = await supabase
                     .from('transactions')
                     .insert({
                         user_id: user.id,
@@ -216,7 +209,6 @@ export function useEvents() {
                     }
                 }
 
-                // Receivables untuk peserta non-user, non-payer
                 const debtInserts = result.participants
                     .filter((p) => !p.is_user)
                     .map((p) => ({
@@ -241,9 +233,6 @@ export function useEvents() {
 
                 toast.success('Split bill tersimpan — lu talangin dulu')
             } else {
-                // ---- Peserta lain yang bayar ----
-                // User gak keluar uang → gak ada expense transaction.
-                // User punya utang ke payer sebesar user_share.
                 const userParticipant = insertedParticipants.find((p) => p.is_user)
                 const debtInsert = {
                     user_id: user.id,
@@ -263,7 +252,9 @@ export function useEvents() {
 
                 await supabase.from('debts').insert(debtInsert)
 
-                toast.success(`Split bill tersimpan — utang lu ke ${result.payer_name}`)
+                toast.success(
+                    `Split bill tersimpan — utang lu ke ${result.payer_name}`
+                )
             }
 
             router.push('/split-bill')
@@ -286,7 +277,6 @@ export function useEvents() {
                 .eq('id', eventId)
                 .single()
 
-            // Hapus transactions (auto-revert balance via trigger)
             if (event?.transaction_id) {
                 await supabase
                     .from('transactions')
@@ -294,16 +284,23 @@ export function useEvents() {
                     .eq('id', event.transaction_id)
             }
 
-            // Hapus debts terkait
-            await supabase
-                .from('debts')
-                .delete()
-                .eq('user_id', user.id)
-                .like('name', `%${'Split bill'}%`)
-                .eq('note', `Split bill ${''}`) // placeholder, skip complex matching
+            const { data: parts } = await supabase
+                .from('event_participants')
+                .select('id')
+                .eq('event_id', eventId)
 
-            // Hapus event (cascade hapus items, participants, event_receipts)
-            const { error } = await supabase.from('events').delete().eq('id', eventId)
+            if (parts && parts.length > 0) {
+                const partIds = parts.map((p) => p.id)
+                await supabase
+                    .from('debts')
+                    .delete()
+                    .in('event_participant_id', partIds)
+            }
+
+            const { error } = await supabase
+                .from('events')
+                .delete()
+                .eq('id', eventId)
 
             if (error) {
                 toast.error('Gagal hapus event')
@@ -329,7 +326,6 @@ export function useEvents() {
             } = await supabase.auth.getUser()
             if (!user) return { success: false }
 
-            // Fetch event + participant
             const [eventRes, participantRes] = await Promise.all([
                 supabase.from('events').select('*').eq('id', eventId).single(),
                 supabase
@@ -349,10 +345,6 @@ export function useEvents() {
 
             const isUserPayer = event.payer_is_user
             const settlingUser = participant.is_user
-
-            // Determine type
-            // - User payer + settle others → income (receivable paid)
-            // - User NOT payer + settle self → expense (bayar utang ke payer)
             const isIncome = isUserPayer && !settlingUser
             const isExpense = !isUserPayer && settlingUser
 
@@ -403,7 +395,6 @@ export function useEvents() {
                 return { success: false }
             }
 
-            // Update participant paid
             await supabase
                 .from('event_participants')
                 .update({
@@ -413,7 +404,6 @@ export function useEvents() {
                 })
                 .eq('id', participantId)
 
-            // Update debt by event_participant_id (reliable match)
             const debtType = isIncome ? 'receivable' : 'debt'
             const { data: debt } = await supabase
                 .from('debts')

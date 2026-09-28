@@ -621,42 +621,47 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="flex flex-col">
-            <CardHeader>
+          {/* Pengeluaran per Kategori */}
+          <Card className="flex flex-col overflow-hidden">
+            <CardHeader className="pb-2">
               <CardTitle>Pengeluaran per Kategori</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Breakdown bulan ini
               </p>
             </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-              <DonutChart
-                data={expenseByCategory}
-                totalLabel="Total"
-                height={220}
-              />
-              <div className="mt-5 flex-1 space-y-2.5">
+            <CardContent className="flex-1 flex flex-col p-0">
+              {/* Donut */}
+              <div className="px-6 py-5">
+                <DonutChart
+                  data={expenseByCategory}
+                  totalLabel="Total"
+                  height={240}
+                />
+              </div>
+
+              {/* Legend */}
+              <div className="flex-1 px-6 pb-6 pt-3 space-y-3">
                 {expenseByCategory.map((cat) => {
                   const total = expenseByCategory.reduce(
                     (s, c) => s + c.value,
                     0
                   )
+                  const percent =
+                    total > 0 ? (cat.value / total) * 100 : 0
                   return (
                     <div
                       key={cat.name}
-                      className="flex items-center gap-2.5 text-xs"
+                      className="flex items-center gap-3 text-xs"
                     >
                       <div
                         className="w-2.5 h-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: cat.color }}
                       />
-                      <span className="text-slate-600 dark:text-slate-300 flex-1 truncate font-medium">
+                      <span className="text-slate-600 dark:text-slate-300 flex-1 truncate">
                         {cat.name}
                       </span>
-                      <span className="font-bold tabular-nums text-slate-900 dark:text-white">
-                        {total > 0
-                          ? Math.round((cat.value / total) * 100)
-                          : 0}
-                        %
+                      <span className="font-semibold tabular-nums text-slate-900 dark:text-white shrink-0">
+                        {Math.round(percent)}%
                       </span>
                     </div>
                   )

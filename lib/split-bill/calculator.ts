@@ -15,10 +15,15 @@ export function computeEventShares(data: EventWizardData): ComputeResult {
         payer_participant_id,
     } = data
 
-    const subtotal = items.reduce(
-        (sum, item) => sum + item.quantity * item.unit_price,
-        0
-    )
+    // ============ 1. Subtotal ============
+    const subtotal = items.reduce((sum, item) => {
+        const assigneeCount = item.assigned_to.length || 1
+        const isEachMode = item.assignment_mode === 'each'
+        const effectiveQty = isEachMode
+            ? item.quantity * assigneeCount
+            : item.quantity
+        return sum + effectiveQty * item.unit_price
+    }, 0)
 
     const ppn_amount = Math.round(subtotal * ppn_rate)
     const service_amount = Math.round(subtotal * service_rate)
@@ -54,7 +59,9 @@ export function computeEventShares(data: EventWizardData): ComputeResult {
         })
     } else if (split.mode === 'per_item') {
         items.forEach((item) => {
-            const itemSubtotal = item.quantity * item.unit_price
+            const assigneeCount = item.assigned_to.length || 1
+            const isEachMode = item.assignment_mode === 'each'
+
             const assignees =
                 item.assigned_to.length > 0
                     ? item.assigned_to.filter((id) =>
@@ -63,6 +70,8 @@ export function computeEventShares(data: EventWizardData): ComputeResult {
                     : participants.map((p) => p.temp_id)
 
             if (assignees.length === 0) {
+                // Fallback ke bagi rata ke semua
+                const itemSubtotal = item.quantity * item.unit_price
                 const sharePerPerson = itemSubtotal / n
                 participants.forEach((p) => {
                     subtotals[p.temp_id] += sharePerPerson
@@ -70,10 +79,20 @@ export function computeEventShares(data: EventWizardData): ComputeResult {
                 return
             }
 
-            const sharePerPerson = itemSubtotal / assignees.length
-            assignees.forEach((pid) => {
-                subtotals[pid] += sharePerPerson
-            })
+            if (isEachMode) {
+                // Tiap orang bayar full qty × unit_price
+                const itemSubtotal = item.quantity * item.unit_price
+                assignees.forEach((pid) => {
+                    subtotals[pid] += itemSubtotal
+                })
+            } else {
+                // Share: 1 porsi dibagi rata ke assignees
+                const itemSubtotal = item.quantity * item.unit_price
+                const sharePerPerson = itemSubtotal / assignees.length
+                assignees.forEach((pid) => {
+                    subtotals[pid] += sharePerPerson
+                })
+            }
         })
     } else if (split.mode === 'custom') {
         participants.forEach((p) => {
@@ -124,13 +143,11 @@ export function computeEventShares(data: EventWizardData): ComputeResult {
         }
     })
 
-    // ============ User & Payer info ============
     const userShare = computed.find((c) => c.is_user)?.total_share || 0
     const payer = computed.find((c) => c.is_payer)
     const payer_is_user = payer?.is_user ?? true
     const payer_name = payer?.display_name || ''
 
-    // ============ Receivables (hanya kalau user yang bayar) ============
     const receivables = payer_is_user
         ? computed
             .filter((c) => !c.is_user)
@@ -141,7 +158,6 @@ export function computeEventShares(data: EventWizardData): ComputeResult {
             }))
         : []
 
-    // ============ User payable (kalau payer bukan user) ============
     const user_payable = !payer_is_user ? userShare : 0
 
     return {

@@ -36,7 +36,6 @@ export type EventWizardData = {
     name: string
     date: string
     group_id: string | null
-    /** temp_id peserta yang bayar dulu */
     payer_participant_id: string
     ppn_rate: number
     service_rate: number
@@ -72,35 +71,12 @@ export type ComputeResult = {
     user_share: number
     payer_is_user: boolean
     payer_name: string
-    /**
-     * Piutang ke peserta lain — cuma terisi kalau USER yang bayar.
-     * Format: list peserta non-user dengan amount = total_share.
-     */
     receivables: Array<{
         temp_id: string
         display_name: string
         amount: number
     }>
-    /**
-     * Utang user ke payer — cuma terisi kalau PAYER bukan user.
-     * amount = user_share
-     */
     user_payable: number
 }
 
 export type ScanApplyMode = 'append' | 'replace'
-
-export type ParticipantBreakdown = {
-    participant_id: string
-    display_name: string
-    is_user: boolean
-    is_payer: boolean
-    paid: boolean
-    items: Array<{
-        name: string
-        quantity: number
-        share_amount: number
-    }>
-    items_total: number
-    grand_total_share: number
-}

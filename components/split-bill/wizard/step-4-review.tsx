@@ -1,7 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Receipt, Users, Building2, Wallet, ArrowRightLeft } from 'lucide-react'
+import {
+    Loader2,
+    Receipt,
+    Users,
+    Building2,
+    Wallet,
+    ArrowRightLeft,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Amount } from '@/components/ui/amount'
 import { computeEventShares } from '@/lib/split-bill/calculator'
@@ -25,11 +32,39 @@ export function Step4Review({ data, accounts, profileId }: Step4ReviewProps) {
     const result = computeEventShares(data)
     const selectedAccount = accounts.find((a) => a.id === data.account_id)
 
+    // ============================================================
+    // Compute per-participant item breakdown
+    // ============================================================
+    const participantItems = result.participants.map((p) => {
+        const itemsForP = data.items
+            .filter((it) => it.assigned_to.includes(p.temp_id))
+            .map((it) => {
+                const assigneeCount = it.assigned_to.length || 1
+                const lineTotal = it.quantity * it.unit_price
+                const shareAmount = lineTotal / assigneeCount
+                return {
+                    temp_id: it.temp_id,
+                    name: it.name || 'Item',
+                    quantity: it.quantity,
+                    unit_price: it.unit_price,
+                    assigneeCount,
+                    share_amount: shareAmount,
+                }
+            })
+
+        const itemsTotal = itemsForP.reduce((sum, it) => sum + it.share_amount, 0)
+
+        return {
+            ...p,
+            items: itemsForP,
+            items_total: itemsTotal,
+        }
+    })
+
     async function handleSave() {
         setSubmitting(true)
         const res = await createEvent(data, profileId)
         setSubmitting(false)
-        // If success, useEvents sudah redirect
     }
 
     return (
@@ -51,29 +86,6 @@ export function Step4Review({ data, accounts, profileId }: Step4ReviewProps) {
                     </div>
                 </div>
 
-                {/* Items summary */}
-                <div className="px-5 py-3 border-b border-slate-100 dark:border-white/5">
-                    <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                        {data.items.length} Item
-                    </p>
-                    <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                        {data.items.map((it) => (
-                            <div
-                                key={it.temp_id}
-                                className="flex items-center justify-between text-xs gap-3"
-                            >
-                                <span className="text-slate-700 dark:text-slate-300 truncate flex-1">
-                                    {it.quantity}× {it.name || 'Item'}
-                                </span>
-                                <Amount
-                                    value={it.quantity * it.unit_price}
-                                    className="text-xs font-medium shrink-0"
-                                />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
                 {/* Total breakdown */}
                 <div className="px-5 py-4 space-y-1.5">
                     <div className="flex justify-between text-xs">
@@ -82,13 +94,17 @@ export function Step4Review({ data, accounts, profileId }: Step4ReviewProps) {
                     </div>
                     {result.ppn_amount > 0 && (
                         <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">PPN</span>
+                            <span className="text-muted-foreground">
+                                PPN {(data.ppn_rate * 100).toFixed(0)}%
+                            </span>
                             <Amount value={result.ppn_amount} className="text-xs" />
                         </div>
                     )}
                     {result.service_amount > 0 && (
                         <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Service</span>
+                            <span className="text-muted-foreground">
+                                Service {(data.service_rate * 100).toFixed(0)}%
+                            </span>
                             <Amount value={result.service_amount} className="text-xs" />
                         </div>
                     )}
@@ -114,7 +130,7 @@ export function Step4Review({ data, accounts, profileId }: Step4ReviewProps) {
                 </div>
             </div>
 
-            {/* Account info — hanya kalau user yang bayar */}
+            {/* Account / Payer info */}
             {result.payer_is_user ? (
                 <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-5">
                     <div className="flex items-center gap-2 mb-3">
@@ -124,21 +140,19 @@ export function Step4Review({ data, accounts, profileId }: Step4ReviewProps) {
                         </p>
                     </div>
                     {selectedAccount ? (
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
-                                    <Wallet className="w-4 h-4 text-brand" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-semibold">{selectedAccount.name}</p>
-                                    <p className="text-[11px] text-muted-foreground">
-                                        Saldo saat ini:{' '}
-                                        <Amount
-                                            value={Number(selectedAccount.current_balance)}
-                                            className="inline text-[11px] font-medium"
-                                        />
-                                    </p>
-                                </div>
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+                                <Wallet className="w-4 h-4 text-brand" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold">{selectedAccount.name}</p>
+                                <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                    <span>Saldo:</span>
+                                    <Amount
+                                        value={Number(selectedAccount.current_balance)}
+                                        className="inline text-[11px] font-medium"
+                                    />
+                                </p>
                             </div>
                         </div>
                     ) : (
@@ -163,70 +177,161 @@ export function Step4Review({ data, accounts, profileId }: Step4ReviewProps) {
                 </div>
             )}
 
-            {/* Per-participant breakdown */}
-            <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-5">
-                <div className="flex items-center gap-2 mb-4">
-                    <Users className="w-4 h-4 text-slate-400" />
-                    <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                        Pembagian per Orang
+            {/* ============================================================ */}
+            {/* DETAIL PER ORANG — item breakdown                            */}
+            {/* ============================================================ */}
+            <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-slate-400" />
+                        <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Detail Per Orang
+                        </p>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                        {data.items.length} item
                     </p>
                 </div>
 
-                <div className="space-y-3">
-                    {result.participants.map((p) => (
+                <div className="divide-y divide-slate-100 dark:divide-white/5">
+                    {participantItems.map((p) => (
                         <div
                             key={p.temp_id}
                             className={cn(
-                                'rounded-xl border p-3',
-                                p.is_user
-                                    ? 'bg-brand/5 border-brand/20'
-                                    : 'bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/10'
+                                'p-5',
+                                p.is_user && 'bg-brand/5 dark:bg-brand/10'
                             )}
                         >
-                            <div className="flex items-start justify-between gap-3 mb-2">
-                                <div>
-                                    <p className="text-sm font-semibold">
+                            {/* Header */}
+                            <div className="flex items-start justify-between gap-3 mb-4">
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <p className="text-sm font-bold truncate">
                                         {p.display_name}
-                                        {p.is_user && (
-                                            <span className="ml-2 text-[10px] font-bold text-brand">
-                                                LU
-                                            </span>
-                                        )}
                                     </p>
+                                    {p.is_user && (
+                                        <span className="text-[10px] font-bold text-brand shrink-0">
+                                            LU
+                                        </span>
+                                    )}
+                                    {p.is_payer && (
+                                        <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400 shrink-0">
+                                            · talangin
+                                        </span>
+                                    )}
                                 </div>
                                 <Amount
                                     value={p.total_share}
                                     className={cn(
-                                        'text-base font-bold',
-                                        p.is_user ? 'text-brand' : 'text-slate-900 dark:text-white'
+                                        'text-lg font-bold shrink-0',
+                                        p.is_user
+                                            ? 'text-brand'
+                                            : 'text-slate-900 dark:text-white'
                                     )}
                                 />
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2 text-[10px] text-muted-foreground">
-                                <div>
-                                    <p className="uppercase tracking-wider">Subtotal</p>
+                            {/* Items */}
+                            {p.items.length > 0 ? (
+                                <div className="rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-3 mb-3 space-y-2">
+                                    {p.items.map((it) => (
+                                        <div
+                                            key={it.temp_id}
+                                            className="flex items-start justify-between gap-3 text-xs"
+                                        >
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-slate-700 dark:text-slate-300 truncate">
+                                                    {it.quantity}× {it.name}
+                                                </p>
+                                                <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1 flex-wrap">
+                                                    <Amount
+                                                        value={it.unit_price}
+                                                        className="inline text-[10px]"
+                                                    />
+                                                    {it.assigneeCount > 1 && (
+                                                        <>
+                                                            <span>÷ {it.assigneeCount} orang</span>
+                                                        </>
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <Amount
+                                                value={it.share_amount}
+                                                className="text-xs font-semibold text-slate-900 dark:text-white shrink-0"
+                                            />
+                                        </div>
+                                    ))}
+                                    {/* Items total */}
+                                    <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-white/10">
+                                        <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                            Subtotal Item
+                                        </span>
+                                        <Amount
+                                            value={p.items_total}
+                                            className="text-xs font-bold text-slate-900 dark:text-white"
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-xs text-muted-foreground italic mb-3">
+                                    Gak ada item di-assign
+                                </p>
+                            )}
+
+                            {/* Breakdown: Subtotal + PPN + Service - Diskon = Total */}
+                            <div className="space-y-1.5">
+                                <div className="flex justify-between text-xs">
+                                    <span className="text-muted-foreground">Subtotal</span>
                                     <Amount
                                         value={p.subtotal}
-                                        className="text-[11px] font-medium text-slate-600 dark:text-slate-300"
+                                        className="text-xs font-medium"
                                     />
                                 </div>
-                                <div>
-                                    <p className="uppercase tracking-wider">PPN+Svc</p>
-                                    <Amount
-                                        value={p.ppn_share + p.service_share}
-                                        className="text-[11px] font-medium text-slate-600 dark:text-slate-300"
-                                    />
-                                </div>
-                                <div>
-                                    <p className="uppercase tracking-wider">Diskon</p>
-                                    <span className="flex items-center gap-0.5">
-                                        {p.discount_share > 0 && '−'}
+                                {p.ppn_share > 0 && (
+                                    <div className="flex justify-between text-xs">
+                                        <span className="text-muted-foreground">PPN</span>
                                         <Amount
-                                            value={p.discount_share}
-                                            className="text-[11px] font-medium text-slate-600 dark:text-slate-300"
+                                            value={p.ppn_share}
+                                            className="text-xs font-medium"
                                         />
-                                    </span>
+                                    </div>
+                                )}
+                                {p.service_share > 0 && (
+                                    <div className="flex justify-between text-xs">
+                                        <span className="text-muted-foreground">Service</span>
+                                        <Amount
+                                            value={p.service_share}
+                                            className="text-xs font-medium"
+                                        />
+                                    </div>
+                                )}
+                                {p.discount_share > 0 && (
+                                    <div className="flex justify-between text-xs">
+                                        <span className="text-muted-foreground">Diskon</span>
+                                        <span className="flex items-center gap-0.5">
+                                            −
+                                            <Amount
+                                                value={p.discount_share}
+                                                className="text-xs font-medium"
+                                            />
+                                        </span>
+                                    </div>
+                                )}
+                                <div
+                                    className={cn(
+                                        'flex justify-between pt-2 border-t',
+                                        p.is_user
+                                            ? 'border-brand/20'
+                                            : 'border-slate-100 dark:border-white/5'
+                                    )}
+                                >
+                                    <span className="text-xs font-bold">Total</span>
+                                    <Amount
+                                        value={p.total_share}
+                                        className={cn(
+                                            'text-sm font-bold',
+                                            p.is_user ? 'text-brand' : 'text-slate-900 dark:text-white'
+                                        )}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -263,7 +368,8 @@ export function Step4Review({ data, accounts, profileId }: Step4ReviewProps) {
 
                     <p className="text-[11px] text-emerald-700 dark:text-emerald-300 mt-3 pt-3 border-t border-emerald-200 dark:border-emerald-500/20">
                         Total piutang bakal otomatis tercatat di Debt tipe{' '}
-                        <strong>Piutang</strong>. Bisa di-settle nanti.
+                        <strong>Piutang</strong>. Bisa di-settle nanti dari halaman detail
+                        event.
                     </p>
                 </div>
             )}
@@ -294,7 +400,7 @@ export function Step4Review({ data, accounts, profileId }: Step4ReviewProps) {
                 </div>
             )}
 
-            {/* Action */}
+            {/* Save button */}
             <Button
                 type="button"
                 variant="primary"

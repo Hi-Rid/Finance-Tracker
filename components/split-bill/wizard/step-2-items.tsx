@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Trash2, ScanLine, Users, X } from 'lucide-react'
+import { Plus, Trash2, Users, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CurrencyInput } from '@/components/ui/currency-input'
@@ -42,7 +42,7 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
     const [showAppendDialog, setShowAppendDialog] = useState(false)
 
     const subtotal = items.reduce(
-        (sum, it) => sum + it.quantity * it.unit_price,
+        (sum, item) => sum + item.quantity * item.unit_price,
         0
     )
 
@@ -88,14 +88,12 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
         })
     }
 
-    // ============ Scan Handler ============
     function handleScanned(
         parsed: ParsedReceipt,
         receiptId: string | null,
         _suggestedCategoryId: string | null
     ) {
         if (items.length > 0) {
-            // Tanya Append/Replace
             setPendingScan(parsed)
             setPendingReceiptId(receiptId)
             setShowAppendDialog(true)
@@ -122,16 +120,13 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
         const nextItems =
             mode === 'replace' ? newItems : [...items, ...newItems]
 
-        // Auto-fill event name kalau masih kosong
         const nextName = data.name.trim() || parsed.merchant || ''
 
-        // Auto-detect PPN rate dari tax/subtotal
         let nextPpnRate = data.ppn_rate
         if (parsed.taxAmount > 0 && parsed.subtotal > 0) {
             nextPpnRate = parsed.taxAmount / parsed.subtotal
         }
 
-        // Track receipt IDs
         const nextReceiptIds = receiptId
             ? [...data.receipt_ids, receiptId]
             : data.receipt_ids
@@ -150,7 +145,6 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
 
     return (
         <div className="space-y-4">
-            {/* Header + Scan button */}
             <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-5">
                 <div className="flex items-start justify-between gap-3 mb-4">
                     <div>
@@ -172,7 +166,6 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                 )}
             </div>
 
-            {/* Items list */}
             {items.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-300 dark:border-white/15 bg-card p-8 text-center">
                     <p className="text-sm text-muted-foreground">
@@ -182,7 +175,9 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
             ) : (
                 <div className="space-y-3">
                     {items.map((item, idx) => {
+                        const assigneeCount = item.assigned_to.length || 1
                         const lineTotal = item.quantity * item.unit_price
+                        const perPerson = lineTotal / assigneeCount
 
                         return (
                             <div
@@ -233,7 +228,7 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
-                                            Harga
+                                            Harga Satuan
                                         </label>
                                         <CurrencyInput
                                             value={item.unit_price}
@@ -245,7 +240,6 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                     </div>
                                 </div>
 
-                                {/* Total */}
                                 <div className="flex items-center justify-between text-xs pt-1">
                                     <span className="text-slate-500 dark:text-slate-400">
                                         Subtotal
@@ -261,10 +255,10 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                     <div className="flex items-center gap-1.5 mb-2">
                                         <Users className="w-3 h-3 text-slate-400" />
                                         <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Untuk siapa?
+                                            Dibagi ke siapa?
                                         </p>
                                     </div>
-                                    <div className="flex flex-wrap gap-1.5">
+                                    <div className="flex flex-wrap gap-1.5 mb-3">
                                         {participants.map((p) => {
                                             const isAssigned = item.assigned_to.includes(p.temp_id)
                                             return (
@@ -286,10 +280,28 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                             )
                                         })}
                                     </div>
+
                                     {item.assigned_to.length === 0 && (
-                                        <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1.5">
+                                        <p className="text-[10px] text-amber-600 dark:text-amber-400 mb-3">
                                             ⚠️ Belum ada assignee — bakal dibagi rata ke semua
                                         </p>
+                                    )}
+
+                                    {/* Preview share per orang */}
+                                    {item.assigned_to.length > 0 && item.unit_price > 0 && (
+                                        <div className="rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-2.5">
+                                            <p className="text-[10px] text-muted-foreground leading-relaxed">
+                                                <Amount
+                                                    value={lineTotal}
+                                                    className="inline text-[10px] font-medium"
+                                                />{' '}
+                                                ÷ {assigneeCount} orang ={' '}
+                                                <span className="font-bold text-brand tabular-nums">
+                                                    {formatRupiah(Math.round(perPerson))}
+                                                </span>{' '}
+                                                / orang
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -298,7 +310,6 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                 </div>
             )}
 
-            {/* Add button */}
             <Button
                 type="button"
                 variant="outline"
@@ -309,7 +320,6 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                 Tambah Item Manual
             </Button>
 
-            {/* Subtotal summary */}
             {items.length > 0 && (
                 <div className="rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-4 flex items-center justify-between">
                     <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
@@ -322,7 +332,6 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                 </div>
             )}
 
-            {/* ============ Append/Replace Dialog ============ */}
             <Dialog open={showAppendDialog} onOpenChange={setShowAppendDialog}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -338,9 +347,7 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                         </p>
                         <p className="text-muted-foreground">
                             {pendingScan?.items.length || 0} item · Total{' '}
-                            {pendingScan
-                                ? formatRupiah(pendingScan.totalAmount)
-                                : ''}
+                            {pendingScan ? formatRupiah(pendingScan.totalAmount) : ''}
                         </p>
                     </div>
 

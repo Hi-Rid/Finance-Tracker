@@ -22,8 +22,14 @@ type LineChartProps = {
   series: Series[]
   height?: number
   xKey?: string
-  /** Format: "juta" (default, nilai 5.0 → "Rp 5jt"), "ribu" (nilai 5000 → "Rp 5rb"), "full" (nilai 5000 → "Rp 5.000") */
   format?: 'juta' | 'ribu' | 'full'
+}
+
+function formatNumber(value: number, decimals = 2): string {
+  return value.toLocaleString('id-ID', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: decimals,
+  })
 }
 
 export function LineChart({
@@ -34,9 +40,15 @@ export function LineChart({
   format = 'juta',
 }: LineChartProps) {
   const formatValue = (value: number) => {
-    if (format === 'juta') return `Rp ${value}jt`
-    if (format === 'ribu') return `Rp ${value}rb`
-    return `Rp ${value.toLocaleString('id-ID')}`
+    if (format === 'juta') return `Rp ${formatNumber(value)}jt`
+    if (format === 'ribu') return `Rp ${formatNumber(value)}rb`
+    return `Rp ${formatNumber(value, 0)}`
+  }
+
+  const formatAxisValue = (value: number) => {
+    if (format === 'juta') return `${formatNumber(value, 1)}jt`
+    if (format === 'ribu') return `${formatNumber(value, 1)}rb`
+    return formatNumber(value, 0)
   }
 
   return (
@@ -67,7 +79,7 @@ export function LineChart({
             fontSize={11}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(v) => (format === 'juta' ? `${v}jt` : `${v}`)}
+            tickFormatter={formatAxisValue}
           />
 
           <Tooltip
@@ -79,16 +91,54 @@ export function LineChart({
               padding: '10px 12px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
             }}
-            formatter={((value: number) => formatValue(value)) as any}
+            formatter={(value: number) => formatValue(value)}
             labelStyle={{ fontWeight: 600, marginBottom: 4 }}
           />
 
           <Legend
-            wrapperStyle={{ fontSize: '12px', paddingTop: '24px' }}
-            iconType="circle"
-            iconSize={8}
-            formatter={(value) => (
-              <span style={{ marginRight: '96px' }}>{value}</span>
+            verticalAlign="bottom"
+            content={() => (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: 40,
+                  paddingTop: 28,
+                  paddingBottom: 4,
+                  flexWrap: 'wrap',
+                }}
+              >
+                {series.map((s) => (
+                  <div
+                    key={s.key}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: '50%',
+                        backgroundColor: s.color,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: 'var(--color-muted-foreground)',
+                      }}
+                    >
+                      {s.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             )}
           />
 

@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Synmony — Your Second Brain for Money",
+  title: "Synmony — Your Second Brain for Your Money",
   description:
     "Semua tentang uang lu dalam satu sistem. Transaksi, budget, aset, investasi, dan tujuan — terhubung dalam harmoni.",
   applicationName: "Synmony",
