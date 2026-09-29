@@ -103,9 +103,9 @@ export function DailyItemsList({
 
     return (
         <>
-            <Card>
-                <CardContent className="pt-6">
-                    <div className="flex items-start justify-between gap-3 mb-5">
+            <Card className="py-0 gap-0">
+                <CardContent className="p-4 md:p-5">
+                    <div className="flex items-start justify-between gap-3 mb-4">
                         <div>
                             <h3 className="text-base font-semibold mb-1">Daily Budget</h3>
                             <p className="text-xs text-muted-foreground">
@@ -119,13 +119,13 @@ export function DailyItemsList({
                     </div>
 
                     {activeItems.length > 0 && (
-                        <div className="mb-5 p-4 rounded-2xl bg-gradient-to-br from-brand/10 to-brand/5 border border-brand/20">
+                        <div className="mb-4 p-3.5 md:p-4 rounded-2xl bg-gradient-to-br from-brand/10 to-brand/5 border border-brand/20">
                             <p className="text-[10px] font-semibold text-brand uppercase tracking-wider mb-1">
                                 Total Harian
                             </p>
                             <Amount
                                 value={totalDaily}
-                                className="text-2xl font-bold text-brand"
+                                className="text-xl md:text-2xl font-bold text-brand"
                             />
                             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                                 {activeItems.length} item aktif

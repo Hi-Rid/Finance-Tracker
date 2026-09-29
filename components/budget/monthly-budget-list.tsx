@@ -33,6 +33,7 @@ import {
     SheetDescription,
 } from '@/components/ui/sheet'
 import { MonthlyBudgetForm } from './monthly-budget-form'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useMonthlyBudget } from '@/lib/hooks/use-monthly-budget'
 import { getCategoryIcon } from '@/lib/constants/category-icons'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
@@ -66,19 +67,18 @@ export function MonthlyBudgetList({
     const [open, setOpen] = useState(false)
     const [editing, setEditing] = useState<Budget | null>(null)
     const { deleteBudget } = useMonthlyBudget()
+    const { confirm, Dialog: ConfirmDialog } = useConfirmDialog()
 
     const expenseCategories = categories.filter(
         (c) => c.type === 'expense' && !c.is_archived
     )
 
-    const usedCategoryIds = new Set(budgets.map((b) => b.category_id))
-    const availableCategories = expenseCategories.filter(
-        (c) => !usedCategoryIds.has(c.id)
-    )
-
     const totalBudget = budgets.reduce((sum, b) => sum + Number(b.amount), 0)
     const totalSpent = budgets.reduce((sum, b) => {
-        const spent = categorySpent.find((s) => s.category_id === b.category_id)
+        if (!b.category_id) return sum
+        const spent = categorySpent.find(
+            (s) => s.category_id === b.category_id
+        )
         return sum + (spent?.spent || 0)
     }, 0)
     const totalRemaining = totalBudget - totalSpent
@@ -101,19 +101,25 @@ export function MonthlyBudgetList({
     }
 
     function handleDelete(budget: Budget) {
-        const cat = categories.find((c) => c.id === budget.category_id)
-        if (confirm(`Hapus budget "${cat?.name}"?`)) {
-            deleteBudget(budget.id)
-        }
+        confirm({
+            title: `Hapus "${budget.name}"?`,
+            description:
+                'Budget ini bakal dihapus dari bulan ini. Bisa dibuat ulang kapan aja.',
+            confirmLabel: 'Hapus',
+            cancelLabel: 'Batal',
+            variant: 'destructive',
+            onConfirm: async () => {
+                await deleteBudget(budget.id)
+            },
+        })
     }
 
     const formContent = (
         <MonthlyBudgetForm
             profileId={profileId}
             month={month}
-            categories={availableCategories}
+            categories={expenseCategories}
             editingBudget={editing}
-            editingCategory={categories.find((c) => c.id === editing?.category_id)}
             onSuccess={closeForm}
             onCancel={closeForm}
         />
@@ -121,46 +127,52 @@ export function MonthlyBudgetList({
 
     return (
         <>
-            <Card>
-                <CardContent className="p-5 md:p-6">
-                    <div className="flex items-start justify-between gap-3 mb-4">
+            <Card className="py-0 gap-0">
+                <CardContent className="p-4 md:p-5">
+                    <div className="flex items-start justify-between gap-3 mb-3 md:mb-4">
                         <div>
-                            <h3 className="text-base font-semibold mb-0.5">Budget Bulanan</h3>
-                            <p className="text-xs text-muted-foreground">
-                                Batasan per kategori
+                            <h3 className="text-sm md:text-base font-semibold mb-0.5">
+                                Budget Bulanan
+                            </h3>
+                            <p className="text-[11px] md:text-xs text-muted-foreground">
+                                Batasan per pengeluaran
                             </p>
                         </div>
                         <Button
                             onClick={openCreate}
                             size="sm"
-                            disabled={availableCategories.length === 0 && !editing}
+                            className="h-7 md:h-8 text-[11px] md:text-xs"
                         >
-                            <Plus className="w-4 h-4" />
+                            <Plus className="w-3 h-3 md:w-3.5 md:h-3.5" />
                             Tambah
                         </Button>
                     </div>
 
                     {budgets.length > 0 && (
-                        <div className="mb-5 p-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-gradient-to-br from-brand/5 to-transparent">
-                            <div className="flex items-baseline justify-between gap-3 mb-3">
+                        <div className="mb-3 md:mb-4 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-200 dark:border-white/10 bg-gradient-to-br from-brand/5 to-transparent">
+                            <div className="flex items-baseline justify-between gap-3 mb-2.5 md:mb-3">
                                 <div className="min-w-0">
-                                    <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+                                    <p className="text-[9px] md:text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5 md:mb-1">
                                         Terpakai
                                     </p>
                                     <Amount
                                         value={totalSpent}
-                                        className="text-xl font-bold text-slate-900 dark:text-white"
+                                        className="text-base md:text-xl font-bold text-slate-900 dark:text-white"
                                     />
                                 </div>
                                 <div className="text-right min-w-0">
-                                    <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+                                    <p className="text-[9px] md:text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5 md:mb-1">
                                         {totalRemaining >= 0 ? 'Sisa' : 'Over'}
                                     </p>
                                     <Amount
                                         value={Math.abs(totalRemaining)}
-                                        sign={totalRemaining >= 0 ? 'none' : 'negative'}
+                                        sign={
+                                            totalRemaining >= 0
+                                                ? 'none'
+                                                : 'negative'
+                                        }
                                         className={cn(
-                                            'text-xl font-bold',
+                                            'text-base md:text-xl font-bold',
                                             totalRemaining >= 0
                                                 ? 'text-emerald-600 dark:text-emerald-400'
                                                 : 'text-red-600 dark:text-red-400'
@@ -169,7 +181,7 @@ export function MonthlyBudgetList({
                                 </div>
                             </div>
 
-                            <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                            <div className="w-full h-1.5 md:h-2 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
                                 <div
                                     className={cn(
                                         'h-full rounded-full transition-all duration-500',
@@ -185,7 +197,7 @@ export function MonthlyBudgetList({
                                 />
                             </div>
 
-                            <div className="flex items-center justify-between mt-2">
+                            <div className="flex items-center justify-between mt-1.5 md:mt-2">
                                 <p className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1 flex-wrap">
                                     <span>dari</span>
                                     <Amount
@@ -205,7 +217,10 @@ export function MonthlyBudgetList({
                                                     : 'text-emerald-500'
                                     )}
                                 >
-                                    {Math.round((totalSpent / totalBudget) * 100)}%
+                                    {Math.round(
+                                        (totalSpent / totalBudget) * 100
+                                    )}
+                                    %
                                 </p>
                             </div>
                         </div>
@@ -215,54 +230,73 @@ export function MonthlyBudgetList({
                         <EmptyState
                             icon={Target}
                             title="Belum ada budget bulanan"
-                            description="Set batasan per kategori (Meals, Transport, dll)."
+                            description="Set batasan per pengeluaran (Kost, Makan, Netflix, dll)."
                             action={
-                                <Button onClick={openCreate} variant="primary" size="sm">
+                                <Button
+                                    onClick={openCreate}
+                                    variant="primary"
+                                    size="sm"
+                                >
                                     <Plus className="w-4 h-4" />
                                     Tambah Budget
                                 </Button>
                             }
                         />
                     ) : (
-                        <div className="space-y-2">
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 md:gap-3">
                             {budgets.map((budget) => {
-                                const category = categories.find(
-                                    (c) => c.id === budget.category_id
+                                const category = budget.category_id
+                                    ? categories.find(
+                                        (c) => c.id === budget.category_id
+                                    )
+                                    : null
+                                const Icon = getCategoryIcon(
+                                    category?.icon || null
                                 )
-                                const Icon = getCategoryIcon(category?.icon || null)
                                 const color = category?.color || '#334DAF'
 
-                                const spent =
-                                    categorySpent.find(
-                                        (s) => s.category_id === budget.category_id
+                                const spent = budget.category_id
+                                    ? categorySpent.find(
+                                        (s) =>
+                                            s.category_id ===
+                                            budget.category_id
                                     )?.spent || 0
+                                    : 0
                                 const amount = Number(budget.amount)
                                 const remaining = amount - spent
                                 const percent =
-                                    amount > 0 ? Math.min(100, (spent / amount) * 100) : 0
-                                const rawPercent = amount > 0 ? (spent / amount) * 100 : 0
+                                    amount > 0
+                                        ? Math.min(100, (spent / amount) * 100)
+                                        : 0
+                                const rawPercent =
+                                    amount > 0 ? (spent / amount) * 100 : 0
 
                                 return (
                                     <div
                                         key={budget.id}
-                                        className="group rounded-2xl border border-slate-200 dark:border-white/10 p-4 hover:border-brand/30 dark:hover:border-brand/30 transition-all"
+                                        className="group rounded-xl md:rounded-2xl border border-slate-200 dark:border-white/10 p-2.5 md:p-4 hover:border-brand/30 dark:hover:border-brand/30 transition-all"
                                     >
-                                        <div className="flex items-start gap-3 mb-3">
+                                        <div className="flex items-start gap-2 md:gap-3 mb-2 md:mb-3">
                                             <div
-                                                className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                                                style={{ backgroundColor: `${color}15` }}
+                                                className="w-7 h-7 md:w-11 md:h-11 rounded-lg md:rounded-xl flex items-center justify-center shrink-0"
+                                                style={{
+                                                    backgroundColor: `${color}15`,
+                                                }}
                                             >
-                                                <Icon className="w-5 h-5" style={{ color }} />
+                                                <Icon
+                                                    className="w-3.5 h-3.5 md:w-5 md:h-5"
+                                                    style={{ color }}
+                                                />
                                             </div>
 
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between gap-2 mb-1">
-                                                    <p className="text-sm font-semibold truncate">
-                                                        {category?.name || 'Tanpa nama'}
+                                                <div className="flex items-center justify-between gap-1 md:gap-2 mb-0.5">
+                                                    <p className="text-[11px] md:text-sm font-semibold truncate">
+                                                        {budget.name}
                                                     </p>
                                                     <p
                                                         className={cn(
-                                                            'text-xs font-bold tabular-nums shrink-0',
+                                                            'text-[10px] md:text-xs font-bold tabular-nums shrink-0',
                                                             rawPercent >= 100
                                                                 ? 'text-red-500'
                                                                 : rawPercent >= 80
@@ -272,20 +306,15 @@ export function MonthlyBudgetList({
                                                                         : 'text-emerald-500'
                                                         )}
                                                     >
-                                                        {Math.round(rawPercent)}%
+                                                        {Math.round(rawPercent)}
+                                                        %
                                                     </p>
                                                 </div>
-                                                <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 tabular-nums flex-wrap">
-                                                    <Amount
-                                                        value={spent}
-                                                        className="inline text-[11px] font-semibold text-slate-900 dark:text-white"
-                                                    />
-                                                    <span>/</span>
-                                                    <Amount
-                                                        value={amount}
-                                                        className="inline text-[11px] font-medium"
-                                                    />
-                                                </div>
+                                                {category && (
+                                                    <p className="hidden md:block text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
+                                                        {category.name}
+                                                    </p>
+                                                )}
                                             </div>
 
                                             <DropdownMenu>
@@ -293,9 +322,9 @@ export function MonthlyBudgetList({
                                                     <Button
                                                         variant="ghost"
                                                         size="icon-sm"
-                                                        className="opacity-100 shrink-0 -mt-1 -mr-1"
+                                                        className="opacity-100 shrink-0 -mt-1 -mr-1 h-6 w-6 md:h-8 md:w-8"
                                                     >
-                                                        <MoreVertical className="w-4 h-4" />
+                                                        <MoreVertical className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent
@@ -303,14 +332,20 @@ export function MonthlyBudgetList({
                                                     className="min-w-[160px]"
                                                 >
                                                     <DropdownMenuItem
-                                                        onSelect={() => openEdit(budget)}
+                                                        onSelect={() =>
+                                                            openEdit(budget)
+                                                        }
                                                         className="whitespace-nowrap"
                                                     >
                                                         <Pencil className="w-4 h-4 mr-2 shrink-0" />
                                                         Edit
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
-                                                        onSelect={() => handleDelete(budget)}
+                                                        onSelect={() =>
+                                                            handleDelete(
+                                                                budget
+                                                            )
+                                                        }
                                                         className="text-red-600 focus:text-red-600 whitespace-nowrap"
                                                     >
                                                         <Trash2 className="w-4 h-4 mr-2 shrink-0" />
@@ -320,45 +355,60 @@ export function MonthlyBudgetList({
                                             </DropdownMenu>
                                         </div>
 
-                                        <div className="relative w-full h-2 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden mb-2">
-                                            <div
-                                                className={cn(
-                                                    'h-full rounded-full transition-all duration-500',
-                                                    rawPercent >= 100
-                                                        ? 'bg-red-500'
-                                                        : rawPercent >= 80
-                                                            ? 'bg-orange-500'
-                                                            : rawPercent >= 50
-                                                                ? 'bg-amber-500'
-                                                                : 'bg-emerald-500'
-                                                )}
-                                                style={{ width: `${percent}%` }}
+                                        <div className="flex items-baseline gap-1 text-[10px] md:text-[11px] tabular-nums flex-wrap mb-2 md:mb-3">
+                                            <Amount
+                                                value={spent}
+                                                className="font-semibold text-slate-900 dark:text-white"
+                                            />
+                                            <span className="text-slate-400">
+                                                /
+                                            </span>
+                                            <Amount
+                                                value={amount}
+                                                className="font-medium text-slate-500 dark:text-slate-400"
                                             />
                                         </div>
 
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-1">
-                                                <span
+                                        {category && (
+                                            <>
+                                                <div className="w-full h-1.5 md:h-2 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
+                                                    <div
+                                                        className={cn(
+                                                            'h-full rounded-full transition-all duration-500',
+                                                            rawPercent >= 100
+                                                                ? 'bg-red-500'
+                                                                : rawPercent >= 80
+                                                                    ? 'bg-orange-500'
+                                                                    : rawPercent >= 50
+                                                                        ? 'bg-amber-500'
+                                                                        : 'bg-emerald-500'
+                                                        )}
+                                                        style={{
+                                                            width: `${percent}%`,
+                                                        }}
+                                                    />
+                                                </div>
+
+                                                <p
                                                     className={cn(
-                                                        'text-[11px] font-medium',
+                                                        'hidden md:flex items-center gap-1 mt-2 text-[11px] font-medium',
                                                         remaining >= 0
                                                             ? 'text-emerald-600 dark:text-emerald-400'
                                                             : 'text-red-600 dark:text-red-400'
                                                     )}
                                                 >
-                                                    {remaining >= 0 ? 'Sisa' : 'Over'}
-                                                </span>
-                                                <Amount
-                                                    value={Math.abs(remaining)}
-                                                    className={cn(
-                                                        'inline text-[11px] font-medium',
-                                                        remaining >= 0
-                                                            ? 'text-emerald-600 dark:text-emerald-400'
-                                                            : 'text-red-600 dark:text-red-400'
-                                                    )}
-                                                />
-                                            </div>
-                                        </div>
+                                                    {remaining >= 0
+                                                        ? 'Sisa'
+                                                        : 'Over'}
+                                                    <Amount
+                                                        value={Math.abs(
+                                                            remaining
+                                                        )}
+                                                        className="inline"
+                                                    />
+                                                </p>
+                                            </>
+                                        )}
                                     </div>
                                 )
                             })}
@@ -369,15 +419,18 @@ export function MonthlyBudgetList({
 
             {isMobile ? (
                 <Sheet open={open} onOpenChange={setOpen}>
-                    <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto">
+                    <SheetContent
+                        side="bottom"
+                        className="max-h-[90vh] overflow-y-auto"
+                    >
                         <SheetHeader>
                             <SheetTitle>
                                 {editing ? 'Edit Budget' : 'Tambah Budget'}
                             </SheetTitle>
                             <SheetDescription>
                                 {editing
-                                    ? 'Update batasan budget kategori ini.'
-                                    : 'Set batasan budget untuk kategori.'}
+                                    ? 'Update detail budget ini.'
+                                    : 'Bikin budget baru buat pengeluaran tertentu.'}
                             </SheetDescription>
                         </SheetHeader>
                         <div className="px-4 pb-6 pt-2">{formContent}</div>
@@ -392,14 +445,16 @@ export function MonthlyBudgetList({
                             </DialogTitle>
                             <DialogDescription>
                                 {editing
-                                    ? 'Update batasan budget kategori ini.'
-                                    : 'Set batasan budget untuk kategori.'}
+                                    ? 'Update detail budget ini.'
+                                    : 'Bikin budget baru buat pengeluaran tertentu.'}
                             </DialogDescription>
                         </DialogHeader>
                         {formContent}
                     </DialogContent>
                 </Dialog>
             )}
+
+            <ConfirmDialog />
         </>
     )
 }

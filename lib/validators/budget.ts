@@ -18,7 +18,8 @@ export const budgetPeriodSchema = z.object({
 export type BudgetPeriodInput = z.infer<typeof budgetPeriodSchema>
 
 export const monthlyBudgetSchema = z.object({
-    category_id: z.string().uuid('Pilih kategori'),
+    name: z.string().min(1, 'Nama budget wajib diisi').max(100),
+    category_id: z.string().uuid().nullable().optional(),
     amount: z.coerce.number().positive('Jumlah harus lebih dari 0'),
     note: z.string().optional(),
 })

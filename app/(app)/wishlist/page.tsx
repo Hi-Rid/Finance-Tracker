@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation'
 import { PageWrapper, PageHeader } from '@/components/layout/page-wrapper'
 import { WishlistList } from '@/components/wishlist/wishlist-list'
 import { ensureUserSetup } from '@/lib/utils/ensure-user-setup'
+import { BarChart3 } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export default async function WishlistPage() {
     const supabase = await createClient()
@@ -37,6 +40,14 @@ export default async function WishlistPage() {
             <PageHeader
                 title="Wishlist"
                 description="Barang yang pengen lu beli — direncanain dengan cermat"
+                action={
+                    <Button variant="outline" size="sm" asChild>
+                        <Link href="/wishlist/statistics">
+                            <BarChart3 className="w-4 h-4" />
+                            Statistik
+                        </Link>
+                    </Button>
+                }
             />
             <WishlistList
                 wishlists={wishlists || []}

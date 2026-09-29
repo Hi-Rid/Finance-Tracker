@@ -62,7 +62,9 @@ export function ConfirmDialog({
                             <AlertTriangle className="w-5 h-5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <DialogTitle className="text-base">{title}</DialogTitle>
+                            <DialogTitle className="text-base">
+                                {title || 'Konfirmasi'}
+                            </DialogTitle>
                             {description && (
                                 <DialogDescription className="text-sm mt-1">
                                     {description}
@@ -98,26 +100,36 @@ export function ConfirmDialog({
     )
 }
 
-/**
- * Hook untuk manage confirm dialog state dengan mudah.
- */
+type ConfirmState = {
+    open: boolean
+    title: string
+    description?: string
+    confirmLabel?: string
+    cancelLabel?: string
+    variant?: 'default' | 'destructive'
+    onConfirm: () => void | Promise<void>
+}
+
+const initialState: ConfirmState = {
+    open: false,
+    title: '',
+    description: undefined,
+    confirmLabel: undefined,
+    cancelLabel: undefined,
+    variant: undefined,
+    onConfirm: () => { },
+}
+
 export function useConfirmDialog() {
-    const [state, setState] = useState<{
-        open: boolean
-        title: string
-        description?: string
-        confirmLabel?: string
-        variant?: 'default' | 'destructive'
-        onConfirm: () => void | Promise<void>
-    }>({
-        open: false,
-        title: '',
-        onConfirm: () => { },
-    })
+    const [state, setState] = useState<ConfirmState>(initialState)
 
     const confirm = useCallback(
-        (options: Omit<typeof state, 'open'>) => {
-            setState({ ...options, open: true })
+        (options: Omit<ConfirmState, 'open'>) => {
+            setState({
+                ...initialState,
+                ...options,
+                open: true,
+            })
         },
         []
     )
@@ -137,6 +149,7 @@ export function useConfirmDialog() {
                 title={state.title}
                 description={state.description}
                 confirmLabel={state.confirmLabel}
+                cancelLabel={state.cancelLabel}
                 variant={state.variant}
                 onConfirm={state.onConfirm}
             />

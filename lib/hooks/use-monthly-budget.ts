@@ -4,6 +4,7 @@ import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
+import { capitalizeFirst } from '@/lib/normalize'
 import type { MonthlyBudgetInput } from '@/lib/validators/budget'
 
 export function useMonthlyBudget() {
@@ -14,7 +15,8 @@ export function useMonthlyBudget() {
         async (
             data: MonthlyBudgetInput,
             profileId: string,
-            month: string
+            month: string,
+            existingId?: string
         ) => {
             const {
                 data: { user },
@@ -25,18 +27,39 @@ export function useMonthlyBudget() {
                 return { success: false }
             }
 
+            const payload = {
+                user_id: user.id,
+                profile_id: profileId,
+                name: capitalizeFirst(data.name),
+                category_id: data.category_id || null,
+                month,
+                amount: data.amount,
+                currency: 'IDR',
+                note: data.note?.trim() || null,
+            }
+
+            // Kalau edit, update by id
+            if (existingId) {
+                const { error } = await supabase
+                    .from('budgets')
+                    .update(payload)
+                    .eq('id', existingId)
+
+                if (error) {
+                    toast.error(error.message)
+                    return { success: false, error }
+                }
+
+                toast.success('Budget diupdate')
+                router.refresh()
+                return { success: true }
+            }
+
+            // Kalau create, upsert by (profile_id, name, month)
             const { error } = await supabase.from('budgets').upsert(
+                payload,
                 {
-                    user_id: user.id,
-                    profile_id: profileId,
-                    category_id: data.category_id,
-                    month,
-                    amount: data.amount,
-                    currency: 'IDR',
-                    note: data.note?.trim() || null,
-                },
-                {
-                    onConflict: 'profile_id,category_id,month',
+                    onConflict: 'profile_id,name,month',
                 }
             )
 
@@ -45,7 +68,7 @@ export function useMonthlyBudget() {
                 return { success: false, error }
             }
 
-            toast.success('Budget diupdate')
+            toast.success('Budget disimpan')
             router.refresh()
             return { success: true }
         },

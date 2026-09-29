@@ -3,8 +3,16 @@
  */
 
 export function getCurrentMonth(): string {
-    const d = new Date()
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    // Pakai WIB biar gak off-by-one di server UTC
+    const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Jakarta',
+        year: 'numeric',
+        month: '2-digit',
+    }).formatToParts(new Date())
+
+    const year = parts.find((p) => p.type === 'year')!.value
+    const month = parts.find((p) => p.type === 'month')!.value
+    return `${year}-${month}`
 }
 
 export function formatMonthDisplay(month: string): string {

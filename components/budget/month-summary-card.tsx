@@ -45,7 +45,9 @@ export function MonthSummaryCard({
 }: MonthSummaryCardProps) {
     const isMobile = useMediaQuery('(max-width: 767px)')
     const [open, setOpen] = useState(false)
-    const [income, setIncome] = useState(period?.income ? Number(period.income) : 0)
+    const [income, setIncome] = useState(
+        period?.income ? Number(period.income) : 0
+    )
     const [saving, setSaving] = useState(false)
     const { upsertPeriod } = useBudgetPeriod()
 
@@ -104,14 +106,14 @@ export function MonthSummaryCard({
 
     return (
         <>
-            <Card>
-                <CardContent className="pt-6">
-                    <div className="flex items-start justify-between gap-3 mb-5">
+            <Card className="py-0 gap-0">
+                <CardContent className="p-4 md:p-5">
+                    <div className="flex items-start justify-between gap-3 mb-3 md:mb-4">
                         <div>
-                            <h3 className="text-base font-semibold mb-1">
+                            <h3 className="text-sm md:text-base font-semibold mb-0.5">
                                 Income & Alokasi
                             </h3>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-[11px] md:text-xs text-muted-foreground">
                                 {formatMonthDisplay(month)}
                             </p>
                         </div>
@@ -119,13 +121,14 @@ export function MonthSummaryCard({
                             variant="outline"
                             size="sm"
                             onClick={() => setOpen(true)}
+                            className="h-7 md:h-8 text-[11px] md:text-xs gap-1.5"
                         >
-                            <Pencil className="w-3.5 h-3.5" />
+                            <Pencil className="w-3 h-3 md:w-3.5 md:h-3.5" />
                             {income > 0 ? 'Edit' : 'Set Income'}
                         </Button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2.5 md:gap-4">
                         <StatBox
                             icon={Wallet}
                             label="Income"
@@ -140,16 +143,19 @@ export function MonthSummaryCard({
                     </div>
 
                     {income > 0 && totalDaily > 0 && (
-                        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                            <div className="flex items-center justify-between text-xs mb-2">
+                        <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-slate-100 dark:border-white/5">
+                            <div className="flex items-center justify-between text-[11px] md:text-xs mb-1.5 md:mb-2">
                                 <span className="text-muted-foreground">
                                     Alokasi daily budget
                                 </span>
                                 <span className="font-semibold tabular-nums">
-                                    {Math.round((totalDaily * 30 / income) * 100)}%
+                                    {Math.round(
+                                        ((totalDaily * 30) / income) * 100
+                                    )}
+                                    %
                                 </span>
                             </div>
-                            <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
+                            <div className="w-full h-1.5 md:h-2 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
                                 <div
                                     className={cn(
                                         'h-full rounded-full transition-all',
@@ -158,15 +164,18 @@ export function MonthSummaryCard({
                                             : 'bg-brand'
                                     )}
                                     style={{
-                                        width: `${Math.min(100, (totalDaily * 30 / income) * 100)}%`,
+                                        width: `${Math.min(100, ((totalDaily * 30) / income) * 100)}%`,
                                     }}
                                 />
                             </div>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 flex items-center gap-1 flex-wrap">
+                            <p className="text-[10px] md:text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 md:mt-2 flex items-center gap-1 flex-wrap">
                                 <span>Sisa untuk budget bulanan:</span>
                                 <Amount
-                                    value={Math.max(0, income - totalDaily * 30)}
-                                    className="inline text-[11px] font-semibold text-slate-900 dark:text-white"
+                                    value={Math.max(
+                                        0,
+                                        income - totalDaily * 30
+                                    )}
+                                    className="inline text-[10px] md:text-[11px] font-semibold text-slate-900 dark:text-white"
                                 />
                             </p>
                         </div>
@@ -176,7 +185,10 @@ export function MonthSummaryCard({
 
             {isMobile ? (
                 <Sheet open={open} onOpenChange={setOpen}>
-                    <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto">
+                    <SheetContent
+                        side="bottom"
+                        className="max-h-[90vh] overflow-y-auto"
+                    >
                         <SheetHeader>
                             <SheetTitle>Set Income</SheetTitle>
                             <SheetDescription>
@@ -215,27 +227,29 @@ function StatBox({
     highlight?: boolean
 }) {
     return (
-        <div className="rounded-2xl border border-slate-200 dark:border-white/10 p-4">
-            <div className="flex items-center gap-2 mb-2">
+        <div className="rounded-xl md:rounded-2xl border border-slate-200 dark:border-white/10 p-3 md:p-4">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2">
                 <div
                     className={cn(
-                        'w-7 h-7 rounded-lg flex items-center justify-center shrink-0',
+                        'w-6 h-6 md:w-7 md:h-7 rounded-lg flex items-center justify-center shrink-0',
                         highlight
                             ? 'bg-brand/10 text-brand'
                             : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400'
                     )}
                 >
-                    <Icon className="w-3.5 h-3.5" />
+                    <Icon className="w-3 h-3 md:w-3.5 md:h-3.5" />
                 </div>
-                <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <p className="text-[9px] md:text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
                     {label}
                 </p>
             </div>
             <Amount
                 value={value}
                 className={cn(
-                    'text-lg font-bold',
-                    highlight ? 'text-brand' : 'text-slate-900 dark:text-white'
+                    'text-base md:text-lg font-bold',
+                    highlight
+                        ? 'text-brand'
+                        : 'text-slate-900 dark:text-white'
                 )}
             />
         </div>

@@ -5,6 +5,7 @@ import { BottomNav } from '@/components/layout/bottom-nav'
 import { Header } from '@/components/layout/header'
 import { AuthGuard } from '@/components/shared/auth-guard'
 import { CommandPalette } from '@/components/shared/command-palette'
+import { syncCoolingOffNotifications } from '@/lib/notifications/actions'
 
 export default async function AppLayout({
   children,
@@ -20,10 +21,13 @@ export default async function AppLayout({
     redirect('/login')
   }
 
+  // Auto-sync cooling-off tiap user buka page baru.
+  // Idempotent — pakai dedup_key di DB, jadi gak bakal dobel.
+  await syncCoolingOffNotifications(user.id)
+
   return (
     <AuthGuard>
       <div className="relative flex min-h-screen bg-background">
-        {/* Background gradient blobs */}
         <div className="app-bg-blob" aria-hidden />
 
         <Sidebar userEmail={user.email} />

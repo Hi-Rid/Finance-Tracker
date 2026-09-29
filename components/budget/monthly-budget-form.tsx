@@ -5,11 +5,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
     Select,
@@ -35,7 +37,6 @@ type MonthlyBudgetFormProps = {
     month: string
     categories: Category[]
     editingBudget?: Budget | null
-    editingCategory?: Category | null
     onSuccess?: () => void
     onCancel?: () => void
 }
@@ -45,7 +46,6 @@ export function MonthlyBudgetForm({
     month,
     categories,
     editingBudget,
-    editingCategory,
     onSuccess,
     onCancel,
 }: MonthlyBudgetFormProps) {
@@ -55,7 +55,8 @@ export function MonthlyBudgetForm({
     const form = useForm<MonthlyBudgetInput>({
         resolver: zodResolver(monthlyBudgetSchema) as any,
         defaultValues: {
-            category_id: editingBudget?.category_id || '',
+            name: editingBudget?.name || '',
+            category_id: editingBudget?.category_id || null,
             amount: editingBudget?.amount ? Number(editingBudget.amount) : 0,
             note: editingBudget?.note || '',
         },
@@ -66,7 +67,12 @@ export function MonthlyBudgetForm({
     } = form
 
     async function onSubmit(data: MonthlyBudgetInput) {
-        const result = await upsertBudget(data, profileId, month)
+        const result = await upsertBudget(
+            data,
+            profileId,
+            month,
+            isEdit ? editingBudget?.id : undefined
+        )
         if (result.success) {
             onSuccess?.()
             form.reset()
@@ -76,33 +82,60 @@ export function MonthlyBudgetForm({
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                {/* Category — cuma tampil kalau create, kalau edit cuma display */}
+                {/* Nama Budget */}
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Nama Budget</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="Contoh: Kost, Makan, Netflix"
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormDescription className="text-xs">
+                                Nama ini yang muncul di daftar budget
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Kategori */}
                 <FormField
                     control={form.control}
                     name="category_id"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Kategori</FormLabel>
-                            {isEdit && editingCategory ? (
-                                <div className="flex h-10 items-center rounded-lg border border-slate-200 dark:border-white/15 bg-slate-50 dark:bg-white/5 px-3 text-sm text-slate-900 dark:text-white">
-                                    {editingCategory.name}
-                                </div>
-                            ) : (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Pilih kategori" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {categories.map((c) => (
-                                            <SelectItem key={c.id} value={c.id}>
-                                                {c.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
+                            <FormLabel>Kategori (opsional)</FormLabel>
+                            <Select
+                                onValueChange={(v) =>
+                                    field.onChange(v === '__none__' ? null : v)
+                                }
+                                value={field.value || '__none__'}
+                            >
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih kategori" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="__none__">
+                                        Tanpa kategori
+                                    </SelectItem>
+                                    {categories.map((c) => (
+                                        <SelectItem key={c.id} value={c.id}>
+                                            {c.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormDescription className="text-xs">
+                                Biar tracking pengeluaran ke kategori ini
+                                kehitung otomatis
+                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -145,8 +178,14 @@ export function MonthlyBudgetForm({
                             Batal
                         </Button>
                     )}
-                    <Button type="submit" disabled={isSubmitting} className="flex-1">
-                        {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex-1"
+                    >
+                        {isSubmitting && (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        )}
                         {isEdit ? 'Simpan' : 'Tambah'}
                     </Button>
                 </div>
