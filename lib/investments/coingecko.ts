@@ -50,7 +50,7 @@ export async function fetchCryptoPrices(
 
     try {
         const res = await fetch(url, {
-            // Jangan cache di Next.js — cache kita sendiri di tabel asset_prices
+            // Jangan cache di Next.js - cache kita sendiri di tabel asset_prices
             cache: 'no-store',
             headers: { accept: 'application/json' },
         })

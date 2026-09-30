@@ -17,7 +17,7 @@ export function Sparkline({
 }: SparklineProps) {
   // ============================================================
   // 1. Normalize ke 0-100
-  // 2. Clamp minimum ke 15 — biar garis flat (nilai rendah) tetap kelihatan tebal
+  // 2. Clamp minimum ke 15 - biar garis flat (nilai rendah) tetap kelihatan tebal
   // ============================================================
   const maxValue = Math.max(...data, 1)
   const FLOOR = 15

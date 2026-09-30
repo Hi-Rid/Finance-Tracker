@@ -223,7 +223,7 @@ export function AdjustmentModal({
                                 />
                             </FormControl>
                             <FormDescription className="text-xs">
-                                Wajib — muncul di riwayat transaksi
+                                Wajib - muncul di riwayat transaksi
                             </FormDescription>
                             <FormMessage />
                         </FormItem>

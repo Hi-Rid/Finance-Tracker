@@ -269,8 +269,8 @@ export function DailyBudgetFloating({
                         })}
 
                         {unassignedSpent > 0 && (
-                          <div className="rounded-xl bg-white/5 border border-white/10 px-2.5 py-2">
-                            <p className="text-[9px] text-white/50 uppercase tracking-wider mb-1 truncate">
+                          <div className="rounded-xl bg-white/10 px-2.5 py-2">
+                            <p className="text-[9px] text-white/60 uppercase tracking-wider mb-1 truncate">
                               Lainnya
                             </p>
                             <Amount

@@ -7,7 +7,7 @@ type PageWrapperProps = {
 
 export function PageWrapper({ children, className }: PageWrapperProps) {
   return (
-    <div className={cn('mx-auto w-full max-w-7xl py-4 md:py-8', className)}>
+    <div className={cn('mx-auto w-full max-w-7xl py-3 sm:py-4 md:py-8', className)}>
       {children}
     </div>
   )
@@ -29,12 +29,12 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        'flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 mb-4 md:mb-8',
+        'flex flex-col md:flex-row md:items-center md:justify-between gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4 md:mb-8',
         className
       )}
     >
       <div className="min-w-0">
-        <h1 className="text-xl md:text-3xl font-bold tracking-tight mb-0.5 md:mb-1">
+        <h1 className="text-lg sm:text-xl md:text-3xl font-bold tracking-tight mb-0.5 md:mb-1">
           {title}
         </h1>
         {description && (

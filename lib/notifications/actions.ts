@@ -4,7 +4,7 @@ import type { CreateNotificationInput } from './types'
 
 /**
  * Insert notif dengan dedup_key. Kalau udah ada, gak di-insert.
- * Idempotent — aman dipanggil berkali-kali.
+ * Idempotent - aman dipanggil berkali-kali.
  */
 export async function createNotification(input: CreateNotificationInput) {
     const supabase = await createClient()
@@ -32,7 +32,7 @@ export async function createNotification(input: CreateNotificationInput) {
  *   2. Bikin notif (dedup: cuma 1x per wishlist)
  *
  * Dipanggil dari app layout setiap kali user buka page baru.
- * Idempotent — aman dipanggil berkali-kali.
+ * Idempotent - aman dipanggil berkali-kali.
  */
 export async function syncCoolingOffNotifications(userId: string) {
     const supabase = await createClient()

@@ -5,7 +5,7 @@
 -- =====================================================
 
 -- =====================================================
--- 1. UPDATE SEED FUNCTION — tambah kategori baru
+-- 1. UPDATE SEED FUNCTION - tambah kategori baru
 -- =====================================================
 CREATE OR REPLACE FUNCTION public.seed_default_categories(p_user_id uuid)
 RETURNS void

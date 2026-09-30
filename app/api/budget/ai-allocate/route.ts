@@ -117,9 +117,9 @@ export async function POST(req: Request) {
     const expenseList = expenses
         .map((e, i) => {
             if (e.amount === 0) {
-                return `${i + 1}. ${e.name} — (BELUM ADA NOMINAL, kamu yang tentuin)`
+                return `${i + 1}. ${e.name} - (BELUM ADA NOMINAL, kamu yang tentuin)`
             }
-            return `${i + 1}. ${e.name} — Rp ${e.amount.toLocaleString('id-ID')}`
+            return `${i + 1}. ${e.name} - Rp ${e.amount.toLocaleString('id-ID')}`
         })
         .join('\n')
 
@@ -151,7 +151,7 @@ ${categoryList}
 
 # TUGASMU
 
-## Task 1 — Klasifikasi Setiap Pengeluaran
+## Task 1 - Klasifikasi Setiap Pengeluaran
 Assign tiap pengeluaran ke SATU bucket: "needs", "wants", atau "savings".
 
 ATURAN KLASIFIKASI:
@@ -165,7 +165,7 @@ NUANSA PENTING:
 - UKT/kuliah → **savings** (investasi pendidikan)
 - Asuransi → **needs** (proteksi wajib)
 
-## Task 2 — Tentukan Fixed atau Variable
+## Task 2 - Tentukan Fixed atau Variable
 Untuk SETIAP pengeluaran, tandai:
 - **"fixed"**: nominal PASTI (kost, cicilan, UKT, asuransi, langganan bulanan) ATAU user udah kasih nominal & nature-nya gak bisa diubah
 - **"variable"**: nominal BISA disesuaikan (makan, jajan, transport, hobi) ATAU user belum kasih nominal (tanda "BELUM ADA NOMINAL")
@@ -174,7 +174,7 @@ RULES KHUSUS untuk amount = 0:
 - Kalau user gak kasih nominal, otomatis "variable"
 - Kamu yang tentuin nominalnya berdasarkan bucket + sisa budget
 
-## Task 3 — Match ke Category Existing
+## Task 3 - Match ke Category Existing
 Match setiap pengeluaran ke category_id TERBAIK dari list yang disediakan. Gunakan fuzzy matching:
 - "Kost" / "Sewa" → "Rent" atau "Housing"
 - "Makan" → "Meals"
@@ -184,27 +184,27 @@ Match setiap pengeluaran ke category_id TERBAIK dari list yang disediakan. Gunak
 - "Netflix" → "Entertainment"
 - "UKT Kuliah" → paling dekat dengan group education atau invest
 
-## Task 4 — Rebalance Kalau Over Budget
+## Task 4 - Rebalance Kalau Over Budget
 Hitung total per bucket. Bandingkan dengan baseline.
 
 JIKA ada bucket yang MELEBIHI baseline, lakukan rebalance BERTAHAP:
 
-### STEP A — Pindah Pengeluaran Fleksibel
+### STEP A - Pindah Pengeluaran Fleksibel
 - Cari pengeluaran di bucket yang over yang SECARA LOGIS bisa masuk bucket lain
 - Contoh: "Cicilan Motor" di Needs → pindah ke Wants (motor = lifestyle)
 - Contoh: "UKT Kuliah" di Needs → pindah ke Savings (investasi pendidikan)
 - Cuma pindah kalau nature-nya mendukung
 
-### STEP B — Kurangi Variable Expenses
+### STEP B - Kurangi Variable Expenses
 - Setelah Step A, kalau bucket MASIH over, kurangi "variable" expenses di bucket itu
 - Prioritas: kurangi yang PALING GAK ESENSIAL dulu (jajan > makan > transport)
 - Contoh: "Makan Rp 1.000.000" → "Makan Rp 800.000" (kurangi Rp 200.000)
 
-### STEP C — Block Jika Gak Bisa Diselesaikan
+### STEP C - Block Jika Gak Bisa Diselesaikan
 - Kalau SETELAH Step B masih over (semua pengeluaran sisa fixed) → set "blocked": true
 - Isi "block_reason" dengan penjelasan singkat
 
-## Task 5 — WAJIB HABISKAN BUDGET
+## Task 5 - WAJIB HABISKAN BUDGET
 Setelah semua klasifikasi & rebalance, PASTIKAN total per bucket PAS dengan baseline.
 Kalau ada sisa (total < baseline), tambahkan ke pengeluaran "variable" di bucket tersebut
 secara proporsional. JANGAN biarkan ada sisa.

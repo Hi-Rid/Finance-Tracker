@@ -4,7 +4,7 @@
 
 @theme {
   /* ============================================
-     COLOR PALETTE — Royal Navy / Steel Blue
+     COLOR PALETTE - Royal Navy / Steel Blue
      ============================================ */
   --color-ice: #D0E4FE;
   --color-sky: #A8C5E8;
@@ -27,7 +27,7 @@
   --color-primary-800: #091F5C;
   --color-primary-900: #050F2E;
 
-  /* Sidebar — static (gak invert) */
+  /* Sidebar - static (gak invert) */
   --color-sidebar: #091F5C;
   --color-sidebar-hover: #1F3680;
   --color-sidebar-active: #334DAF;
@@ -49,7 +49,7 @@
   --color-danger: #ef4444;
   --color-info: #334DAF;
 
-  /* Brand — static, gak invert di dark mode */
+  /* Brand - static, gak invert di dark mode */
   --color-brand: #334DAF;
   --color-brand-hover: #1F3680;
   --color-brand-active: #091F5C;
@@ -87,7 +87,7 @@
   --color-muted: #0A1A40;
   --color-muted-foreground: #A8C5E8;
 
-  /* Sidebar dark — lebih gelap dari bg */
+  /* Sidebar dark - lebih gelap dari bg */
   --color-sidebar: #030918;
   --color-sidebar-hover: #091F5C;
   --color-sidebar-active: #334DAF;
@@ -106,7 +106,7 @@
   --color-primary-800: #F9FBFF;
   --color-primary-900: #FFFFFF;
 
-  /* Brand — tetap sama di dark mode */
+  /* Brand - tetap sama di dark mode */
   --color-brand: #334DAF;
   --color-brand-hover: #1F3680;
   --color-brand-active: #091F5C;
@@ -340,7 +340,7 @@ textarea::placeholder {
 }
 
 /* ============================================
-   DATE FILTER BUTTON — paksa warna
+   DATE FILTER BUTTON - paksa warna
    ============================================ */
 .date-filter-btn,
 .date-filter-btn span,
@@ -377,45 +377,16 @@ textarea::placeholder {
 /* ============================================ */
 /* Share preview 1080-wide auto-height           */
 /* ============================================ */
-.share-preview-scroll {
-  max-height: 500px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  border-radius: 12px;
-  padding: 8px;
-}
-
-.share-preview-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-
-.share-preview-scroll::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.3);
-  border-radius: 3px;
-}
-
-.share-preview-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
 
 .share-preview-wrapper {
-  zoom: 0.35;
-  -moz-transform: scale(0.35);
+  zoom: 0.36;
+  -moz-transform: scale(0.36);
   -moz-transform-origin: top center;
 }
 
-@media (max-width: 480px) {
+@media (min-width: 640px) {
   .share-preview-wrapper {
-    zoom: 0.28;
-    -moz-transform: scale(0.28);
-  }
-}
-
-@media (max-width: 380px) {
-  .share-preview-wrapper {
-    zoom: 0.25;
-    -moz-transform: scale(0.25);
+    zoom: 0.35;
+    -moz-transform: scale(0.35);
   }
 }

@@ -24,7 +24,7 @@ create table public.budgets (
 create index idx_budgets_profile_month on public.budgets(profile_id, month);
 
 -- =====================================================
--- ENVELOPES (kantong real — ala Jago)
+-- ENVELOPES (kantong real - ala Jago)
 -- =====================================================
 create table public.envelopes (
   id uuid primary key default uuid_generate_v4(),

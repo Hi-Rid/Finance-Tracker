@@ -9,7 +9,7 @@ export default function TripsPage() {
             />
             <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-8 text-center">
                 <p className="text-sm text-muted-foreground">
-                    Halaman Travel — coming soon
+                    Halaman Travel - coming soon
                 </p>
             </div>
         </PageWrapper>

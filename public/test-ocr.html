@@ -87,7 +87,7 @@
 <body>
     <h1>Test OCR Upload</h1>
     <div class="card">
-        <p>Upload struk (JPG, PNG, PDF — max 10MB)</p>
+        <p>Upload struk (JPG, PNG, PDF - max 10MB)</p>
         <input type="file" id="fileInput" accept="image/*,application/pdf">
         <button id="uploadBtn" disabled>Scan Struk</button>
         <div id="status"></div>
@@ -136,7 +136,7 @@
                     output.style.display = 'block'
                 } else {
                     status.className = 'status success'
-                    status.textContent = `✅ Berhasil dalam ${elapsed}s — Receipt ID: ${data.receiptId}`
+                    status.textContent = `✅ Berhasil dalam ${elapsed}s - Receipt ID: ${data.receiptId}`
                     output.textContent = JSON.stringify(data.parsed, null, 2)
                     output.style.display = 'block'
                 }

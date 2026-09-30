@@ -235,7 +235,7 @@ export function useInvestments() {
                         ? existing.assets[0]
                         : existing.assets
 
-                    toast.info(`${ticker} udah ada — ditambahkan ke posisi.`)
+                    toast.info(`${ticker} udah ada - ditambahkan ke posisi.`)
 
                     const result = await buyMoreInternal({
                         uid,
@@ -354,7 +354,7 @@ export function useInvestments() {
     )
 
     // ============================================================
-    // BUY MORE — public
+    // BUY MORE - public
     // ============================================================
     const buyMore = useCallback(
         async (data: BuyMoreInput) => {

@@ -217,7 +217,7 @@ export function useEvents() {
                         contact_id: null,
                         event_participant_id: tempToReal[p.temp_id] || null,
                         type: 'receivable',
-                        name: `${data.name} — ${p.display_name}`,
+                        name: `${data.name} - ${p.display_name}`,
                         principal: p.total_share,
                         outstanding: p.total_share,
                         interest_rate: 0,
@@ -231,7 +231,7 @@ export function useEvents() {
                     await supabase.from('debts').insert(debtInserts)
                 }
 
-                toast.success('Split bill tersimpan — lu talangin dulu')
+                toast.success('Split bill tersimpan - lu talangin dulu')
             } else {
                 const userParticipant = insertedParticipants.find((p) => p.is_user)
                 const debtInsert = {
@@ -240,7 +240,7 @@ export function useEvents() {
                     contact_id: null,
                     event_participant_id: userParticipant?.id || null,
                     type: 'debt',
-                    name: `${data.name} — utang ke ${result.payer_name}`,
+                    name: `${data.name} - utang ke ${result.payer_name}`,
                     principal: result.user_share,
                     outstanding: result.user_share,
                     interest_rate: 0,
@@ -253,7 +253,7 @@ export function useEvents() {
                 await supabase.from('debts').insert(debtInsert)
 
                 toast.success(
-                    `Split bill tersimpan — utang lu ke ${result.payer_name}`
+                    `Split bill tersimpan - utang lu ke ${result.payer_name}`
                 )
             }
 
@@ -362,7 +362,7 @@ export function useEvents() {
                 .maybeSingle()
 
             const txName = isIncome
-                ? `Settle: ${participant.display_name} — ${event.name}`
+                ? `Settle: ${participant.display_name} - ${event.name}`
                 : `Bayar Split Bill: ${event.name}`
 
             const { data: tx, error: txErr } = await supabase

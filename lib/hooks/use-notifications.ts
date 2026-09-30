@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { NotificationRow } from '@/lib/notifications/types'
 
 const PAGE_SIZE = 30
-const POLL_INTERVAL = 60_000 // 60 detik
+const POLL_INTERVAL = 60_000
 
 export function useNotifications() {
     const supabase = createClient()
@@ -39,7 +39,64 @@ export function useNotifications() {
         fetchAll()
     }, [fetchAll])
 
-    // Auto-refresh saat user balik ke tab
+    // Realtime subscription
+    useEffect(() => {
+        let mounted = true
+        let channel: any = null
+
+        async function setup() {
+            const {
+                data: { user },
+            } = await supabase.auth.getUser()
+            if (!user || !mounted) return
+
+            channel = supabase
+                .channel(`notifications:${user.id}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'notifications',
+                        filter: `user_id=eq.${user.id}`,
+                    },
+                    (payload) => {
+                        const newNotif = payload.new as NotificationRow
+
+                        setNotifications((prev) => {
+                            if (prev.some((n) => n.id === newNotif.id)) {
+                                return prev
+                            }
+                            return [newNotif, ...prev].slice(0, PAGE_SIZE)
+                        })
+
+                        toast.success(newNotif.title, {
+                            description: newNotif.body || undefined,
+                            duration: 5000,
+                        })
+                    }
+                )
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        console.log('[notif] realtime connected')
+                    }
+                    if (status === 'CHANNEL_ERROR') {
+                        console.warn('[notif] realtime error, fallback to polling')
+                    }
+                })
+        }
+
+        setup()
+
+        return () => {
+            mounted = false
+            if (channel) {
+                supabase.removeChannel(channel)
+            }
+        }
+    }, [supabase])
+
+    // Auto-refresh saat tab balik ke aktif
     useEffect(() => {
         function handleVisibility() {
             if (document.visibilityState === 'visible') {
@@ -51,7 +108,7 @@ export function useNotifications() {
             document.removeEventListener('visibilitychange', handleVisibility)
     }, [fetchAll])
 
-    // Poll tiap 60 detik
+    // Fallback poll tiap 60 detik
     useEffect(() => {
         const id = setInterval(fetchAll, POLL_INTERVAL)
         return () => clearInterval(id)

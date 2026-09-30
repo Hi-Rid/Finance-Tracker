@@ -161,7 +161,7 @@ export function AccountsList({
   const open = dialog.type !== 'none'
   const closeDialog = () => setDialog({ type: 'none' })
 
-  // Available filters — cuma tampil tipe yang ada isinya
+  // Available filters - cuma tampil tipe yang ada isinya
   const availableFilters = useMemo(() => {
     return TYPE_FILTERS.filter((f) => {
       if (f.value === 'all') return true
@@ -278,10 +278,10 @@ export function AccountsList({
         <div className="flex items-end gap-1.5 shrink-0 pb-0.5 flex-wrap">
           <HideAmountsButton size="icon-sm" />
 
-          {/* Filter — desktop: chips, mobile: dropdown icon */}
+          {/* Filter - desktop: chips, mobile: dropdown icon */}
           {accounts.length > 0 && (
             <>
-              {/* Desktop — chip buttons */}
+              {/* Desktop - chip buttons */}
               <div className="hidden md:flex items-center gap-1">
                 {availableFilters.map((f) => {
                   const count = getCount(f.value)
@@ -314,7 +314,7 @@ export function AccountsList({
                 })}
               </div>
 
-              {/* Mobile — dropdown icon */}
+              {/* Mobile - dropdown icon */}
               <div className="md:hidden">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

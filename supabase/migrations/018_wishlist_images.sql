@@ -20,7 +20,7 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
--- 3. RLS policies — users cuma bisa akses folder mereka sendiri
+-- 3. RLS policies - users cuma bisa akses folder mereka sendiri
 -- Path format: {user_id}/{wishlist_id}.{ext}
 
 DROP POLICY IF EXISTS "wishlist_images_public_read" ON storage.objects;

@@ -167,7 +167,7 @@ console.log(`Total         : ${parsed.totalAmount}`)
 console.log(`Tax           : ${parsed.taxAmount}`)
 console.log(`Items         : ${parsed.items.length}`)
 parsed.items.forEach((item, i) => {
-    console.log(`  ${i + 1}. ${item.description} — ${item.quantity}x @ ${item.unitPrice} = ${item.total}`)
+    console.log(`  ${i + 1}. ${item.description} - ${item.quantity}x @ ${item.unitPrice} = ${item.total}`)
 })
 console.log(`Confidence    : ${(parsed.confidence * 100).toFixed(1)}%`)
 console.log(`fileUrl       : ${parsed.fileUrl}`)

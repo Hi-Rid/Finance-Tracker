@@ -169,7 +169,7 @@ export function CategoryForm({
                     )}
                 />
 
-                {/* Group + Icon — 2 kolom */}
+                {/* Group + Icon - 2 kolom */}
                 <div className="grid grid-cols-2 gap-3">
                     <FormField
                         control={form.control}

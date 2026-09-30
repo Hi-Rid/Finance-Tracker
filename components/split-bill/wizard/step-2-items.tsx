@@ -144,36 +144,36 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-5">
-                <div className="flex items-start justify-between gap-3 mb-4">
-                    <div>
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                            Items
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                            Tambah manual atau scan struk
-                        </p>
-                    </div>
+        <div className="space-y-3 md:space-y-4">
+            {/* Scanner */}
+            <div className="rounded-xl md:rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-3.5 md:p-5">
+                <div className="mb-3 md:mb-4">
+                    <p className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5 md:mb-1">
+                        Items
+                    </p>
+                    <p className="text-[11px] md:text-xs text-muted-foreground">
+                        Tambah manual atau scan struk
+                    </p>
                 </div>
 
                 <ReceiptScanner onScanned={handleScanned} />
 
                 {data.receipt_ids.length > 0 && (
-                    <p className="text-[11px] text-muted-foreground mt-2">
+                    <p className="text-[10px] md:text-[11px] text-muted-foreground mt-2">
                         ✓ {data.receipt_ids.length} struk ter-scan
                     </p>
                 )}
             </div>
 
+            {/* Items list */}
             {items.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 dark:border-white/15 bg-card p-8 text-center">
-                    <p className="text-sm text-muted-foreground">
+                <div className="rounded-xl md:rounded-2xl border border-dashed border-slate-300 dark:border-white/15 bg-card p-6 md:p-8 text-center">
+                    <p className="text-xs md:text-sm text-muted-foreground">
                         Belum ada item. Scan struk atau tambah manual.
                     </p>
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                     {items.map((item, idx) => {
                         const assigneeCount = item.assigned_to.length || 1
                         const lineTotal = item.quantity * item.unit_price
@@ -182,10 +182,10 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                         return (
                             <div
                                 key={item.temp_id}
-                                className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-4 space-y-3"
+                                className="rounded-lg md:rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-2.5 md:p-4 space-y-2 md:space-y-3"
                             >
                                 <div className="flex items-center justify-between gap-2">
-                                    <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <span className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Item {idx + 1}
                                     </span>
                                     <Button
@@ -193,7 +193,7 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                         variant="ghost"
                                         size="icon-sm"
                                         onClick={() => removeItem(item.temp_id)}
-                                        className="text-slate-400 hover:text-red-500"
+                                        className="text-slate-400 hover:text-red-500 h-7 w-7 md:h-8 md:w-8"
                                     >
                                         <Trash2 className="w-3.5 h-3.5" />
                                     </Button>
@@ -205,11 +205,12 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                     onChange={(e) =>
                                         updateItem(item.temp_id, { name: e.target.value })
                                     }
+                                    className="h-9 md:h-10 text-sm"
                                 />
 
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
+                                        <label className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
                                             Qty
                                         </label>
                                         <Input
@@ -224,10 +225,11 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                                             : Number(e.target.value),
                                                 })
                                             }
+                                            className="h-9 md:h-10 text-sm"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
+                                        <label className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
                                             Harga Satuan
                                         </label>
                                         <CurrencyInput
@@ -236,6 +238,7 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                                 updateItem(item.temp_id, { unit_price: v })
                                             }
                                             placeholder="0"
+                                            className="h-9 md:h-10 text-sm"
                                         />
                                     </div>
                                 </div>
@@ -246,19 +249,19 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                     </span>
                                     <Amount
                                         value={lineTotal}
-                                        className="text-sm font-bold text-slate-900 dark:text-white"
+                                        className="text-sm md:text-base font-bold text-slate-900 dark:text-white"
                                     />
                                 </div>
 
                                 {/* Assignment */}
                                 <div className="pt-2 border-t border-slate-100 dark:border-white/5">
-                                    <div className="flex items-center gap-1.5 mb-2">
+                                    <div className="flex items-center gap-1.5 mb-1.5 md:mb-2">
                                         <Users className="w-3 h-3 text-slate-400" />
-                                        <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             Dibagi ke siapa?
                                         </p>
                                     </div>
-                                    <div className="flex flex-wrap gap-1.5 mb-3">
+                                    <div className="flex flex-wrap gap-1.5 mb-2.5 md:mb-3">
                                         {participants.map((p) => {
                                             const isAssigned = item.assigned_to.includes(p.temp_id)
                                             return (
@@ -269,7 +272,7 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                                         toggleAssignment(item.temp_id, p.temp_id)
                                                     }
                                                     className={cn(
-                                                        'px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer',
+                                                        'px-2 md:px-2.5 py-1 rounded-md md:rounded-lg text-[11px] md:text-xs font-medium transition-all cursor-pointer',
                                                         isAssigned
                                                             ? 'bg-brand text-white shadow-sm'
                                                             : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
@@ -282,14 +285,13 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                     </div>
 
                                     {item.assigned_to.length === 0 && (
-                                        <p className="text-[10px] text-amber-600 dark:text-amber-400 mb-3">
-                                            ⚠️ Belum ada assignee — bakal dibagi rata ke semua
+                                        <p className="text-[10px] text-amber-600 dark:text-amber-400 mb-2">
+                                            ⚠️ Belum ada assignee, bakal dibagi rata
                                         </p>
                                     )}
 
-                                    {/* Preview share per orang */}
                                     {item.assigned_to.length > 0 && item.unit_price > 0 && (
-                                        <div className="rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-2.5">
+                                        <div className="rounded-md md:rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-2 md:p-2.5">
                                             <p className="text-[10px] text-muted-foreground leading-relaxed">
                                                 <Amount
                                                     value={lineTotal}
@@ -314,20 +316,20 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                 type="button"
                 variant="outline"
                 onClick={addItem}
-                className="w-full border-dashed"
+                className="w-full border-dashed h-9 md:h-10 text-sm"
             >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 Tambah Item Manual
             </Button>
 
             {items.length > 0 && (
-                <div className="rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-4 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                <div className="rounded-lg md:rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-3 md:p-4 flex items-center justify-between">
+                    <span className="text-[11px] md:text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                         Subtotal
                     </span>
                     <Amount
                         value={subtotal}
-                        className="text-lg font-bold text-brand"
+                        className="text-base md:text-lg font-bold text-brand"
                     />
                 </div>
             )}
@@ -341,7 +343,7 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-3 text-xs">
+                    <div className="rounded-lg md:rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2.5 md:p-3 text-xs">
                         <p className="font-semibold mb-1">
                             {pendingScan?.merchant || 'Struk baru'}
                         </p>
@@ -358,6 +360,7 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                 if (pendingScan)
                                     applyScan(pendingScan, pendingReceiptId, 'append')
                             }}
+                            className="h-10"
                         >
                             <Plus className="w-4 h-4" />
                             Tambahkan (Append)
@@ -368,6 +371,7 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                 if (pendingScan)
                                     applyScan(pendingScan, pendingReceiptId, 'replace')
                             }}
+                            className="h-10"
                         >
                             <X className="w-4 h-4" />
                             Ganti Semua (Replace)
@@ -379,6 +383,7 @@ export function Step2Items({ data, update }: Step2ItemsProps) {
                                 setPendingReceiptId(null)
                                 setShowAppendDialog(false)
                             }}
+                            className="h-10"
                         >
                             Batal
                         </Button>

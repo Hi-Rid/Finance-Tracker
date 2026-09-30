@@ -238,6 +238,10 @@ export function WishlistList({ wishlists, profileId }: WishlistListProps) {
         () => filtered.filter((w) => w.status === 'cancelled'),
         [filtered]
     )
+    const totalCancelled = cancelledWishlists.reduce(
+        (sum, w) => sum + Number(w.target_price),
+        0
+    )
 
     const availableFilters = useMemo(() => {
         return PRIORITY_FILTERS.filter((f) => {
@@ -309,8 +313,8 @@ export function WishlistList({ wishlists, profileId }: WishlistListProps) {
                                         Batal ({cancelledWishlists.length})
                                     </p>
                                     <Amount
-                                        value={0}
-                                        className="text-[11px] md:text-lg font-bold text-red-600 dark:text-red-400 leading-tight opacity-60 block"
+                                        value={totalCancelled}
+                                        className="text-[11px] md:text-lg font-bold text-red-600 dark:text-red-400 leading-tight block"
                                     />
                                 </div>
                             )}

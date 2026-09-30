@@ -9,7 +9,7 @@ export default function ReportsPage() {
             />
             <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-8 text-center">
                 <p className="text-sm text-muted-foreground">
-                    Halaman Laporan — coming soon
+                    Halaman Laporan - coming soon
                 </p>
             </div>
         </PageWrapper>

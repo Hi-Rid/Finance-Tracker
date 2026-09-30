@@ -157,12 +157,12 @@ export function TransactionDetail({
                                 <MetaRow
                                     icon={Wallet}
                                     label="Dari Akun"
-                                    value={account?.name || '—'}
+                                    value={account?.name || '-'}
                                 />
                                 <MetaRow
                                     icon={Wallet}
                                     label="Ke Akun"
-                                    value={toAccount?.name || '—'}
+                                    value={toAccount?.name || '-'}
                                 />
                             </>
                         ) : (
@@ -170,12 +170,12 @@ export function TransactionDetail({
                                 <MetaRow
                                     icon={Wallet}
                                     label="Akun"
-                                    value={account?.name || '—'}
+                                    value={account?.name || '-'}
                                 />
                                 <MetaRow
                                     icon={Target}
                                     label="Kategori"
-                                    value={category?.name || '—'}
+                                    value={category?.name || '-'}
                                 />
                             </>
                         )}

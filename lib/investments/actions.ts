@@ -106,7 +106,7 @@ async function getTradingBalance(
 }
 
 // ============================================================
-// ASSET DETAIL — fetch 1 asset lengkap untuk /investments/[id]
+// ASSET DETAIL - fetch 1 asset lengkap untuk /investments/[id]
 // ============================================================
 
 export type AssetDetailData = {

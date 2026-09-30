@@ -15,7 +15,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
 import { Amount } from '@/components/ui/amount'
 import {
   Select,
@@ -37,6 +36,12 @@ import {
   TrendingDown,
   ArrowLeftRight,
   Utensils,
+  Tag,
+  Calendar,
+  Store,
+  FileText,
+  Settings2,
+  Check,
 } from 'lucide-react'
 import { useTransactions } from '@/lib/hooks/use-transactions'
 import {
@@ -74,9 +79,24 @@ function toLocalDateTimeInputValue(date: Date): string {
 }
 
 const TYPE_OPTIONS = [
-  { value: 'expense', label: 'Pengeluaran', icon: TrendingDown, color: 'text-red-500' },
-  { value: 'income', label: 'Pemasukan', icon: TrendingUp, color: 'text-emerald-500' },
-  { value: 'transfer', label: 'Transfer', icon: ArrowLeftRight, color: 'text-brand' },
+  {
+    value: 'expense',
+    label: 'Keluar',
+    icon: TrendingDown,
+    color: '#ef4444',
+  },
+  {
+    value: 'income',
+    label: 'Masuk',
+    icon: TrendingUp,
+    color: '#10b981',
+  },
+  {
+    value: 'transfer',
+    label: 'Transfer',
+    icon: ArrowLeftRight,
+    color: '#334DAF',
+  },
 ] as const
 
 export function TransactionForm({
@@ -94,6 +114,11 @@ export function TransactionForm({
   const [scannedReceiptId, setScannedReceiptId] = useState<string | null>(null)
   const isEdit = !!transaction
 
+  const availableAccounts = useMemo(
+    () => accounts.filter((a) => a.type !== 'envelope'),
+    [accounts]
+  )
+
   const form = useForm<TransactionInput>({
     resolver: zodResolver(transactionSchema) as any,
     defaultValues: {
@@ -102,7 +127,7 @@ export function TransactionForm({
         ? toLocalDateTimeInputValue(new Date(transaction.date))
         : toLocalDateTimeInputValue(new Date()),
       type: (transaction?.type as TransactionInput['type']) || 'expense',
-      account_id: transaction?.account_id || accounts[0]?.id || '',
+      account_id: transaction?.account_id || availableAccounts[0]?.id || '',
       to_account_id: transaction?.to_account_id || null,
       category_id: transaction?.category_id || null,
       daily_item_id: transaction?.daily_item_id || null,
@@ -152,13 +177,14 @@ export function TransactionForm({
     }
   }, [watchedCategoryId, filteredDailyItems, watchedDailyItemId, setValue])
 
-  const selectedAccount = accounts.find((a) => a.id === watchedAccountId)
+  const selectedAccount = availableAccounts.find((a) => a.id === watchedAccountId)
   const previewBalance = useMemo(() => {
     if (!selectedAccount) return 0
     const current = Number(selectedAccount.current_balance)
     const amount = Number(watchedAmount) || 0
     if (watchedType === 'expense') return current - amount
-    if (watchedType === 'income' || watchedType === 'refund') return current + amount
+    if (watchedType === 'income' || watchedType === 'refund')
+      return current + amount
     if (watchedType === 'transfer') return current - amount
     return current
   }, [selectedAccount, watchedAmount, watchedType])
@@ -173,6 +199,7 @@ export function TransactionForm({
 
     if (parsed.merchant) {
       form.setValue('name', parsed.merchant, { shouldValidate: true })
+      form.setValue('merchant', parsed.merchant)
     }
     if (parsed.totalAmount > 0) {
       form.setValue('amount', parsed.totalAmount, { shouldValidate: true })
@@ -180,17 +207,12 @@ export function TransactionForm({
     if (parsed.taxAmount > 0) {
       form.setValue('ppn_amount', parsed.taxAmount)
     }
-    if (parsed.merchant) {
-      form.setValue('merchant', parsed.merchant)
-    }
-
     if (parsed.datetime) {
       form.setValue('date', parsed.datetime.slice(0, 16))
     } else if (parsed.date) {
       const time = parsed.time || toLocalDateTimeInputValue(new Date()).slice(11)
       form.setValue('date', `${parsed.date}T${time}`)
     }
-
     if (suggestedCategoryId) {
       form.setValue('category_id', suggestedCategoryId)
     }
@@ -214,9 +236,12 @@ export function TransactionForm({
     }
   }
 
+  const activeTypeMeta =
+    TYPE_OPTIONS.find((t) => t.value === watchedType) || TYPE_OPTIONS[0]
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* TYPE SELECTOR */}
         <FormField
           control={form.control}
@@ -224,7 +249,7 @@ export function TransactionForm({
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-slate-100 dark:bg-white/5">
+                <div className="flex p-1 rounded-lg sm:rounded-xl bg-slate-100 dark:bg-white/5 gap-1">
                   {TYPE_OPTIONS.map((opt) => {
                     const Icon = opt.icon
                     const isActive = field.value === opt.value
@@ -234,13 +259,14 @@ export function TransactionForm({
                         type="button"
                         onClick={() => field.onChange(opt.value)}
                         className={cn(
-                          'flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium transition-all cursor-pointer',
+                          'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md sm:rounded-lg text-xs font-semibold transition-all cursor-pointer',
                           isActive
-                            ? 'bg-white dark:bg-white/10 shadow-sm ' + opt.color
-                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                            ? 'bg-white dark:bg-white/10 shadow-sm'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                         )}
+                        style={isActive ? { color: opt.color } : undefined}
                       >
-                        <Icon className="w-3.5 h-3.5" />
+                        <Icon className="w-3.5 h-3.5" strokeWidth={2.5} />
                         {opt.label}
                       </button>
                     )
@@ -252,7 +278,57 @@ export function TransactionForm({
           )}
         />
 
-        {/* OCR SCAN */}
+        {/* AMOUNT HERO */}
+        <FormField
+          control={form.control}
+          name="amount"
+          render={({ field }) => (
+            <FormItem>
+              <div
+                className={cn(
+                  'relative rounded-xl sm:rounded-2xl border-2 px-4 py-3 sm:py-4 transition-all',
+                  'bg-gradient-to-br from-slate-50 to-white dark:from-white/[0.03] dark:to-white/[0.01]',
+                  'border-slate-200 dark:border-white/10',
+                  'focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20'
+                )}
+              >
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
+                  Jumlah
+                </p>
+                <FormControl>
+                  <div className="flex items-baseline gap-2">
+                    <span
+                      className={cn(
+                        'text-sm font-bold shrink-0',
+                        watchedType === 'income'
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : watchedType === 'transfer'
+                            ? 'text-brand'
+                            : 'text-red-600 dark:text-red-400'
+                      )}
+                    >
+                      Rp
+                    </span>
+                    <CurrencyInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="0"
+                      className={cn(
+                        'border-0 bg-transparent p-0 h-auto text-2xl sm:text-3xl font-bold shadow-none',
+                        'focus-visible:ring-0 focus-visible:border-0',
+                        'placeholder:text-slate-300 dark:placeholder:text-white/20'
+                      )}
+                      autoFocus={!isEdit}
+                    />
+                  </div>
+                </FormControl>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* RECEIPT SCAN */}
         {!isEdit && watchedType !== 'transfer' && (
           <ReceiptScanner onScanned={handleScanned} />
         )}
@@ -263,34 +339,13 @@ export function TransactionForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nama Transaksi</FormLabel>
+              <FormLabel>Deskripsi</FormLabel>
               <FormControl>
-                <Input placeholder="Beli kopi janji jiwa" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* NOMINAL */}
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Jumlah</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400 pointer-events-none">
-                    Rp
-                  </span>
-                  <CurrencyInput
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder="0"
-                    className="pl-10 text-lg font-semibold h-12"
-                  />
-                </div>
+                <Input
+                  placeholder="Contoh: Kopi janji jiwa"
+                  autoComplete="off"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -308,15 +363,26 @@ export function TransactionForm({
               </FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih akun" />
+                  <SelectTrigger className="h-11">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div
+                        className="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${activeTypeMeta.color}15` }}
+                      >
+                        <Wallet
+                          className="w-3.5 h-3.5"
+                          style={{ color: activeTypeMeta.color }}
+                        />
+                      </div>
+                      <SelectValue placeholder="Pilih akun" />
+                    </div>
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {accounts.map((a) => (
+                  {availableAccounts.map((a) => (
                     <SelectItem key={a.id} value={a.id}>
                       <div className="flex items-center justify-between gap-3 w-full">
-                        <span>{a.name}</span>
+                        <span className="font-medium">{a.name}</span>
                         <Amount
                           value={Number(a.current_balance)}
                           className="text-xs text-slate-500"
@@ -331,31 +397,32 @@ export function TransactionForm({
           )}
         />
 
-        {/* Real-time preview */}
+        {/* Balance preview */}
         {selectedAccount && watchedAmount > 0 && (
-          <div className="rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-3">
-            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
-              <Wallet className="w-3.5 h-3.5" />
-              <span>Saldo {selectedAccount.name} setelah transaksi</span>
-            </div>
+          <div
+            className={cn(
+              'rounded-lg px-3 py-2 flex items-center justify-between gap-2 text-xs',
+              previewBalance < 0
+                ? 'bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30'
+                : 'bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10'
+            )}
+          >
+            <span className="text-muted-foreground truncate">
+              Saldo {selectedAccount.name} setelah:
+            </span>
             <Amount
               value={previewBalance}
               className={cn(
-                'text-lg font-bold',
+                'font-bold tabular-nums shrink-0',
                 previewBalance < 0
-                  ? 'text-red-500'
+                  ? 'text-red-600 dark:text-red-400'
                   : 'text-slate-900 dark:text-white'
               )}
             />
-            {previewBalance < 0 && (
-              <p className="text-xs text-red-500 mt-0.5">
-                ⚠️ Saldo bakal minus
-              </p>
-            )}
           </div>
         )}
 
-        {/* TO AKUN (transfer) */}
+        {/* TO ACCOUNT */}
         {watchedType === 'transfer' && (
           <FormField
             control={form.control}
@@ -368,12 +435,17 @@ export function TransactionForm({
                   value={field.value || ''}
                 >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih akun tujuan" />
+                    <SelectTrigger className="h-11">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center shrink-0">
+                          <ArrowLeftRight className="w-3.5 h-3.5 text-brand" />
+                        </div>
+                        <SelectValue placeholder="Pilih akun tujuan" />
+                      </div>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {accounts
+                    {availableAccounts
                       .filter((a) => a.id !== watchedAccountId)
                       .map((a) => (
                         <SelectItem key={a.id} value={a.id}>
@@ -397,14 +469,19 @@ export function TransactionForm({
               <FormItem>
                 <FormLabel>Kategori</FormLabel>
                 <Select
-                  onValueChange={(v) => {
+                  onValueChange={(v) =>
                     field.onChange(v === '__none__' ? null : v)
-                  }}
+                  }
                   value={field.value || '__none__'}
                 >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori" />
+                    <SelectTrigger className="h-11">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="w-7 h-7 rounded-md bg-amber-500/10 flex items-center justify-center shrink-0">
+                          <Tag className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <SelectValue placeholder="Pilih kategori" />
+                      </div>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -431,10 +508,7 @@ export function TransactionForm({
               name="daily_item_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-1.5">
-                    <Utensils className="w-3.5 h-3.5" />
-                    Daily Item (opsional)
-                  </FormLabel>
+                  <FormLabel>Daily Item</FormLabel>
                   <Select
                     onValueChange={(v) =>
                       field.onChange(v === '__none__' ? null : v)
@@ -442,15 +516,18 @@ export function TransactionForm({
                     value={field.value || '__none__'}
                   >
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih daily item" />
+                      <SelectTrigger className="h-11">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className="w-7 h-7 rounded-md bg-sky-500/10 flex items-center justify-center shrink-0">
+                            <Utensils className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                          </div>
+                          <SelectValue placeholder="Pilih daily item" />
+                        </div>
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="__none__">
-                        <span className="text-slate-500">
-                          Unassigned (gak masuk breakdown)
-                        </span>
+                        <span className="text-slate-500">Unassigned</span>
                       </SelectItem>
                       {filteredDailyItems.map((d) => (
                         <SelectItem key={d.id} value={d.id}>
@@ -465,9 +542,6 @@ export function TransactionForm({
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription className="text-xs">
-                    Pilih biar ke-track di daily budget breakdown
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -479,24 +553,37 @@ export function TransactionForm({
           <CollapsibleTrigger asChild>
             <button
               type="button"
-              className="flex items-center justify-between w-full py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+              className={cn(
+                'w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg transition-colors cursor-pointer',
+                'bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10',
+                'hover:bg-slate-100 dark:hover:bg-white/5',
+                advancedOpen && 'rounded-b-none border-b-0'
+              )}
             >
-              <span>Detail Lainnya</span>
+              <div className="flex items-center gap-2">
+                <Settings2 className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Detail Lainnya
+                </span>
+              </div>
               <ChevronDown
                 className={cn(
-                  'w-4 h-4 transition-transform',
+                  'w-4 h-4 text-slate-400 transition-transform',
                   advancedOpen && 'rotate-180'
                 )}
               />
             </button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 pt-3">
+          <CollapsibleContent className="border border-t-0 border-slate-200 dark:border-white/10 rounded-b-lg px-3 py-4 space-y-4">
             <FormField
               control={form.control}
               name="date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tanggal & Waktu</FormLabel>
+                  <FormLabel className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                    Tanggal & Waktu
+                  </FormLabel>
                   <FormControl>
                     <Input type="datetime-local" {...field} />
                   </FormControl>
@@ -510,7 +597,10 @@ export function TransactionForm({
               name="merchant"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Merchant (opsional)</FormLabel>
+                  <FormLabel className="flex items-center gap-1.5">
+                    <Store className="w-3.5 h-3.5 text-muted-foreground" />
+                    Merchant
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Janji Jiwa" {...field} />
                   </FormControl>
@@ -524,9 +614,16 @@ export function TransactionForm({
               name="note"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Catatan (opsional)</FormLabel>
+                  <FormLabel className="flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+                    Catatan
+                  </FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Catatan tambahan..." {...field} />
+                    <Textarea
+                      placeholder="Catatan tambahan..."
+                      rows={2}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -592,24 +689,23 @@ export function TransactionForm({
               )}
             />
 
-            <div className="space-y-3 pt-2">
+            {/* EXCLUDE (section header tetap uppercase) */}
+            <div className="space-y-2 pt-1">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Exclude dari
+              </p>
+
               <FormField
                 control={form.control}
                 name="exclude_from_budget"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.03] p-3 space-y-0">
-                    <div className="space-y-0.5 flex-1">
-                      <FormLabel className="text-sm">
-                        Exclude dari Budget
-                      </FormLabel>
-                      <FormDescription className="text-xs">
-                        Gak ngitung di budget bulanan
-                      </FormDescription>
-                    </div>
-                    <FormControl className="w-auto m-0">
-                      <Switch
+                  <FormItem>
+                    <FormControl>
+                      <ExcludeCheckbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        title="Budget Bulanan"
+                        description="Gak ngitung di budget bulanan"
                       />
                     </FormControl>
                   </FormItem>
@@ -620,19 +716,13 @@ export function TransactionForm({
                 control={form.control}
                 name="exclude_from_daily_budget"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.03] p-3 space-y-0">
-                    <div className="space-y-0.5 flex-1">
-                      <FormLabel className="text-sm">
-                        Exclude dari Daily Budget
-                      </FormLabel>
-                      <FormDescription className="text-xs">
-                        Cocok buat pengeluaran non-harian
-                      </FormDescription>
-                    </div>
-                    <FormControl className="w-auto m-0">
-                      <Switch
+                  <FormItem>
+                    <FormControl>
+                      <ExcludeCheckbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        title="Daily Budget"
+                        description="Non-harian, gak masuk daily breakdown"
                       />
                     </FormControl>
                   </FormItem>
@@ -643,19 +733,13 @@ export function TransactionForm({
                 control={form.control}
                 name="exclude_from_reports"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.03] p-3 space-y-0">
-                    <div className="space-y-0.5 flex-1">
-                      <FormLabel className="text-sm">
-                        Exclude dari Reports
-                      </FormLabel>
-                      <FormDescription className="text-xs">
-                        Gak muncul di laporan
-                      </FormDescription>
-                    </div>
-                    <FormControl className="w-auto m-0">
-                      <Switch
+                  <FormItem>
+                    <FormControl>
+                      <ExcludeCheckbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        title="Reports & Statistik"
+                        description="Gak muncul di laporan"
                       />
                     </FormControl>
                   </FormItem>
@@ -666,23 +750,82 @@ export function TransactionForm({
         </Collapsible>
 
         {/* ACTIONS */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-2 pt-2">
           {onCancel && (
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
-              className="flex-1"
+              className="flex-1 h-11"
             >
               Batal
             </Button>
           )}
-          <Button type="submit" disabled={isSubmitting} className="flex-1">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1 h-11 font-bold"
+          >
             {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isEdit ? 'Simpan' : 'Tambah'}
+            {isEdit ? 'Simpan' : 'Simpan Transaksi'}
           </Button>
         </div>
       </form>
     </Form>
+  )
+}
+
+// ============================================================
+// EXCLUDE CHECKBOX
+// ============================================================
+
+function ExcludeCheckbox({
+  checked,
+  onCheckedChange,
+  title,
+  description,
+}: {
+  checked: boolean
+  onCheckedChange: (checked: boolean) => void
+  title: string
+  description: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onCheckedChange(!checked)}
+      className={cn(
+        'w-full flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all text-left cursor-pointer',
+        checked
+          ? 'bg-brand/5 border-brand/40 shadow-sm'
+          : 'bg-white dark:bg-white/[0.02] border-slate-200 dark:border-white/10 hover:border-brand/30'
+      )}
+    >
+      <div
+        className={cn(
+          'w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all',
+          checked
+            ? 'bg-brand border-brand'
+            : 'border-slate-300 dark:border-white/20'
+        )}
+      >
+        {checked && (
+          <Check className="w-3 h-3 text-white" strokeWidth={3.5} />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p
+          className={cn(
+            'text-xs font-semibold leading-tight',
+            checked && 'text-brand'
+          )}
+        >
+          {title}
+        </p>
+        <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
+          {description}
+        </p>
+      </div>
+    </button>
   )
 }

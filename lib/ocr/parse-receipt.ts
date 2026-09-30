@@ -31,7 +31,7 @@ function extractFields(items: NanonetsItem[]) {
 }
 
 /**
- * Smart parse angka — deteksi format US vs Indonesian otomatis.
+ * Smart parse angka - deteksi format US vs Indonesian otomatis.
  *
  * Aturan:
  *   - Ada KOMA + TITIK: yang muncul terakhir = desimal

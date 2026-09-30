@@ -152,7 +152,7 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
     }
 
     const content = (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <input
                 ref={cameraInputRef}
                 type="file"
@@ -171,27 +171,28 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                 tabIndex={-1}
             />
 
+            {/* ============ IDLE ============ */}
             {state === 'idle' && (
-                <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-1 gap-2.5">
                     <button
                         type="button"
                         onClick={handleCameraClick}
                         className={cn(
                             'md:hidden',
-                            'group flex flex-col items-center justify-center gap-3 py-8 px-4 rounded-2xl',
+                            'group flex flex-col items-center justify-center gap-2.5 py-6 px-3 rounded-xl',
                             'bg-gradient-to-br from-brand/5 to-brand/10',
                             'border-2 border-dashed border-brand/30 hover:border-brand/60',
                             'transition-all active:scale-[0.98] cursor-pointer'
                         )}
                     >
-                        <div className="w-14 h-14 rounded-2xl bg-brand/10 flex items-center justify-center">
-                            <Camera className="w-7 h-7 text-brand" />
+                        <div className="w-12 h-12 rounded-xl bg-brand/10 flex items-center justify-center">
+                            <Camera className="w-6 h-6 text-brand" />
                         </div>
                         <div className="text-center">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                            <p className="text-xs font-semibold text-slate-900 dark:text-white">
                                 Ambil Foto
                             </p>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                                 Kamera HP
                             </p>
                         </div>
@@ -201,21 +202,21 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                         type="button"
                         onClick={handleUploadClick}
                         className={cn(
-                            'group flex flex-col items-center justify-center gap-3 py-8 px-4 rounded-2xl',
+                            'group flex flex-col items-center justify-center gap-2.5 py-6 px-3 rounded-xl',
                             'bg-slate-50 dark:bg-white/5',
                             'border-2 border-dashed border-slate-300 dark:border-white/20',
                             'hover:border-brand/50 dark:hover:border-brand/50',
                             'transition-all active:scale-[0.98] cursor-pointer'
                         )}
                     >
-                        <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-white/10 flex items-center justify-center">
-                            <Upload className="w-7 h-7 text-slate-600 dark:text-slate-400" />
+                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-white/10 flex items-center justify-center">
+                            <Upload className="w-6 h-6 text-slate-600 dark:text-slate-400" />
                         </div>
                         <div className="text-center">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                            <p className="text-xs font-semibold text-slate-900 dark:text-white">
                                 Upload File
                             </p>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                                 JPG, PNG, PDF
                             </p>
                         </div>
@@ -223,10 +224,11 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                 </div>
             )}
 
+            {/* ============ UPLOADING ============ */}
             {state === 'uploading' && (
-                <div className="flex flex-col items-center justify-center py-10 px-4">
+                <div className="flex flex-col items-center justify-center py-6 px-3">
                     {previewUrl ? (
-                        <div className="relative w-40 h-40 mb-6 rounded-2xl overflow-hidden border-2 border-brand/30 shadow-lg">
+                        <div className="relative w-28 h-28 sm:w-36 sm:h-36 mb-4 rounded-xl overflow-hidden border-2 border-brand/30 shadow-lg">
                             <img
                                 src={previewUrl}
                                 alt="Receipt preview"
@@ -234,69 +236,80 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <ScanLine className="w-10 h-10 text-white animate-pulse" />
+                                <ScanLine className="w-8 h-8 text-white animate-pulse" />
                             </div>
                         </div>
                     ) : (
-                        <div className="w-40 h-40 mb-6 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-white/20">
-                            <Loader2 className="w-10 h-10 text-brand animate-spin" />
+                        <div className="w-28 h-28 sm:w-36 sm:h-36 mb-4 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-white/20">
+                            <Loader2 className="w-8 h-8 text-brand animate-spin" />
                         </div>
                     )}
-                    <div className="flex items-center gap-2 mb-2">
-                        <Loader2 className="w-4 h-4 text-brand animate-spin" />
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                    <div className="flex items-center gap-2 mb-1.5">
+                        <Loader2 className="w-3.5 h-3.5 text-brand animate-spin" />
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white">
                             Scanning struk...
                         </p>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 text-center max-w-xs">
-                        Ini bisa memakan waktu 10-20 detik tergantung ukuran file.
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center max-w-[240px] leading-relaxed">
+                        Butuh 10-20 detik tergantung ukuran file.
                     </p>
                 </div>
             )}
 
+            {/* ============ ERROR ============ */}
             {state === 'error' && (
-                <div className="flex flex-col items-center justify-center py-8 px-4">
-                    <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center mb-4">
-                        <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+                <div className="flex flex-col items-center justify-center py-6 px-3">
+                    <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center mb-3">
+                        <AlertCircle className="w-7 h-7 text-red-600 dark:text-red-400" />
                     </div>
                     <p className="text-sm font-semibold text-slate-900 dark:text-white mb-1">
                         Gagal Scan Struk
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6 max-w-sm">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center mb-4 max-w-[260px] leading-relaxed">
                         {errorMsg || 'Terjadi kesalahan. Coba lagi.'}
                     </p>
                     <div className="flex gap-2">
-                        <Button variant="outline" onClick={closeScanner}>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={closeScanner}
+                            className="h-9"
+                        >
                             Batal
                         </Button>
-                        <Button onClick={reset}>Coba Lagi</Button>
+                        <Button size="sm" onClick={reset} className="h-9">
+                            Coba Lagi
+                        </Button>
                     </div>
                 </div>
             )}
 
+            {/* ============ SUCCESS ============ */}
             {state === 'success' && result && (
-                <div className="space-y-4">
-                    <div className="flex items-start gap-3 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20">
-                        <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
-                            <CheckCircle2 className="w-5 h-5 text-white" />
+                <div className="space-y-3">
+                    {/* Success banner */}
+                    <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20">
+                        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                            <CheckCircle2 className="w-4 h-4 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+                            <p className="text-xs font-semibold text-emerald-900 dark:text-emerald-200">
                                 Struk berhasil di-scan!
                             </p>
-                            <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+                            <p className="text-[10px] text-emerald-700 dark:text-emerald-300 mt-0.5">
                                 Confidence: {Math.round(result.confidence * 100)}%
                             </p>
                         </div>
                     </div>
 
-                    <div className="space-y-2 p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
-                        <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                    {/* Data table */}
+                    <div className="rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2.5 space-y-1.5">
+                        <p className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">
                             Data yang di-extract
                         </p>
-                        <DataRow label="Merchant" value={result.merchant} />
+                        <DataRow label="Merchant" value={result.merchant} compact />
                         {result.category && (
-                            <DataRow label="Kategori" value={result.category} />
+                            <DataRow label="Kategori" value={result.category} compact />
                         )}
                         <DataRow
                             label="Tanggal"
@@ -305,28 +318,30 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                                     ? `${result.date}${result.time ? ` · ${result.time}` : ''}`
                                     : null
                             }
+                            compact
                         />
                         <DataRow
                             label="Total"
                             valueNode={
                                 <span className="inline-flex items-center gap-1">
-                                    <span className="text-xs font-medium text-slate-500">
+                                    <span className="text-[10px] font-medium text-slate-500">
                                         {result.currency}
                                     </span>
                                     <Amount
                                         value={result.totalAmount}
-                                        className="text-base font-bold text-brand"
+                                        className="text-sm font-bold text-brand"
                                     />
                                 </span>
                             }
                             highlight
+                            compact
                         />
                         {result.taxAmount > 0 && (
                             <DataRow
                                 label="Pajak"
                                 valueNode={
                                     <span className="inline-flex items-center gap-1">
-                                        <span className="text-xs font-medium text-slate-500">
+                                        <span className="text-[10px] font-medium text-slate-500">
                                             {result.currency}
                                         </span>
                                         <Amount
@@ -335,34 +350,34 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                                         />
                                     </span>
                                 }
+                                compact
                             />
                         )}
                         {result.receiptNumber && (
-                            <DataRow label="No. Struk" value={result.receiptNumber} />
+                            <DataRow
+                                label="No. Struk"
+                                value={result.receiptNumber}
+                                compact
+                            />
                         )}
                         {result.items.length > 0 && (
-                            <div className="pt-2 mt-2 border-t border-slate-200 dark:border-white/10">
-                                <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+                            <div className="pt-1.5 mt-1.5 border-t border-slate-200 dark:border-white/10">
+                                <p className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">
                                     {result.items.length} Item
                                 </p>
-                                <div className="space-y-1 max-h-32 overflow-y-auto">
+                                <div className="space-y-0.5 max-h-28 overflow-y-auto">
                                     {result.items.map((item, i) => (
                                         <div
                                             key={i}
-                                            className="flex items-center justify-between text-xs gap-2"
+                                            className="flex items-center justify-between text-[11px] gap-2"
                                         >
                                             <span className="text-slate-600 dark:text-slate-300 truncate flex-1">
                                                 {item.quantity}x {item.description}
                                             </span>
-                                            <span className="inline-flex items-center gap-1 shrink-0">
-                                                <span className="text-[10px] font-medium text-slate-500">
-                                                    {result.currency}
-                                                </span>
-                                                <Amount
-                                                    value={item.total}
-                                                    className="text-xs font-medium text-slate-900 dark:text-white"
-                                                />
-                                            </span>
+                                            <Amount
+                                                value={item.total}
+                                                className="text-[11px] font-medium text-slate-900 dark:text-white shrink-0"
+                                            />
                                         </div>
                                     ))}
                                 </div>
@@ -370,11 +385,19 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                         )}
                     </div>
 
-                    <div className="flex gap-2 pt-1">
-                        <Button variant="outline" onClick={reset} className="flex-1">
+                    {/* Actions */}
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={reset}
+                            className="flex-1 h-10"
+                        >
                             Scan Ulang
                         </Button>
-                        <Button onClick={handleConfirm} className="flex-1">
+                        <Button
+                            onClick={handleConfirm}
+                            className="flex-1 h-10 font-semibold"
+                        >
                             Pakai Data Ini
                         </Button>
                     </div>
@@ -389,7 +412,7 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                 type="button"
                 variant="outline"
                 onClick={openScanner}
-                className="w-full border-dashed border-brand/40 hover:border-brand/60 hover:bg-brand/5 text-brand"
+                className="w-full border-dashed border-brand/40 hover:border-brand/60 hover:bg-brand/5 text-brand h-10 text-sm"
             >
                 <ScanLine className="w-4 h-4" />
                 Scan Struk (OCR)
@@ -399,16 +422,19 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetContent
                         side="bottom"
-                        className="max-h-[90vh] overflow-y-auto"
+                        className="max-h-[85vh] overflow-y-auto"
                         onInteractOutside={handleInteractOutside}
                     >
-                        <SheetHeader>
-                            <SheetTitle>Scan Struk</SheetTitle>
-                            <SheetDescription>
-                                Ambil foto atau upload struk biar kami extract datanya otomatis.
+                        <SheetHeader className="px-4 pt-4 pb-3 border-b border-slate-100 dark:border-white/5 space-y-1">
+                            <SheetTitle className="text-base flex items-center gap-2">
+                                <ScanLine className="w-4 h-4 text-brand" />
+                                Scan Struk
+                            </SheetTitle>
+                            <SheetDescription className="text-xs">
+                                Foto atau upload struk, kami extract datanya otomatis.
                             </SheetDescription>
                         </SheetHeader>
-                        <div className="px-4 pb-6 pt-2">{content}</div>
+                        <div className="px-4 pb-6 pt-3">{content}</div>
                     </SheetContent>
                 </Sheet>
             ) : (
@@ -418,8 +444,11 @@ export function ReceiptScanner({ onScanned }: ReceiptScannerProps) {
                         onInteractOutside={handleInteractOutside}
                     >
                         <DialogHeader>
-                            <DialogTitle>Scan Struk</DialogTitle>
-                            <DialogDescription>
+                            <DialogTitle className="flex items-center gap-2">
+                                <ScanLine className="w-4 h-4 text-brand" />
+                                Scan Struk
+                            </DialogTitle>
+                            <DialogDescription className="text-xs">
                                 Upload struk biar kami extract datanya otomatis.
                             </DialogDescription>
                         </DialogHeader>
@@ -436,15 +465,22 @@ function DataRow({
     value,
     valueNode,
     highlight = false,
+    compact = false,
 }: {
     label: string
     value?: string | null
     valueNode?: React.ReactNode
     highlight?: boolean
+    compact?: boolean
 }) {
     if (!value && !valueNode) return null
     return (
-        <div className="flex items-start justify-between gap-3 text-xs">
+        <div
+            className={cn(
+                'flex items-start justify-between gap-3',
+                compact ? 'text-[11px]' : 'text-xs'
+            )}
+        >
             <span className="text-slate-500 dark:text-slate-400 shrink-0">
                 {label}
             </span>

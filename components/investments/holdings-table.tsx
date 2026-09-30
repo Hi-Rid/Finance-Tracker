@@ -95,7 +95,7 @@ function HoldingCard({
 
     return (
         <div className="group relative rounded-2xl border border-slate-200 dark:border-white/10 bg-card overflow-hidden shadow-sm hover:shadow-lg hover:border-brand/40 hover:-translate-y-0.5 transition-all duration-200">
-            {/* Stretched link — klik di mana aja, kecuali tombol */}
+            {/* Stretched link - klik di mana aja, kecuali tombol */}
             <Link
                 href={detailUrl}
                 aria-label={`Lihat detail ${ticker}`}
@@ -132,7 +132,7 @@ function HoldingCard({
                         </div>
                     </div>
 
-                    {/* Dropdown — z-20 di atas stretched link */}
+                    {/* Dropdown - z-20 di atas stretched link */}
                     <div className="relative z-20 shrink-0">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

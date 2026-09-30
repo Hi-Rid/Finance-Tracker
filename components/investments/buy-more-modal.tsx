@@ -307,7 +307,7 @@ export function BuyMoreModal({
                                         value={availableBalance}
                                         className="inline text-xs font-medium"
                                     />
-                                    <span>— kurang</span>
+                                    <span>- kurang</span>
                                     <Amount
                                         value={total - availableBalance}
                                         className="inline text-xs font-bold"

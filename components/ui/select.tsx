@@ -28,7 +28,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm whitespace-nowrap transition-all outline-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 cursor-pointer",
+        "flex w-full items-center justify-between gap-2 rounded-md sm:rounded-lg border px-3 py-2 text-sm whitespace-nowrap transition-all outline-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 cursor-pointer",
         "data-[size=default]:h-10 data-[size=sm]:h-9",
         "bg-white border-slate-200 text-slate-900 data-[placeholder]:text-slate-400",
         "dark:bg-white/5 dark:border-white/15 dark:text-white dark:data-[placeholder]:text-white/40",
@@ -56,7 +56,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          "relative z-[100] max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-lg border shadow-lg",
+          "relative z-[100] max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md sm:rounded-lg border shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           position === "popper" && "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           "bg-white text-slate-900 border-slate-200",
@@ -94,7 +94,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-pointer items-center gap-2 rounded-md py-2 pr-8 pl-2 text-sm outline-hidden select-none transition-colors",
+        "relative flex w-full cursor-pointer items-center gap-2 rounded-sm sm:rounded-md py-2 pr-8 pl-2 text-sm outline-hidden select-none transition-colors",
         "text-slate-900 dark:text-white",
         "focus:bg-slate-100 focus:text-slate-900",
         "dark:focus:bg-white/10 dark:focus:text-white",

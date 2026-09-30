@@ -49,37 +49,40 @@ export function ConfirmDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <div className="flex items-start gap-3">
+                <DialogHeader className="space-y-0">
+                    {/* Icon - centered */}
+                    <div className="flex justify-center pt-1">
                         <div
                             className={cn(
-                                'w-10 h-10 rounded-xl flex items-center justify-center shrink-0',
+                                'w-12 h-12 rounded-full flex items-center justify-center',
                                 variant === 'destructive'
-                                    ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+                                    ? 'bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400'
                                     : 'bg-brand/10 text-brand'
                             )}
                         >
-                            <AlertTriangle className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <DialogTitle className="text-base">
-                                {title || 'Konfirmasi'}
-                            </DialogTitle>
-                            {description && (
-                                <DialogDescription className="text-sm mt-1">
-                                    {description}
-                                </DialogDescription>
-                            )}
+                            <AlertTriangle className="w-5 h-5 md:w-6 md:h-6" />
                         </div>
                     </div>
+
+                    {/* Title - centered */}
+                    <DialogTitle className="text-center text-base md:text-lg pt-3">
+                        {title || 'Konfirmasi'}
+                    </DialogTitle>
+
+                    {/* Description - centered */}
+                    {description && (
+                        <DialogDescription className="text-center text-xs md:text-sm pt-1.5 leading-relaxed">
+                            {description}
+                        </DialogDescription>
+                    )}
                 </DialogHeader>
 
-                <DialogFooter className="flex-row gap-2 sm:justify-end">
+                <DialogFooter className="flex-row gap-2 sm:justify-center pt-1">
                     <Button
                         variant="outline"
                         onClick={() => onOpenChange(false)}
                         disabled={loading}
-                        className="flex-1 sm:flex-initial"
+                        className="flex-1 h-10 md:h-11"
                     >
                         {cancelLabel}
                     </Button>
@@ -87,7 +90,7 @@ export function ConfirmDialog({
                         onClick={handleConfirm}
                         disabled={loading}
                         className={cn(
-                            'flex-1 sm:flex-initial',
+                            'flex-1 h-10 md:h-11',
                             variant === 'destructive' &&
                             'bg-red-500 hover:bg-red-600 text-white'
                         )}

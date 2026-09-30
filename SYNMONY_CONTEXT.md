@@ -1,4 +1,4 @@
-# Synmony — Development Context & Roadmap
+# Synmony - Development Context & Roadmap
 
 > **File ini adalah sumber kebenaran project Synmony.**
 > Kirim file ini + link repo GitHub setiap mulai chat baru.
@@ -15,14 +15,14 @@
 | **Tipe** | Personal finance tracker, production-grade, siap SaaS |
 | **Target user** | Diri sendiri dulu, multi-profile (personal/business) |
 | **Bahasa UI** | Indonesia santai |
-| **Filosofi** | Semua modul saling terkoneksi — bukan sekadar pencatat |
+| **Filosofi** | Semua modul saling terkoneksi - bukan sekadar pencatat |
 
 **Visi:** Sistem keuangan pribadi lengkap yang:
-1. **Nyambungin semua** — transaksi, aset, utang, goals, investasi
-2. **Bantu keputusan** — bukan cuma lapor, tapi kasih saran
-3. **Sadar perilaku** — mood tracking, cooling-off, impulse buying pattern
-4. **Multi-profil** — personal & bisnis dalam satu akun
-5. **Financial Coach** — bantu user capai financial freedom
+1. **Nyambungin semua** - transaksi, aset, utang, goals, investasi
+2. **Bantu keputusan** - bukan cuma lapor, tapi kasih saran
+3. **Sadar perilaku** - mood tracking, cooling-off, impulse buying pattern
+4. **Multi-profil** - personal & bisnis dalam satu akun
+5. **Financial Coach** - bantu user capai financial freedom
 
 ---
 
@@ -44,7 +44,7 @@
 - yahoo-finance2 (harga saham)
 - CoinGecko (harga crypto)
 - Nanonets (OCR struk)
-- **Groq SDK** (AI — model `openai/gpt-oss-120b`)
+- **Groq SDK** (AI - model `openai/gpt-oss-120b`)
 
 **Deploy:** Vercel
 
@@ -73,7 +73,7 @@
 
 ---
 
-## 4. DATABASE — 21 Migrations
+## 4. DATABASE - 21 Migrations
 
 ```
 supabase/migrations/
@@ -166,7 +166,7 @@ supabase/migrations/
 | **Goals** | `goals`, `goal_contributions` | |
 | **Recurring** | `recurring` | |
 | **Subscriptions** | `subscriptions` | |
-| **Trips** | `trips`, `trip_members`, dst | **Dihide dari sidebar** — skip dulu |
+| **Trips** | `trips`, `trip_members`, dst | **Dihide dari sidebar** - skip dulu |
 | **Documents** | `documents` | |
 | **Tax & Zakat** | `tax_records`, `zakat_records` | |
 | **Gifts** | `gifts` | |
@@ -179,9 +179,9 @@ supabase/migrations/
 
 | Path | Status |
 |---|---|
-| `/reports` | Placeholder — pake RPC udah ada |
-| `/cash-flow` | Placeholder — dashboard udah pake datanya |
-| `/trips` | Placeholder — **hide dari sidebar** |
+| `/reports` | Placeholder - pake RPC udah ada |
+| `/cash-flow` | Placeholder - dashboard udah pake datanya |
+| `/trips` | Placeholder - **hide dari sidebar** |
 | `/settings` (profile, security, notifications, appearance, accounts, data) | Placeholder |
 
 ---
@@ -218,7 +218,7 @@ components/
 ├── accounts/, budget/, charts/, dashboard/, investments/
 ├── layout/, receipts/, settings/, shared/, split-bill/
 ├── transactions/, ui/, wishlist/
-└── theme-provider.tsx (⚠️ pakai next-themes — ada warning React 19)
+└── theme-provider.tsx (⚠️ pakai next-themes - ada warning React 19)
 
 lib/
 ├── hooks/          → semua use-* hooks
@@ -234,69 +234,69 @@ lib/
 
 ---
 
-## 7. AI INTEGRATION — Groq
+## 7. AI INTEGRATION - Groq
 
 **Provider:** Groq SDK
 **Model:** `openai/gpt-oss-120b` (paling bagus & cepet)
 **API Key:** `GROQ_API_KEY` di `.env.local`
 
 **Model alternatif (kalau perlu):**
-- `openai/gpt-oss-20b` — cepet
-- `qwen/qwen3.8-27b` — bagus, support multimodal
-- `allam-2-7b` — kecil, cepet
+- `openai/gpt-oss-20b` - cepet
+- `qwen/qwen3.8-27b` - bagus, support multimodal
+- `allam-2-7b` - kecil, cepet
 
 **AI yang udah jalan:**
-- **AI Auto-Budgeting 50/30/20** di `/budget` — classify, rebalance, distribute
+- **AI Auto-Budgeting 50/30/20** di `/budget` - classify, rebalance, distribute
 
 **AI yang direncanakan:**
-1. **AI Natural Language Query** — tanya pakai bahasa biasa, AI query DB
-2. **AI Financial Advisor** — laporan naratif mingguan/bulanan
-3. **AI Tips Harian** — 1 tips personal di dashboard
-4. **AI Financial Freedom Coach** — bagian dari fitur Financial Freedom (below)
+1. **AI Natural Language Query** - tanya pakai bahasa biasa, AI query DB
+2. **AI Financial Advisor** - laporan naratif mingguan/bulanan
+3. **AI Tips Harian** - 1 tips personal di dashboard
+4. **AI Financial Freedom Coach** - bagian dari fitur Financial Freedom (below)
 
 ---
 
 ## 8. KNOWN ISSUES / TECH DEBT
 
-- ⚠️ `next-themes` warning di React 19 (script tag) — FOUC, tapi gak ganggu
+- ⚠️ `next-themes` warning di React 19 (script tag) - FOUC, tapi gak ganggu
 - ⚠️ Typo folder `app/api/whishlist/` → harus `wishlist`
 - ⚠️ Migration 012 hilang
 - ⚠️ Folder nested aneh: `supabase/migrations/supabase/config.toml`
-- ⚠️ `components/ui/input.tsx` ada `style={{ color: undefined }}` — leftover
+- ⚠️ `components/ui/input.tsx` ada `style={{ color: undefined }}` - leftover
 - ⚠️ `settings/security/page.tsx` judulnya salah ("Notifikasi")
 - ⚠️ `use-masked-format.ts` import dobel
 - ⚠️ Beberapa UI component import `cn` dari `"cn"` langsung, gak konsisten
 
 ---
 
-## 9. NEXT FEATURE — FINANCIAL FREEDOM ⭐
+## 9. NEXT FEATURE - FINANCIAL FREEDOM ⭐
 
 ### 🎯 Goal
-Page yang bantu user capai **Financial Independence** — hitung, plan, action. Serasa financial coach pribadi.
+Page yang bantu user capai **Financial Independence** - hitung, plan, action. Serasa financial coach pribadi.
 
 ### 📋 Keputusan User (Final)
 
 | # | Aspek | Pilihan |
 |---|---|---|
-| 1 | **Data source expense** | **D** — Hybrid: auto-fill dari avg 3 bulan transactions, user bisa override |
-| 2 | **FI Type** | **C** — Multi: Lean / Regular / Fat + Coast FI |
-| 3 | **Target Retire** | **Dua-duanya** — ada target retire age DAN ability-based projection (kapan beneran bisa FI) |
-| 4 | **Snapshot** | **B** — Simpan snapshot bulanan → chart progress over time |
-| 5 | **Placement** | **D** — Dashboard card FI Progress + dedicated page di sidebar |
+| 1 | **Data source expense** | **D** - Hybrid: auto-fill dari avg 3 bulan transactions, user bisa override |
+| 2 | **FI Type** | **C** - Multi: Lean / Regular / Fat + Coast FI |
+| 3 | **Target Retire** | **Dua-duanya** - ada target retire age DAN ability-based projection (kapan beneran bisa FI) |
+| 4 | **Snapshot** | **B** - Simpan snapshot bulanan → chart progress over time |
+| 5 | **Placement** | **D** - Dashboard card FI Progress + dedicated page di sidebar |
 | 6 | **Nama** | **Financial Freedom** |
-| 7 | **AI Advisor Update** | **C** — Manual refresh (user klik "Refresh Analysis") |
+| 7 | **AI Advisor Update** | **C** - Manual refresh (user klik "Refresh Analysis") |
 | 8 | **Coast FI** | **Ya** |
 
 ### 🏗️ Struktur Page (7 Section)
 
-**Section 1 — Hero FI Progress**
+**Section 1 - Hero FI Progress**
 - FI Number (Lean/Regular/Fat)
 - Net Worth Now
 - Progress %
 - Estimated FI Date
 - Progress bar visual
 
-**Section 2 — FI Parameters (Setup)**
+**Section 2 - FI Parameters (Setup)**
 - Tipe FI (default: Regular 25×)
 - Monthly Expense (auto dari avg 3 bulan, bisa override)
 - Monthly Income (auto dari budget_periods, bisa override)
@@ -306,16 +306,16 @@ Page yang bantu user capai **Financial Independence** — hitung, plan, action. 
 - Current Age
 - Target Retire Age (opsional)
 
-**Section 3 — Compound Growth Chart**
+**Section 3 - Compound Growth Chart**
 - Line chart: Net worth path → FI date
 - Legend: Current path, Projection, FI Number line
 
-**Section 4 — Scenario Simulator**
+**Section 4 - Scenario Simulator**
 - "Kalau savings rate naik ke X%, FI jadi kapan?"
 - Multi scenario: 30%, 40%, 50%, 60%
 - Visualisasi "tiap +10% savings rate = FI cepet 3-4 tahun"
 
-**Section 5 — AI Financial Advisor** ⭐
+**Section 5 - AI Financial Advisor** ⭐
 - Pake Groq
 - Analisis personal:
   - Status savings rate vs benchmark
@@ -324,12 +324,12 @@ Page yang bantu user capai **Financial Independence** — hitung, plan, action. 
   - Next milestone
 - Update manual (user klik "Refresh Analysis")
 
-**Section 6 — Milestones / Achievements**
+**Section 6 - Milestones / Achievements**
 - 10% FI → 20% → 25% → 50% → Coast FI → 100%
 - Locked/unlocked state
 - Kalo achieve milestone → kirim notif (via bell)
 
-**Section 7 — Action Plan**
+**Section 7 - Action Plan**
 - 5 langkah konkret dari AI
 - Progress tracker (2/5 done)
 - Bisa update status per step
@@ -520,24 +520,24 @@ where r = real return (return - inflation)
 
 ## 11. CHANGELOG
 
-- **2026-09-28** — Latest update. Snapshot context sebelumnya.
-- **2026-09-29** — Wishlist final (Fase 1-3 + Decision Framework + Statistics). AI Auto-Budgeting 50/30/20. Migration 020, 021. Hide Trips dari sidebar. Plan Financial Freedom.
+- **2026-09-28** - Latest update. Snapshot context sebelumnya.
+- **2026-09-29** - Wishlist final (Fase 1-3 + Decision Framework + Statistics). AI Auto-Budgeting 50/30/20. Migration 020, 021. Hide Trips dari sidebar. Plan Financial Freedom.
 
 ---
 
-## 12. NEXT TASK — IMMEDIATE
+## 12. NEXT TASK - IMMEDIATE
 
 **Feature:** Financial Freedom Page
 **Status:** 🚧 Diskusi selesai, siap code
 **Next step:** Bikin migration 022 (5 tabel), validators, hook, terus UI 7 section.
 
 **Urutan implementasi:**
-1. Migration `022_financial_freedom.sql` — 5 tabel
+1. Migration `022_financial_freedom.sql` - 5 tabel
 2. `lib/validators/financial-freedom.ts`
-3. `lib/utils/financial-freedom.ts` — compute FI number, projection
-4. `lib/hooks/use-financial-freedom.ts` — CRUD settings + snapshot
-5. `app/api/financial-freedom/analyze/route.ts` — Groq AI advisor
-6. `app/api/financial-freedom/snapshot/route.ts` — snapshot bulanan
+3. `lib/utils/financial-freedom.ts` - compute FI number, projection
+4. `lib/hooks/use-financial-freedom.ts` - CRUD settings + snapshot
+5. `app/api/financial-freedom/analyze/route.ts` - Groq AI advisor
+6. `app/api/financial-freedom/snapshot/route.ts` - snapshot bulanan
 7. UI components (7 section)
 8. Dashboard card "FI Progress"
 9. Sidebar menu "Financial Freedom"

@@ -138,7 +138,7 @@ export function WishlistPurchaseModal({ open, onOpenChange, wishlist }: Props) {
                             Beli Sekarang
                         </p>
                         <p className="text-sm font-bold truncate">
-                            {wishlist?.name || '—'}
+                            {wishlist?.name || '-'}
                         </p>
                         <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
                             <span>Dana tersedia:</span>

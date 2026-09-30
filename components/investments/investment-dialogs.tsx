@@ -45,7 +45,7 @@ const TITLES: Record<string, { title: string; description: string }> = {
     },
     'buy-more': {
         title: 'Beli Lagi',
-        description: 'Tambah posisi — harga avg bakal di-recompute otomatis.',
+        description: 'Tambah posisi - harga avg bakal di-recompute otomatis.',
     },
     sell: {
         title: 'Jual Investasi',

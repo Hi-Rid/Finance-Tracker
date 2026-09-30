@@ -244,7 +244,7 @@ function EmptyStatistics() {
 }
 
 // ============================================================
-// HERO SUMMARY — dashed border brand
+// HERO SUMMARY - dashed border brand
 // ============================================================
 
 function HeroSummary({

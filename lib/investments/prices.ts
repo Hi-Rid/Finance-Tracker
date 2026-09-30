@@ -144,14 +144,14 @@ export async function getLatestPrices(
         }
     }
 
-    // Manual items — gak fetch API, pakai current_value atau cache lama
+    // Manual items - gak fetch API, pakai current_value atau cache lama
     for (const item of manualItems) {
         fallbackToCache(item, cache, result)
     }
 
     // ============ 6. Bulk insert ke cache (fire-and-forget) ============
     if (toInsert.length > 0) {
-        // Gak await — biar gak blocking response
+        // Gak await - biar gak blocking response
         supabase
             .from('asset_prices')
             .insert(toInsert)
@@ -166,7 +166,7 @@ export async function getLatestPrices(
 /**
  * Fallback kalau API gagal:
  * 1. Pakai cache lama (apapun umurnya)
- * 2. Kalau gak ada, pakai current_value / (quantity × multiplier) — dianggap harga beli terakhir
+ * 2. Kalau gak ada, pakai current_value / (quantity × multiplier) - dianggap harga beli terakhir
  */
 function fallbackToCache(
     item: AssetWithDetail,
@@ -179,7 +179,7 @@ function fallbackToCache(
         return
     }
 
-    // Gak ada cache sama sekali — derive dari current_value
+    // Gak ada cache sama sekali - derive dari current_value
     const asset = item.asset
     const quantity = Number(asset.quantity)
     const multiplier = asset.type === 'stock' ? 100 : 1

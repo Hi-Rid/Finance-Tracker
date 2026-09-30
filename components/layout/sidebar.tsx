@@ -9,10 +9,10 @@ import {
   ScanLine,
   Wallet,
   Target,
+  Crown,
   Heart,
   Users,
   TrendingUp,
-  Plane,
   FileText,
   Settings,
   Sparkles,
@@ -25,10 +25,10 @@ const navItems = [
   { href: '/transactions', label: 'Transaksi', icon: Receipt },
   { href: '/accounts', label: 'Akun', icon: Wallet },
   { href: '/budget', label: 'Budget', icon: Target },
+  { href: '/financial-freedom', label: 'Financial Freedom', icon: Crown },
   { href: '/wishlist', label: 'Wishlist', icon: Heart },
   { href: '/split-bill', label: 'Split Bill', icon: Users },
   { href: '/investments', label: 'Investasi', icon: TrendingUp },
-  { href: '/trips', label: 'Travel', icon: Plane },
   { href: '/receipts', label: 'Struk', icon: ScanLine },
   { href: '/reports', label: 'Laporan', icon: FileText },
   { href: '/settings', label: 'Settings', icon: Settings },
@@ -44,9 +44,7 @@ export function Sidebar({ userEmail }: SidebarProps) {
 
   return (
     <aside className="hidden md:flex flex-col w-64 shrink-0 p-3">
-      {/* Floating container */}
       <div className="flex flex-col h-[calc(100vh-1.5rem)] sticky top-3 rounded-3xl bg-sidebar text-sidebar-foreground shadow-xl shadow-navy/20 dark:shadow-black/50 overflow-hidden">
-        {/* Gradient overlay subtle */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
         {/* Logo */}
@@ -74,7 +72,6 @@ export function Sidebar({ userEmail }: SidebarProps) {
             let isActive =
               pathname === item.href || pathname.startsWith(item.href + '/')
 
-            // Related sub-routes: /cash-flow dianggap bagian dari /transactions
             if (item.href === '/transactions') {
               if (
                 pathname.startsWith('/cash-flow') ||

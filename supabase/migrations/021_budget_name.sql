@@ -27,7 +27,7 @@ ALTER TABLE public.budgets
   DROP CONSTRAINT IF EXISTS budgets_profile_id_category_id_month_key;
 
 -- 6. Bikin unique baru: (profile_id, name, month)
--- Bikin idempotent — cek dulu kalau udah ada
+-- Bikin idempotent - cek dulu kalau udah ada
 DO $$
 BEGIN
   IF NOT EXISTS (

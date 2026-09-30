@@ -45,7 +45,7 @@ export function useWishlistImage() {
                 return { success: false }
             }
 
-            // Generate filename — pakai user_id sebagai folder
+            // Generate filename - pakai user_id sebagai folder
             const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
             const timestamp = Date.now()
             const random = Math.random().toString(36).slice(2, 8)

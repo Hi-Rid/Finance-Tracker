@@ -580,7 +580,7 @@ function DataTable({ data, variant }: { data: Record<string, any>; variant: 'old
 }
 
 function formatValue(value: any): string {
-    if (value === null || value === undefined) return '—'
+    if (value === null || value === undefined) return '-'
     if (typeof value === 'boolean') return value ? 'Ya' : 'Tidak'
     if (typeof value === 'object') return JSON.stringify(value)
     return String(value)

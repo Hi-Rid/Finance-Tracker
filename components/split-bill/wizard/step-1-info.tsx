@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus, X, User, UserCircle, Users, Wallet } from 'lucide-react'
+import { Plus, X, User, UserCircle, Wallet } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CurrencyInput } from '@/components/ui/currency-input'
@@ -75,7 +75,6 @@ export function Step1Info({
         const next = participants.filter((p) => p.temp_id !== tempId)
         updateParticipants(next)
 
-        // Reset payer kalau yang dihapus adalah payer
         if (data.payer_participant_id === tempId) {
             update({ payer_participant_id: userTempId })
         }
@@ -90,45 +89,47 @@ export function Step1Info({
     }
 
     return (
-        <div className="space-y-6">
-            {/* ============ Info Dasar ============ */}
-            <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-5 space-y-4">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+        <div className="space-y-3 md:space-y-6">
+            {/* Info Dasar */}
+            <div className="rounded-xl md:rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-3.5 md:p-5 space-y-3 md:space-y-4">
+                <p className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider">
                     Info Dasar
                 </p>
 
                 <div>
-                    <label className="text-sm font-medium mb-1.5 block">
+                    <label className="text-xs md:text-sm font-medium mb-1 md:mb-1.5 block">
                         Nama Event <span className="text-red-500">*</span>
                     </label>
                     <Input
                         placeholder="Makan Gacoan 12 Okt, Trip Bali, dll"
                         value={data.name}
                         onChange={(e) => update({ name: e.target.value })}
+                        className="h-9 md:h-10 text-sm"
                     />
                 </div>
 
                 <div>
-                    <label className="text-sm font-medium mb-1.5 block">
+                    <label className="text-xs md:text-sm font-medium mb-1 md:mb-1.5 block">
                         Tanggal & Waktu <span className="text-red-500">*</span>
                     </label>
                     <Input
                         type="datetime-local"
                         value={data.date}
                         onChange={(e) => update({ date: e.target.value })}
+                        className="h-9 md:h-10 text-sm"
                     />
                 </div>
 
                 {groups.length > 0 && (
                     <div>
-                        <label className="text-sm font-medium mb-1.5 block">
+                        <label className="text-xs md:text-sm font-medium mb-1 md:mb-1.5 block">
                             Group (opsional)
                         </label>
                         <Select
                             value={data.group_id || '__none__'}
                             onValueChange={handleGroupChange}
                         >
-                            <SelectTrigger>
+                            <SelectTrigger className="h-9 md:h-10 text-sm">
                                 <SelectValue placeholder="Pilih group" />
                             </SelectTrigger>
                             <SelectContent>
@@ -144,14 +145,14 @@ export function Step1Info({
                 )}
             </div>
 
-            {/* ============ Peserta ============ */}
-            <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+            {/* Peserta */}
+            <div className="rounded-xl md:rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-3.5 md:p-5 space-y-3 md:space-y-4">
+                <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                        <p className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5 md:mb-1">
                             Peserta
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[11px] md:text-xs text-muted-foreground">
                             Minimal 2 orang (termasuk lu)
                         </p>
                     </div>
@@ -160,18 +161,19 @@ export function Step1Info({
                         variant="outline"
                         size="sm"
                         onClick={addParticipant}
+                        className="h-8 md:h-9 text-xs md:text-sm shrink-0"
                     >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         Tambah
                     </Button>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5 md:space-y-2">
                     {participants.map((p) => (
                         <div
                             key={p.temp_id}
                             className={cn(
-                                'flex items-center gap-2 p-2 rounded-xl border transition-colors',
+                                'flex items-center gap-2 p-1.5 md:p-2 rounded-lg md:rounded-xl border transition-colors',
                                 p.is_user
                                     ? 'bg-brand/5 border-brand/20'
                                     : 'bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/10'
@@ -179,16 +181,16 @@ export function Step1Info({
                         >
                             <div
                                 className={cn(
-                                    'w-9 h-9 rounded-lg flex items-center justify-center shrink-0',
+                                    'w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center shrink-0',
                                     p.is_user
                                         ? 'bg-brand/15 text-brand'
                                         : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-slate-400'
                                 )}
                             >
                                 {p.is_user ? (
-                                    <UserCircle className="w-4 h-4" />
+                                    <UserCircle className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                 ) : (
-                                    <User className="w-4 h-4" />
+                                    <User className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                 )}
                             </div>
 
@@ -200,7 +202,7 @@ export function Step1Info({
                                         display_name: e.target.value,
                                     })
                                 }
-                                className="flex-1 h-9 border-0 bg-transparent shadow-none focus-visible:ring-0 px-0"
+                                className="flex-1 h-8 md:h-9 border-0 bg-transparent shadow-none focus-visible:ring-0 px-0 text-sm"
                             />
 
                             {p.is_user && (
@@ -215,7 +217,7 @@ export function Step1Info({
                                     variant="ghost"
                                     size="icon-sm"
                                     onClick={() => removeParticipant(p.temp_id)}
-                                    className="shrink-0 text-slate-400 hover:text-red-500"
+                                    className="shrink-0 text-slate-400 hover:text-red-500 h-7 w-7 md:h-8 md:w-8"
                                 >
                                     <X className="w-3.5 h-3.5" />
                                 </Button>
@@ -225,18 +227,18 @@ export function Step1Info({
                 </div>
             </div>
 
-            {/* ============ Siapa yang Bayar ============ */}
-            <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-5 space-y-4">
+            {/* Siapa yang Bayar */}
+            <div className="rounded-xl md:rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-3.5 md:p-5 space-y-3 md:space-y-4">
                 <div>
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                    <p className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5 md:mb-1">
                         Siapa yang Bayar Dulu?
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] md:text-xs text-muted-foreground">
                         Pilih siapa yang talangin bill-nya
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 md:gap-2">
                     {participants.map((p) => {
                         const isActive = data.payer_participant_id === p.temp_id
                         return (
@@ -247,7 +249,7 @@ export function Step1Info({
                                     update({ payer_participant_id: p.temp_id })
                                 }
                                 className={cn(
-                                    'flex items-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer text-left',
+                                    'flex items-center gap-1.5 md:gap-2 p-2 md:p-2.5 rounded-lg md:rounded-xl border transition-all cursor-pointer text-left',
                                     isActive
                                         ? 'bg-brand/10 border-brand/40 shadow-sm'
                                         : 'bg-white dark:bg-white/[0.02] border-slate-200 dark:border-white/10 hover:border-brand/30'
@@ -255,21 +257,21 @@ export function Step1Info({
                             >
                                 <div
                                     className={cn(
-                                        'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
+                                        'w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center shrink-0',
                                         isActive
                                             ? 'bg-brand text-white'
                                             : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400'
                                     )}
                                 >
                                     {p.is_user ? (
-                                        <UserCircle className="w-4 h-4" />
+                                        <UserCircle className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                     ) : (
-                                        <User className="w-4 h-4" />
+                                        <User className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                     )}
                                 </div>
                                 <span
                                     className={cn(
-                                        'text-xs font-semibold truncate',
+                                        'text-[11px] md:text-xs font-semibold truncate',
                                         isActive && 'text-brand'
                                     )}
                                 >
@@ -283,9 +285,9 @@ export function Step1Info({
 
                 {!participants.find((p) => p.temp_id === data.payer_participant_id)
                     ?.is_user && (
-                        <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 p-3 flex gap-2">
+                        <div className="rounded-lg md:rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 p-2.5 md:p-3 flex gap-2">
                             <Wallet className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                            <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                            <p className="text-[11px] md:text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
                                 Kalau yang bayar bukan lu, sistem gak akan kurangi saldo akun lu.
                                 Yang dicatat adalah <strong>utang lu</strong> ke{' '}
                                 <strong>
@@ -301,20 +303,22 @@ export function Step1Info({
                     )}
             </div>
 
-            {/* ============ Pajak & Diskon ============ */}
-            <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-5 space-y-4">
+            {/* Pajak & Diskon */}
+            <div className="rounded-xl md:rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-3.5 md:p-5 space-y-3 md:space-y-4">
                 <div>
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                    <p className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5 md:mb-1">
                         Pajak & Diskon (opsional)
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] md:text-xs text-muted-foreground">
                         Isi kalau struk ada PPN / service charge / diskon
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2 md:gap-3">
                     <div>
-                        <label className="text-sm font-medium mb-1.5 block">PPN (%)</label>
+                        <label className="text-xs md:text-sm font-medium mb-1 md:mb-1.5 block">
+                            PPN (%)
+                        </label>
                         <Input
                             type="number"
                             inputMode="decimal"
@@ -324,10 +328,11 @@ export function Step1Info({
                                 const v = e.target.value
                                 update({ ppn_rate: v === '' ? 0 : Number(v) / 100 })
                             }}
+                            className="h-9 md:h-10 text-sm"
                         />
                     </div>
                     <div>
-                        <label className="text-sm font-medium mb-1.5 block">
+                        <label className="text-xs md:text-sm font-medium mb-1 md:mb-1.5 block">
                             Service (%)
                         </label>
                         <Input
@@ -339,29 +344,31 @@ export function Step1Info({
                                 const v = e.target.value
                                 update({ service_rate: v === '' ? 0 : Number(v) / 100 })
                             }}
+                            className="h-9 md:h-10 text-sm"
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label className="text-sm font-medium mb-1.5 block">
+                    <label className="text-xs md:text-sm font-medium mb-1 md:mb-1.5 block">
                         Diskon (Rp)
                     </label>
                     <CurrencyInput
                         value={data.discount_amount}
                         onChange={(v) => update({ discount_amount: v })}
                         placeholder="0"
+                        className="h-9 md:h-10 text-sm"
                     />
                 </div>
             </div>
 
-            {/* ============ Sumber Dana ============ */}
-            <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-5 space-y-4">
+            {/* Sumber Dana */}
+            <div className="rounded-xl md:rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-3.5 md:p-5 space-y-3 md:space-y-4">
                 <div>
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                    <p className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5 md:mb-1">
                         Sumber Dana
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] md:text-xs text-muted-foreground">
                         Akun yang dipakai bayar (kalau lu yang talangin)
                     </p>
                 </div>
@@ -370,7 +377,7 @@ export function Step1Info({
                     value={data.account_id || ''}
                     onValueChange={(v) => update({ account_id: v })}
                 >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 md:h-10 text-sm">
                         <SelectValue placeholder="Pilih akun" />
                     </SelectTrigger>
                     <SelectContent>
@@ -389,13 +396,13 @@ export function Step1Info({
                 </Select>
 
                 {selectedAccount && (
-                    <div className="rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-3">
-                        <p className="text-[10px] text-muted-foreground mb-0.5">
+                    <div className="rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-2.5 md:p-3">
+                        <p className="text-[10px] md:text-xs text-muted-foreground mb-0.5">
                             Saldo saat ini
                         </p>
                         <Amount
                             value={Number(selectedAccount.current_balance)}
-                            className="text-sm font-bold text-slate-900 dark:text-white"
+                            className="text-xs md:text-sm font-bold text-slate-900 dark:text-white"
                         />
                     </div>
                 )}

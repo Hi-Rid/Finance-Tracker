@@ -43,10 +43,13 @@ export function Amount({
         )
     }
 
+    // IDR gak pakai desimal - selalu round ke integer terdekat
+    const rounded = Math.round(Math.abs(value))
+
     return (
         <span className={cn('tabular-nums', className)}>
             {prefix}
-            {signChar}Rp {Math.abs(value).toLocaleString('id-ID')}
+            {signChar}Rp {rounded.toLocaleString('id-ID')}
             {suffix}
         </span>
     )

@@ -123,7 +123,7 @@ export function computeRealizedPl(
             runningQty -= soldQty
             runningCost -= costBasis
         }
-        // dividend / split / bonus: skip — gak ngubah cost basis
+        // dividend / split / bonus: skip - gak ngubah cost basis
     }
 
     return realized

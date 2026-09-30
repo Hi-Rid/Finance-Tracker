@@ -111,7 +111,7 @@ export function getTodayWIBRange(): { start: string; end: string } {
         timeZone: 'Asia/Jakarta',
     })
 
-    // WIB midnight (UTC+7) — explicit, gak gantung server TZ
+    // WIB midnight (UTC+7) - explicit, gak gantung server TZ
     const startWIB = new Date(`${wibDateStr}T00:00:00+07:00`)
     const endWIB = new Date(startWIB)
     endWIB.setDate(endWIB.getDate() + 1)

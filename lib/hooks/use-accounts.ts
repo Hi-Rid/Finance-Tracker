@@ -235,7 +235,7 @@ export function useAccounts() {
 
         if (feeErr) {
           console.error('[transfer] fee insert failed:', feeErr)
-          // Transfer berhasil, fee gagal — kasih warning tapi jangan rollback
+          // Transfer berhasil, fee gagal - kasih warning tapi jangan rollback
           toast.warning('Transfer berhasil, tapi biaya transfer gagal dicatat')
         }
       }
@@ -296,7 +296,7 @@ export function useAccounts() {
         exclude_from_budget: true,
         exclude_from_daily_budget: true,
         exclude_from_reports: true,
-        note: `Selisih ${isPositive ? '+' : '-'}${formatRupiah(Math.abs(delta))} — ${data.note}`,
+        note: `Selisih ${isPositive ? '+' : '-'}${formatRupiah(Math.abs(delta))} - ${data.note}`,
       })
 
       if (error) {

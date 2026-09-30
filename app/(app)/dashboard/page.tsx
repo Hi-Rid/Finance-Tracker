@@ -27,6 +27,7 @@ import { computeDailyBudget, getTodayWIBRange } from '@/lib/utils/daily-budget'
 import { getMonthRange, getCurrentMonth, formatMonthShort } from '@/lib/utils/month'
 import { Amount } from '@/components/ui/amount'
 import { cn } from '@/lib/utils'
+import { formatCompactRupiah } from '@/lib/normalize'
 import {
   computeInvestmentHistory,
   formatInvestmentMonth,
@@ -173,6 +174,8 @@ export default async function DashboardPage() {
       accountsRes,
       netWorthHistoryRes,
       allAccountsRes,
+      allAssetsRes,
+      activeDebtsRes,
       cashFlowHistoryRes,
       expenseByCategoryRes,
       budgetPeriodsRes,
@@ -199,7 +202,7 @@ export default async function DashboardPage() {
         .eq('profile_id', profileId)
         .eq('is_deleted', false)
         .order('date', { ascending: false })
-        .limit(5),
+        .limit(6),
       supabase.from('categories').select('*').eq('user_id', user.id),
       supabase
         .from('accounts')
@@ -210,12 +213,24 @@ export default async function DashboardPage() {
         p_profile_id: profileId,
         p_months: 12,
       }),
-      // allAccountsRes — EXCLUDE archived
+      // allAccountsRes - EXCLUDE archived
       supabase
         .from('accounts')
         .select('type, current_balance')
         .eq('profile_id', profileId)
         .eq('is_archived', false),
+      // All assets — untuk net worth (match RPC)
+      supabase
+        .from('assets')
+        .select('current_value')
+        .eq('profile_id', profileId)
+        .eq('is_archived', false),
+      // Active debts — untuk net worth
+      supabase
+        .from('debts')
+        .select('outstanding')
+        .eq('profile_id', profileId)
+        .eq('status', 'active'),
       supabase.rpc('get_cash_flow_history', {
         p_profile_id: profileId,
         p_months: 12,
@@ -236,10 +251,10 @@ export default async function DashboardPage() {
         .maybeSingle(),
       supabase
         .from('budgets')
-        .select('category_id, amount')
+        .select('name, category_id, amount')
         .eq('profile_id', profileId)
         .eq('month', currentMonth),
-      // Investment transactions — buat sparkline
+      // Investment transactions - buat sparkline
       investmentAssetIds.length > 0
         ? supabase
           .from('investment_transactions')
@@ -286,14 +301,22 @@ export default async function DashboardPage() {
     }))
 
     // ============ Net worth ============
-    let totalNetWorth = 0
+    // Match RPC get_net_worth_history: accounts + ALL assets - active debts
+    let nwAccounts = 0
       ; (allAccountsRes.data || []).forEach((a) => {
-        const balance = Number(a.current_balance)
-        totalNetWorth += balance
+        nwAccounts += Number(a.current_balance)
       })
-    currentNetWorth = totalNetWorth
+    let nwAssets = 0
+      ; (allAssetsRes.data || []).forEach((a) => {
+        nwAssets += Number(a.current_value)
+      })
+    let nwDebts = 0
+      ; (activeDebtsRes.data || []).forEach((d) => {
+        nwDebts += Number(d.outstanding)
+      })
+    currentNetWorth = nwAccounts + nwAssets - nwDebts
 
-    // ============ Investment — portfolio value aja ============
+    // ============ Investment - portfolio value aja ============
     let portfolioValue = 0
       ; (investmentAssets || []).forEach((a) => {
         portfolioValue += Number(a.current_value)
@@ -327,15 +350,41 @@ export default async function DashboardPage() {
     }
 
     // ============ Net worth history ============
-    const historyRaw = (netWorthHistoryRes.data || []) as Array<{
-      month: string
+    // Auto-create snapshot bulan ini (idempotent)
+    await supabase.rpc('upsert_net_worth_snapshot' as any, {
+      p_profile_id: profileId,
+    })
+
+    const { data: snapshotRows } = await supabase
+      .from('net_worth_snapshots' as any)
+      .select('snapshot_month, net_worth')
+      .eq('profile_id', profileId)
+      .order('snapshot_month', { ascending: false })
+      .limit(12)
+
+    const snapshots = (snapshotRows || []) as Array<{
+      snapshot_month: string
       net_worth: number | string
     }>
-    const historyAsc = [...historyRaw].reverse()
-    netWorthHistory = historyAsc.map((h) => ({
-      month: h.month,
-      value: Number(h.net_worth),
-    }))
+
+    // Pakai snapshot kalau >= 2 bulan. Kalau kurang, fallback ke RPC reverse-walk.
+    if (snapshots.length >= 2) {
+      const asc = [...snapshots].reverse()
+      netWorthHistory = asc.map((s) => ({
+        month: s.snapshot_month,
+        value: Number(s.net_worth),
+      }))
+    } else {
+      const historyRaw = (netWorthHistoryRes.data || []) as Array<{
+        month: string
+        net_worth: number | string
+      }>
+      const historyAsc = [...historyRaw].reverse()
+      netWorthHistory = historyAsc.map((h) => ({
+        month: h.month,
+        value: Number(h.net_worth),
+      }))
+    }
 
     if (netWorthHistory.length >= 2) {
       const curr = netWorthHistory[netWorthHistory.length - 1].value
@@ -419,7 +468,8 @@ export default async function DashboardPage() {
 
     // ============ Budget progress ============
     const budgetsRaw = (budgetsRes.data || []) as Array<{
-      category_id: string
+      name: string
+      category_id: string | null
       amount: number | string
     }>
 
@@ -431,10 +481,12 @@ export default async function DashboardPage() {
       })
 
     budgetProgress = budgetsRaw.map((b) => {
-      const cat = catFullMap.get(b.category_id)
+      // Spent dihitung dari category_id (kalau ada).
+      // Kalau budget gak punya kategori (nullable), spent = 0.
+      const spent = b.category_id ? spentByCat.get(b.category_id) || 0 : 0
       return {
-        label: cat?.name || 'Tanpa nama',
-        used: spentByCat.get(b.category_id) || 0,
+        label: b.name,
+        used: spent,
         total: Number(b.amount),
       }
     })
@@ -465,7 +517,7 @@ export default async function DashboardPage() {
         />
       </FadeIn>
 
-      {/* Row 1 — Net Worth + Daily Budget */}
+      {/* Row 1 - Net Worth + Daily Budget */}
       <FadeIn delay={0.05}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
           <div className="lg:col-span-2 h-full">
@@ -481,7 +533,7 @@ export default async function DashboardPage() {
         </div>
       </FadeIn>
 
-      {/* Row 2 — Cash Flow + Investasi */}
+      {/* Row 2 - Cash Flow + Investasi */}
       <FadeIn delay={0.07}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
           <CashFlowCard
@@ -499,24 +551,24 @@ export default async function DashboardPage() {
         </div>
       </FadeIn>
 
-      {/* Row 3 — Transaksi + Pengeluaran */}
+      {/* Row 3 - Transaksi + Pengeluaran */}
       <FadeIn delay={0.1}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
           <Card className="lg:col-span-2 flex flex-col">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 sm:pb-4">
               <div>
                 <CardTitle>Transaksi Terakhir</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
                   {recentTransactions.length} transaksi terbaru
                 </p>
               </div>
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="ghost" size="sm" asChild className="h-8 text-xs">
                 <Link href="/transactions">Lihat Semua</Link>
               </Button>
             </CardHeader>
             <CardContent className="flex-1">
               {recentTransactions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
+                <div className="flex flex-col items-center justify-center py-10 text-center gap-4">
                   <p className="text-sm text-muted-foreground">
                     Belum ada transaksi
                   </p>
@@ -528,7 +580,7 @@ export default async function DashboardPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-5">
+                <div className="space-y-3 sm:space-y-5">
                   {groupTransactionsByDate(recentTransactions).map((group) => {
                     const dayNet = group.items.reduce((sum, tx) => {
                       if (tx.type === 'income') return sum + tx.amount_idr
@@ -538,15 +590,15 @@ export default async function DashboardPage() {
 
                     return (
                       <div key={group.date}>
-                        <div className="flex items-center justify-between mb-2 px-2">
-                          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        <div className="flex items-center justify-between mb-1.5 sm:mb-2 px-1 sm:px-2">
+                          <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                             {formatDateGroup(group.date)}
                           </p>
                           <Amount
                             value={dayNet}
                             sign="auto"
                             className={cn(
-                              'text-[11px] font-semibold',
+                              'text-[10px] sm:text-[11px] font-semibold',
                               dayNet >= 0
                                 ? 'text-emerald-600 dark:text-emerald-400'
                                 : 'text-red-600 dark:text-red-400'
@@ -562,12 +614,12 @@ export default async function DashboardPage() {
                               <Link
                                 key={tx.id}
                                 href="/transactions"
-                                className="flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                                className="flex items-center justify-between py-1.5 sm:py-2.5 px-1.5 sm:px-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                               >
-                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                                   <div
                                     className={cn(
-                                      'w-9 h-9 rounded-xl flex items-center justify-center shrink-0',
+                                      'w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0',
                                       isIncome
                                         ? 'bg-emerald-500/10 text-emerald-600'
                                         : isTransfer
@@ -576,18 +628,18 @@ export default async function DashboardPage() {
                                     )}
                                   >
                                     {isIncome ? (
-                                      <ArrowDownRight className="w-4 h-4" />
+                                      <ArrowDownRight className="w-3 h-3 sm:w-4 sm:h-4" />
                                     ) : (
-                                      <ArrowUpRight className="w-4 h-4" />
+                                      <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4" />
                                     )}
                                   </div>
                                   <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium truncate leading-tight">
+                                    <p className="text-xs sm:text-sm font-medium truncate leading-tight">
                                       {tx.name}
                                     </p>
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                                    <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                                       {tx.category_name || 'Tanpa kategori'}
-                                      {tx.account_name && ` · ${tx.account_name}`}
+                                      {tx.account_name && ` - ${tx.account_name}`}
                                     </p>
                                   </div>
                                 </div>
@@ -601,7 +653,7 @@ export default async function DashboardPage() {
                                         : 'negative'
                                   }
                                   className={cn(
-                                    'text-sm font-semibold shrink-0 ml-2',
+                                    'text-xs sm:text-sm font-semibold shrink-0 ml-2',
                                     isIncome
                                       ? 'text-emerald-600'
                                       : isTransfer
@@ -625,22 +677,22 @@ export default async function DashboardPage() {
           <Card className="flex flex-col overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle>Pengeluaran per Kategori</CardTitle>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
                 Breakdown bulan ini
               </p>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col p-0">
               {/* Donut */}
-              <div className="px-6 py-5">
+              <div className="px-4 sm:px-6 py-3 sm:py-5">
                 <DonutChart
                   data={expenseByCategory}
                   totalLabel="Total"
-                  height={240}
+                  height={180}
                 />
               </div>
 
               {/* Legend */}
-              <div className="flex-1 px-6 pb-6 pt-3 space-y-3">
+              <div className="flex-1 px-4 sm:px-6 pb-4 sm:pb-6 pt-2 sm:pt-3 space-y-1.5 sm:space-y-3">
                 {expenseByCategory.map((cat) => {
                   const total = expenseByCategory.reduce(
                     (s, c) => s + c.value,
@@ -651,10 +703,10 @@ export default async function DashboardPage() {
                   return (
                     <div
                       key={cat.name}
-                      className="flex items-center gap-3 text-xs"
+                      className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs"
                     >
                       <div
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: cat.color }}
                       />
                       <span className="text-slate-600 dark:text-slate-300 flex-1 truncate">
@@ -672,7 +724,7 @@ export default async function DashboardPage() {
         </div>
       </FadeIn>
 
-      {/* Row 4 — Trend Bulanan */}
+      {/* Row 4 - Trend Bulanan */}
       <FadeIn delay={0.15}>
         <Card className="mb-8">
           <CardHeader>
@@ -701,7 +753,7 @@ export default async function DashboardPage() {
                   color: CHART_COLORS.primary,
                 },
               ]}
-              height={280}
+              height={220}
               format="juta"
             />
           </CardContent>
@@ -710,18 +762,32 @@ export default async function DashboardPage() {
 
       {/* Row 5 — Budget Bulan Ini */}
       <FadeIn delay={0.2}>
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Budget Bulan Ini</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              {hasBudget
-                ? `${budgetProgress.length} kategori di-budget`
-                : 'Belum ada budget'}
-            </p>
+        <Card className="mb-4 sm:mb-8">
+          <CardHeader className="pb-2 sm:pb-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <CardTitle>Budget Bulan Ini</CardTitle>
+                <p className="text-[11px] sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
+                  {hasBudget
+                    ? `${budgetProgress.length} kategori di-budget`
+                    : 'Belum ada budget'}
+                </p>
+              </div>
+              {hasBudget && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="h-7 sm:h-8 text-xs shrink-0"
+                >
+                  <Link href="/budget">Kelola</Link>
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {hasBudget ? (
-              <div className="space-y-5">
+              <div className="divide-y divide-slate-100 dark:divide-white/5">
                 {budgetProgress.map((budget) => {
                   const percentage =
                     budget.total > 0
@@ -734,25 +800,34 @@ export default async function DashboardPage() {
                         ? 'warning'
                         : 'success'
                   return (
-                    <div key={budget.label}>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="font-medium">{budget.label}</span>
-                        <span className="text-muted-foreground tabular-nums">
-                          Rp {budget.used.toLocaleString('id-ID')} /{' '}
-                          Rp {budget.total.toLocaleString('id-ID')}
+                    <div
+                      key={budget.label}
+                      className="py-2.5 sm:py-3 first:pt-0 last:pb-0"
+                    >
+                      <div className="flex items-baseline justify-between gap-3 mb-1.5">
+                        <span className="text-xs sm:text-sm font-medium truncate">
+                          {budget.label}
+                        </span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground tabular-nums shrink-0">
+                          {formatCompactRupiah(budget.used)} /{' '}
+                          {formatCompactRupiah(budget.total)}
                         </span>
                       </div>
-                      <Progress value={percentage} variant={variant} />
+                      <Progress
+                        value={percentage}
+                        variant={variant}
+                        className="h-1 sm:h-1.5"
+                      />
                     </div>
                   )
                 })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center gap-3">
-                <p className="text-sm text-muted-foreground">
+              <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center gap-3">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Belum ada budget bulan ini
                 </p>
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="h-8">
                   <Link href="/budget">Setup Budget</Link>
                 </Button>
               </div>

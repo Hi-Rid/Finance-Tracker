@@ -1,0 +1,12 @@
+{
+    "crons": [
+        {
+            "path": "/api/financial-freedom/snapshot",
+            "schedule": "0 17 * * *"
+        },
+        {
+            "path": "/api/networth/snapshot",
+            "schedule": "5 17 * * *"
+        }
+    ]
+}

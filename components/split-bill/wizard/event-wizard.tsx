@@ -135,32 +135,37 @@ export function EventWizard({
 
     return (
         <div className="max-w-3xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-1">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3 md:mb-6 gap-2">
+                <div className="min-w-0">
+                    <h1 className="text-lg md:text-3xl font-bold tracking-tight mb-0.5 md:mb-1">
                         Split Bill Baru
                     </h1>
-                    <p className="text-sm text-muted-foreground">Step {step} dari 4</p>
+                    <p className="text-[11px] md:text-sm text-muted-foreground">
+                        Step {step} dari 4
+                    </p>
                 </div>
                 <Button
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => setExitConfirmOpen(true)}
                     title="Keluar"
+                    className="shrink-0 h-8 w-8 md:h-9 md:w-9"
                 >
                     <X className="w-4 h-4" />
                 </Button>
             </div>
 
-            <div className="flex items-center gap-2 mb-6">
+            {/* Step indicators */}
+            <div className="flex items-center gap-1 md:gap-2 mb-4 md:mb-6">
                 {STEPS.map((s, i) => {
                     const isActive = step === s.num
                     const isDone = step > s.num
                     return (
-                        <div key={s.num} className="flex items-center gap-2 flex-1">
+                        <div key={s.num} className="flex items-center gap-1 md:gap-2 flex-1">
                             <div
                                 className={cn(
-                                    'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0',
+                                    'flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold transition-all shrink-0',
                                     isActive
                                         ? 'bg-brand text-white shadow-sm'
                                         : isDone
@@ -169,7 +174,7 @@ export function EventWizard({
                                 )}
                             >
                                 {isDone ? (
-                                    <Check className="w-3 h-3" />
+                                    <Check className="w-2.5 h-2.5 md:w-3 md:h-3" />
                                 ) : (
                                     <span className="tabular-nums">{s.num}</span>
                                 )}
@@ -190,7 +195,8 @@ export function EventWizard({
                 })}
             </div>
 
-            <div className="mb-6">
+            {/* Body */}
+            <div className="mb-4 md:mb-6">
                 {step === 1 && (
                     <Step1Info
                         data={data}
@@ -212,13 +218,14 @@ export function EventWizard({
                 )}
             </div>
 
-            <div className="flex gap-3">
+            {/* Footer nav */}
+            <div className="flex gap-2 md:gap-3">
                 {step > 1 ? (
                     <Button
                         type="button"
                         variant="outline"
                         onClick={prev}
-                        className="flex-1"
+                        className="flex-1 h-10 md:h-11"
                     >
                         <ChevronLeft className="w-4 h-4" />
                         Kembali
@@ -228,7 +235,7 @@ export function EventWizard({
                         type="button"
                         variant="outline"
                         onClick={() => setExitConfirmOpen(true)}
-                        className="flex-1"
+                        className="flex-1 h-10 md:h-11"
                     >
                         Batal
                     </Button>
@@ -240,7 +247,7 @@ export function EventWizard({
                         variant="primary"
                         onClick={next}
                         disabled={!canProceed()}
-                        className="flex-1"
+                        className="flex-1 h-10 md:h-11"
                     >
                         Lanjut
                         <ChevronRight className="w-4 h-4" />

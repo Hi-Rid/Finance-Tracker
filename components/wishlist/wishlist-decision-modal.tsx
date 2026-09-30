@@ -291,7 +291,7 @@ export function WishlistDecisionModal({
                             Decision Check
                         </SheetTitle>
                         <SheetDescription>
-                            Jujur jawab 6 pertanyaan ini — biar keputusan lu
+                            Jujur jawab 6 pertanyaan ini - biar keputusan lu
                             lebih rasional, bukan impulsif.
                         </SheetDescription>
                     </SheetHeader>
@@ -310,7 +310,7 @@ export function WishlistDecisionModal({
                         Decision Check
                     </DialogTitle>
                     <DialogDescription>
-                        Jujur jawab 6 pertanyaan ini — biar keputusan lu lebih
+                        Jujur jawab 6 pertanyaan ini - biar keputusan lu lebih
                         rasional, bukan impulsif.
                     </DialogDescription>
                 </DialogHeader>

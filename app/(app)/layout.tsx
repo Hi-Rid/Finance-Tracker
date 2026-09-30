@@ -22,7 +22,7 @@ export default async function AppLayout({
   }
 
   // Auto-sync cooling-off tiap user buka page baru.
-  // Idempotent — pakai dedup_key di DB, jadi gak bakal dobel.
+  // Idempotent - pakai dedup_key di DB, jadi gak bakal dobel.
   await syncCoolingOffNotifications(user.id)
 
   return (
@@ -35,7 +35,7 @@ export default async function AppLayout({
         <div className="relative flex-1 flex flex-col min-w-0">
           <Header userEmail={user.email} />
 
-          <main className="relative flex-1 pb-36 md:pb-8 px-4 md:px-8">
+          <main className="relative flex-1 pb-44 md:pb-8 px-3 sm:px-4 md:px-8">
             {children}
           </main>
 

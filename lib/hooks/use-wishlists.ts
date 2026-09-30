@@ -187,7 +187,7 @@ export function useWishlists() {
                     : 'Wishlist ditambahkan',
                 {
                     description: isUrgent
-                        ? 'Priority urgent — cooling-off dilewati.'
+                        ? 'Priority urgent - cooling-off dilewati.'
                         : `Cooling-off ${COOLING_OFF_DAYS} hari mulai sekarang.`,
                 }
             )
@@ -285,7 +285,7 @@ export function useWishlists() {
                 return { success: false, error }
             }
 
-            toast.success(`Decision check tersimpan — skor ${score}/30`)
+            toast.success(`Decision check tersimpan - skor ${score}/30`)
             router.refresh()
             return { success: true, score }
         },

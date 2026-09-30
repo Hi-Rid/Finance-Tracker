@@ -34,7 +34,6 @@ type SettleModalProps = {
         display_name: string
         total_share: number
     }
-    /** true = user yang bayar (terima duit), false = user bayar ke payer */
     isIncome: boolean
     payerName?: string
     accounts: Account[]
@@ -54,7 +53,6 @@ export function SettleModal({
     open,
     onOpenChange,
     eventId,
-    eventName,
     participant,
     isIncome,
     payerName,
@@ -82,51 +80,49 @@ export function SettleModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
+                    <DialogTitle className="flex items-center gap-2 text-base md:text-lg">
                         {isIncome ? (
-                            <TrendingUp className="w-5 h-5 text-emerald-600" />
+                            <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-emerald-600" />
                         ) : (
-                            <TrendingDown className="w-5 h-5 text-red-600" />
+                            <TrendingDown className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
                         )}
                         {isIncome ? 'Konfirmasi Lunas' : 'Konfirmasi Bayar'}
                     </DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription className="text-xs md:text-sm">
                         {isIncome
                             ? `${participant.display_name} bayar share-nya ke lu`
                             : `Lu bayar share ke ${payerName || 'payer'}`}
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-4">
-                    {/* Amount info */}
+                <div className="space-y-3 md:space-y-4">
                     <div
-                        className={`rounded-xl border p-4 ${isIncome
-                                ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30'
-                                : 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30'
+                        className={`rounded-lg md:rounded-xl border p-3 md:p-4 ${isIncome
+                            ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30'
+                            : 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30'
                             }`}
                     >
-                        <p className="text-[10px] font-semibold uppercase tracking-wider mb-1">
+                        <p className="text-[9px] md:text-[10px] font-semibold uppercase tracking-wider mb-0.5 md:mb-1">
                             {isIncome ? 'Diterima dari' : 'Dibayar oleh lu'}
                         </p>
-                        <p className="text-sm font-semibold mb-2">
+                        <p className="text-xs md:text-sm font-semibold mb-1.5 md:mb-2">
                             {isIncome ? participant.display_name : 'Lu'}
                         </p>
                         <Amount
                             value={Number(participant.total_share)}
-                            className={`text-2xl font-bold ${isIncome
-                                    ? 'text-emerald-700 dark:text-emerald-300'
-                                    : 'text-red-700 dark:text-red-300'
+                            className={`text-xl md:text-2xl font-bold ${isIncome
+                                ? 'text-emerald-700 dark:text-emerald-300'
+                                : 'text-red-700 dark:text-red-300'
                                 }`}
                         />
                     </div>
 
-                    {/* Account */}
                     <div>
-                        <label className="text-sm font-medium mb-1.5 block">
+                        <label className="text-xs md:text-sm font-medium mb-1 md:mb-1.5 block">
                             {isIncome ? 'Masuk ke Akun' : 'Bayar dari Akun'}
                         </label>
                         <Select value={accountId} onValueChange={setAccountId}>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-9 md:h-10 text-sm">
                                 <SelectValue placeholder="Pilih akun" />
                             </SelectTrigger>
                             <SelectContent>
@@ -145,17 +141,19 @@ export function SettleModal({
                         </Select>
                     </div>
 
-                    {/* Date */}
                     <div>
-                        <label className="text-sm font-medium mb-1.5 block">Tanggal</label>
+                        <label className="text-xs md:text-sm font-medium mb-1 md:mb-1.5 block">
+                            Tanggal
+                        </label>
                         <Input
                             type="datetime-local"
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
+                            className="h-9 md:h-10 text-sm"
                         />
                     </div>
 
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-[10px] md:text-[11px] text-muted-foreground leading-relaxed">
                         Transaksi bakal dicatat dengan flag{' '}
                         <strong>exclude from reports</strong> biar gak kehitung sebagai
                         income/expense real.
@@ -166,7 +164,7 @@ export function SettleModal({
                     <Button
                         variant="outline"
                         onClick={() => onOpenChange(false)}
-                        className="flex-1"
+                        className="flex-1 h-10 md:h-11"
                         disabled={submitting}
                     >
                         Batal
@@ -174,7 +172,7 @@ export function SettleModal({
                     <Button
                         onClick={handleSubmit}
                         disabled={submitting || !accountId}
-                        className="flex-1"
+                        className="flex-1 h-10 md:h-11"
                     >
                         {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                         {isIncome ? 'Konfirmasi Lunas' : 'Konfirmasi Bayar'}

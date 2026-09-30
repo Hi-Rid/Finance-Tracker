@@ -19,7 +19,7 @@ export function InvestmentCard({
     sparklineData,
     sparklineLabels,
 }: InvestmentCardProps) {
-    // Jangan trim leading zeros — kita mau liat growth dari 0 → sekarang
+    // Jangan trim leading zeros - kita mau liat growth dari 0 → sekarang
     // Cuma pastiin minimal ada 2 titik biar chart render
     let displayData = sparklineData
     let displayLabels = sparklineLabels || []

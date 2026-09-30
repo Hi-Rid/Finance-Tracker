@@ -110,7 +110,7 @@ export async function POST(req: Request) {
 
         if (dbError) {
             console.error('Failed to save receipt to DB:', dbError)
-            // Gak block return — user tetep dapet hasil OCR
+            // Gak block return - user tetep dapet hasil OCR
         }
 
         return NextResponse.json({

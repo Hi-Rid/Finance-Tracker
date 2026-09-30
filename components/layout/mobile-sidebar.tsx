@@ -18,10 +18,10 @@ import {
     Receipt,
     Wallet,
     Target,
+    Crown,
     Heart,
     Users,
     TrendingUp,
-    Plane,
     ScanLine,
     FileText,
     Settings,
@@ -32,10 +32,10 @@ const navItems = [
     { href: '/transactions', label: 'Transaksi', icon: Receipt },
     { href: '/accounts', label: 'Akun', icon: Wallet },
     { href: '/budget', label: 'Budget', icon: Target },
+    { href: '/financial-freedom', label: 'Financial Freedom', icon: Crown },
     { href: '/wishlist', label: 'Wishlist', icon: Heart },
     { href: '/split-bill', label: 'Split Bill', icon: Users },
     { href: '/investments', label: 'Investasi', icon: TrendingUp },
-    { href: '/trips', label: 'Travel', icon: Plane },
     { href: '/receipts', label: 'Struk', icon: ScanLine },
     { href: '/reports', label: 'Laporan', icon: FileText },
     { href: '/settings', label: 'Settings', icon: Settings },
@@ -66,7 +66,6 @@ export function MobileSidebar({ userEmail }: MobileSidebarProps) {
                 side="left"
                 className="w-[80vw] max-w-[300px] p-0 bg-sidebar text-sidebar-foreground border-r border-sidebar-active/30"
             >
-                {/* Logo */}
                 <div className="p-5 pb-3 border-b border-white/10">
                     <Link
                         href="/dashboard"
@@ -88,7 +87,6 @@ export function MobileSidebar({ userEmail }: MobileSidebarProps) {
                     </Link>
                 </div>
 
-                {/* Nav */}
                 <nav className="flex-1 overflow-y-auto p-3 space-y-1">
                     {navItems.map((item) => {
                         const Icon = item.icon
@@ -126,7 +124,6 @@ export function MobileSidebar({ userEmail }: MobileSidebarProps) {
                     })}
                 </nav>
 
-                {/* User card */}
                 <div className="p-3 border-t border-white/10 space-y-2">
                     <div className="rounded-2xl bg-white/5 border border-white/10 p-3 flex items-center gap-3">
                         <Avatar className="size-9 ring-2 ring-white/20">

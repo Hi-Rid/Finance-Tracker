@@ -237,29 +237,29 @@ export function WishlistDetail({
 
     return (
         <>
-            <div className="space-y-4 md:space-y-5">
+            <div className="space-y-3 md:space-y-5">
                 {/* ============ TOP BAR ============ */}
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-2 mb-2 md:mb-3">
                     <Button
                         variant="ghost"
                         size="sm"
                         asChild
-                        className="text-muted-foreground hover:text-foreground -ml-2"
+                        className="text-muted-foreground hover:text-foreground -ml-2 h-8 md:h-9 text-xs md:text-sm"
                     >
                         <Link href="/wishlist">
-                            <ArrowLeft className="w-4 h-4" />
+                            <ArrowLeft className="w-3.5 h-3.5 md:w-4 md:h-4" />
                             Wishlist
                         </Link>
                     </Button>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1 md:gap-1.5">
                         <HideAmountsButton size="icon-sm" />
                         {!isDone && (
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setModal({ type: 'edit' })}
-                                className="h-8"
+                                className="h-8 md:h-9 text-xs md:text-sm px-2 md:px-3"
                             >
                                 <Pencil className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">Edit</span>
@@ -270,7 +270,7 @@ export function WishlistDetail({
                                 variant="outline"
                                 size="sm"
                                 onClick={handleCancel}
-                                className="h-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-500/10 border-amber-200 dark:border-amber-500/30"
+                                className="h-8 md:h-9 text-xs md:text-sm px-2 md:px-3 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-500/10 border-amber-200 dark:border-amber-500/30"
                             >
                                 <Ban className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">
@@ -282,7 +282,7 @@ export function WishlistDetail({
                 </div>
 
                 {/* ============ HERO ============ */}
-                <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card overflow-hidden shadow-sm">
+                <div className="rounded-xl md:rounded-2xl border border-slate-200 dark:border-white/10 bg-card overflow-hidden shadow-sm">
                     <div className="grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
                         {/* Image */}
                         <div className="relative border-b md:border-b-0 md:border-r border-slate-100 dark:border-white/5">
@@ -292,10 +292,10 @@ export function WishlistDetail({
                                 aspect="4:3"
                                 className="md:aspect-auto md:h-full md:min-h-[340px]"
                             />
-                            <div className="absolute top-3 left-3 flex items-center gap-2 flex-wrap">
+                            <div className="absolute top-2 md:top-3 left-2 md:left-3 flex items-center gap-1.5 md:gap-2 flex-wrap">
                                 <span
                                     className={cn(
-                                        'inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-sm',
+                                        'inline-flex items-center px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-[10px] md:text-[11px] font-bold uppercase tracking-wider shadow-sm',
                                         priorityStyle.bg,
                                         priorityStyle.text
                                     )}
@@ -304,7 +304,7 @@ export function WishlistDetail({
                                 </span>
                                 <span
                                     className={cn(
-                                        'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider',
+                                        'inline-flex items-center gap-1 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-[10px] md:text-[11px] font-bold uppercase tracking-wider',
                                         statusStyle.bg,
                                         statusStyle.text
                                     )}
@@ -317,13 +317,13 @@ export function WishlistDetail({
                             </div>
 
                             {isCoolingOff && wishlist.cooling_off_until && (
-                                <div className="absolute bottom-3 left-3 right-3 rounded-xl bg-sky-500/95 backdrop-blur-sm shadow-md p-3 flex items-center gap-2.5">
-                                    <Snowflake className="w-5 h-5 text-white shrink-0" />
-                                    <div>
-                                        <p className="text-[10px] font-semibold text-white/80 uppercase tracking-wider">
+                                <div className="absolute bottom-2 md:bottom-3 left-2 md:left-3 right-2 md:right-3 rounded-lg md:rounded-xl bg-sky-500/95 backdrop-blur-sm shadow-md p-2 md:p-3 flex items-center gap-2 md:gap-2.5">
+                                    <Snowflake className="w-4 h-4 md:w-5 md:h-5 text-white shrink-0" />
+                                    <div className="min-w-0">
+                                        <p className="text-[9px] md:text-[10px] font-semibold text-white/80 uppercase tracking-wider">
                                             Cooling-off
                                         </p>
-                                        <p className="text-xs font-bold text-white">
+                                        <p className="text-[11px] md:text-xs font-bold text-white truncate">
                                             Tunggu sampai{' '}
                                             {new Date(
                                                 wishlist.cooling_off_until
@@ -340,10 +340,10 @@ export function WishlistDetail({
                         </div>
 
                         {/* Info */}
-                        <div className="p-5 md:p-6 flex flex-col">
+                        <div className="p-4 md:p-6 flex flex-col">
                             <h1
                                 className={cn(
-                                    'text-2xl md:text-3xl font-bold tracking-tight leading-tight mb-2',
+                                    'text-xl md:text-3xl font-bold tracking-tight leading-tight mb-1.5 md:mb-2',
                                     isDone &&
                                     'line-through text-muted-foreground'
                                 )}
@@ -352,20 +352,20 @@ export function WishlistDetail({
                             </h1>
 
                             {wishlist.category && (
-                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+                                <p className="text-[11px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 md:mb-4">
                                     {getCategoryLabel(wishlist.category)}
                                 </p>
                             )}
 
                             {/* Target */}
-                            <div className="mb-5">
-                                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                            <div className="mb-4 md:mb-5">
+                                <p className="text-[10px] md:text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5 md:mb-1">
                                     Target Harga
                                 </p>
                                 <Amount
                                     value={targetPrice}
                                     className={cn(
-                                        'text-3xl md:text-4xl font-bold block',
+                                        'text-2xl md:text-4xl font-bold block',
                                         isDone
                                             ? 'text-muted-foreground'
                                             : 'text-brand'
@@ -374,32 +374,32 @@ export function WishlistDetail({
                             </div>
 
                             {/* Progress */}
-                            <div className="mb-5">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs text-muted-foreground">
+                            <div className="mb-4 md:mb-5">
+                                <div className="flex items-center justify-between mb-1.5 md:mb-2">
+                                    <span className="text-[11px] md:text-xs text-muted-foreground">
                                         Tersimpan
                                     </span>
                                     <div className="flex items-center gap-1 tabular-nums">
                                         <Amount
                                             value={savedAmount}
                                             className={cn(
-                                                'text-sm font-bold',
+                                                'text-xs md:text-sm font-bold',
                                                 hasSavings
                                                     ? 'text-emerald-600 dark:text-emerald-400'
                                                     : 'text-slate-500'
                                             )}
                                         />
-                                        <span className="text-muted-foreground text-xs">
+                                        <span className="text-muted-foreground text-[10px] md:text-xs">
                                             /
                                         </span>
                                         <Amount
                                             value={targetPrice}
-                                            className="text-xs font-medium text-muted-foreground"
+                                            className="text-[10px] md:text-xs font-medium text-muted-foreground"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="w-full h-2.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
+                                <div className="w-full h-2 md:h-2.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
                                     <div
                                         className={cn(
                                             'h-full rounded-full transition-all duration-500',
@@ -418,10 +418,10 @@ export function WishlistDetail({
                                     />
                                 </div>
 
-                                <div className="flex items-center justify-between mt-2">
+                                <div className="flex items-center justify-between mt-1.5 md:mt-2">
                                     <span
                                         className={cn(
-                                            'text-sm tabular-nums font-bold',
+                                            'text-xs md:text-sm tabular-nums font-bold',
                                             percent >= 100
                                                 ? 'text-emerald-600 dark:text-emerald-400'
                                                 : percent > 0
@@ -432,16 +432,16 @@ export function WishlistDetail({
                                         {Math.round(percent)}%
                                     </span>
                                     {!isDone && remaining > 0 && (
-                                        <span className="text-xs text-muted-foreground tabular-nums flex items-center gap-1">
+                                        <span className="text-[10px] md:text-xs text-muted-foreground tabular-nums flex items-center gap-1">
                                             Kurang
                                             <Amount
                                                 value={remaining}
-                                                className="inline text-xs font-semibold text-slate-600 dark:text-slate-400"
+                                                className="inline text-[10px] md:text-xs font-semibold text-slate-600 dark:text-slate-400"
                                             />
                                         </span>
                                     )}
                                     {percent >= 100 && !isDone && (
-                                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                        <span className="text-[10px] md:text-xs font-bold text-emerald-600 dark:text-emerald-400">
                                             ✓ Tercapai
                                         </span>
                                     )}
@@ -450,17 +450,17 @@ export function WishlistDetail({
 
                             {/* Envelope info */}
                             {!isDone && envelope && (
-                                <div className="mb-4 rounded-xl bg-gradient-to-br from-brand/5 to-brand/[0.02] border border-brand/20 p-3 flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
-                                        <PiggyBank className="w-4 h-4 text-brand" />
+                                <div className="mb-3 md:mb-4 rounded-lg md:rounded-xl bg-gradient-to-br from-brand/5 to-brand/[0.02] border border-brand/20 p-2.5 md:p-3 flex items-center gap-2 md:gap-2.5">
+                                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-md md:rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
+                                        <PiggyBank className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                        <p className="text-[9px] md:text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                                             Saldo Envelope
                                         </p>
                                         <Amount
                                             value={envelopeBalance}
-                                            className="text-base font-bold text-brand block"
+                                            className="text-sm md:text-base font-bold text-brand block"
                                         />
                                     </div>
                                 </div>
@@ -475,7 +475,7 @@ export function WishlistDetail({
                                                 setModal({ type: 'purchase' })
                                             }
                                             size="lg"
-                                            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white h-12 text-base font-semibold"
+                                            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white h-11 md:h-12 text-sm md:text-base font-semibold"
                                         >
                                             <ShoppingBag className="w-4 h-4" />
                                             Beli Sekarang
@@ -489,7 +489,7 @@ export function WishlistDetail({
                                                 })
                                             }
                                             size="lg"
-                                            className="w-full h-12 text-base font-semibold"
+                                            className="w-full h-11 md:h-12 text-sm md:text-base font-semibold"
                                         >
                                             <PiggyBank className="w-4 h-4" />
                                             Nabung
@@ -505,7 +505,7 @@ export function WishlistDetail({
                                                 })
                                             }
                                             size="lg"
-                                            className="w-full h-11"
+                                            className="w-full h-10 md:h-11 text-sm"
                                         >
                                             <Undo2 className="w-4 h-4" />
                                             Tarik Uang
@@ -518,7 +518,7 @@ export function WishlistDetail({
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className={cn(
-                                                'inline-flex items-center justify-center gap-2 h-11 px-4 rounded-lg text-sm font-medium transition-colors',
+                                                'inline-flex items-center justify-center gap-2 h-10 md:h-11 px-4 rounded-lg text-sm font-medium transition-colors',
                                                 'border border-slate-200 dark:border-white/10',
                                                 'text-slate-700 dark:text-slate-300',
                                                 'hover:bg-slate-50 dark:hover:bg-white/5'
@@ -540,7 +540,7 @@ export function WishlistDetail({
                         {hasDecision && interpretation ? (
                             <div
                                 className={cn(
-                                    'rounded-2xl border overflow-hidden',
+                                    'rounded-xl md:rounded-2xl border overflow-hidden',
                                     interpretation.variant === 'success'
                                         ? 'bg-emerald-50/60 dark:bg-emerald-500/[0.03] border-emerald-200 dark:border-emerald-500/30'
                                         : interpretation.variant === 'warning'
@@ -548,11 +548,11 @@ export function WishlistDetail({
                                             : 'bg-red-50/60 dark:bg-red-500/[0.03] border-red-200 dark:border-red-500/30'
                                 )}
                             >
-                                <div className="p-5">
-                                    <div className="flex items-start gap-4">
+                                <div className="p-4 md:p-5">
+                                    <div className="flex items-start gap-3 md:gap-4">
                                         <div
                                             className={cn(
-                                                'w-12 h-12 rounded-xl flex items-center justify-center shrink-0',
+                                                'w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center shrink-0',
                                                 interpretation.variant === 'success'
                                                     ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                                                     : interpretation.variant === 'warning'
@@ -560,17 +560,17 @@ export function WishlistDetail({
                                                         : 'bg-red-500/15 text-red-600 dark:text-red-400'
                                             )}
                                         >
-                                            <Sparkles className="w-6 h-6" />
+                                            <Sparkles className="w-5 h-5 md:w-6 md:h-6" />
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <div className="flex items-baseline justify-between gap-3 flex-wrap mb-1">
-                                                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                            <div className="flex items-baseline justify-between gap-3 flex-wrap mb-0.5 md:mb-1">
+                                                <p className="text-[9px] md:text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                                                     Decision Check
                                                 </p>
                                                 <div className="flex items-baseline gap-1">
                                                     <span
                                                         className={cn(
-                                                            'text-xl font-bold tabular-nums leading-none',
+                                                            'text-lg md:text-xl font-bold tabular-nums leading-none',
                                                             interpretation.variant === 'success'
                                                                 ? 'text-emerald-700 dark:text-emerald-300'
                                                                 : interpretation.variant === 'warning'
@@ -580,14 +580,14 @@ export function WishlistDetail({
                                                     >
                                                         {decisionScore}
                                                     </span>
-                                                    <span className="text-xs font-medium text-muted-foreground">
+                                                    <span className="text-[10px] md:text-xs font-medium text-muted-foreground">
                                                         /{DECISION_MAX_SCORE}
                                                     </span>
                                                 </div>
                                             </div>
                                             <p
                                                 className={cn(
-                                                    'text-sm font-bold mb-1',
+                                                    'text-xs md:text-sm font-bold mb-0.5 md:mb-1',
                                                     interpretation.variant === 'success'
                                                         ? 'text-emerald-700 dark:text-emerald-300'
                                                         : interpretation.variant === 'warning'
@@ -598,20 +598,20 @@ export function WishlistDetail({
                                                 {interpretation.emoji}{' '}
                                                 {interpretation.label}
                                             </p>
-                                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                            <p className="text-[11px] md:text-xs text-muted-foreground leading-relaxed">
                                                 {interpretation.message}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-2 mt-4">
+                                    <div className="flex gap-2 mt-3 md:mt-4">
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             onClick={() =>
                                                 setModal({ type: 'decision' })
                                             }
-                                            className="flex-1 bg-background/50"
+                                            className="flex-1 bg-background/50 h-9 md:h-10"
                                         >
                                             <RotateCcw className="w-3.5 h-3.5" />
                                             Ubah Jawaban
@@ -624,27 +624,27 @@ export function WishlistDetail({
                                 type="button"
                                 onClick={() => setModal({ type: 'decision' })}
                                 className={cn(
-                                    'group w-full text-left rounded-2xl border-2 border-dashed p-5 transition-all cursor-pointer',
+                                    'group w-full text-left rounded-xl md:rounded-2xl border-2 border-dashed p-4 md:p-5 transition-all cursor-pointer',
                                     'border-brand/30 bg-brand/[0.03]',
                                     'hover:border-brand/50 hover:bg-brand/[0.06]'
                                 )}
                             >
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
-                                        <Sparkles className="w-6 h-6 text-brand" />
+                                <div className="flex items-start gap-3 md:gap-4">
+                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+                                        <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-brand" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-bold text-brand mb-1">
+                                        <p className="text-xs md:text-sm font-bold text-brand mb-0.5 md:mb-1">
                                             Isi Decision Check
                                         </p>
-                                        <p className="text-xs text-muted-foreground leading-relaxed">
+                                        <p className="text-[11px] md:text-xs text-muted-foreground leading-relaxed">
                                             Jawab 6 pertanyaan singkat buat
                                             nilai apakah barang ini beneran
                                             worth it. Bantu lu keputusan lebih
                                             rasional.
                                         </p>
                                     </div>
-                                    <ArrowDownLeft className="w-5 h-5 text-brand/50 group-hover:text-brand transition-colors shrink-0 rotate-45" />
+                                    <ArrowDownLeft className="w-4 h-4 md:w-5 md:h-5 text-brand/50 group-hover:text-brand transition-colors shrink-0 rotate-45" />
                                 </div>
                             </button>
                         )}
@@ -652,7 +652,7 @@ export function WishlistDetail({
                 )}
 
                 {/* ============ DETAIL INFO ============ */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-4">
                     {wishlist.target_date && (
                         <InfoCard
                             icon={Calendar}
@@ -665,7 +665,7 @@ export function WishlistDetail({
                         <InfoCard
                             icon={Sparkles}
                             label="Mood"
-                            value={getMoodLabel(wishlist.mood) || '—'}
+                            value={getMoodLabel(wishlist.mood) || '-'}
                         />
                     )}
 
@@ -705,12 +705,12 @@ export function WishlistDetail({
                                     href={wishlist.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-brand hover:underline text-sm font-medium inline-flex items-center gap-1 max-w-full"
+                                    className="text-brand hover:underline text-xs md:text-sm font-medium inline-flex items-center gap-1 max-w-full"
                                 >
                                     <span className="truncate">
                                         {wishlist.link}
                                     </span>
-                                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                                    <ExternalLink className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
                                 </a>
                             }
                             fullWidth
@@ -720,53 +720,53 @@ export function WishlistDetail({
 
                 {/* ============ RIWAYAT ============ */}
                 <div>
-                    <div className="flex items-center justify-between mb-3 px-1">
-                        <h2 className="text-base font-semibold">
+                    <div className="flex items-center justify-between mb-2 md:mb-3 px-1">
+                        <h2 className="text-sm md:text-base font-semibold">
                             Riwayat Transaksi
                         </h2>
-                        <span className="text-xs text-muted-foreground tabular-nums">
+                        <span className="text-[10px] md:text-xs text-muted-foreground tabular-nums">
                             {transactions.length} transaksi
                         </span>
                     </div>
 
                     {transactions.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-slate-200 dark:border-white/10 bg-card p-8 text-center">
-                            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-3">
-                                <PiggyBank className="w-5 h-5 text-slate-400" />
+                        <div className="rounded-xl md:rounded-2xl border border-dashed border-slate-200 dark:border-white/10 bg-card p-6 md:p-8 text-center">
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-2 md:mb-3">
+                                <PiggyBank className="w-4 h-4 md:w-5 md:h-5 text-slate-400" />
                             </div>
-                            <p className="text-sm font-medium mb-1">
+                            <p className="text-xs md:text-sm font-medium mb-0.5 md:mb-1">
                                 Belum ada riwayat
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-[10px] md:text-xs text-muted-foreground">
                                 Mulai nabung buat lihat history di sini
                             </p>
                         </div>
                     ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2.5 md:space-y-3">
                             {/* Summary */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-card p-3">
-                                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                            <div className="grid grid-cols-2 gap-2 md:gap-3">
+                                <div className="rounded-lg md:rounded-xl border border-slate-200 dark:border-white/10 bg-card p-2.5 md:p-3">
+                                    <p className="text-[9px] md:text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5 md:mb-1">
                                         Total Setor
                                     </p>
                                     <Amount
                                         value={totalDeposit}
-                                        className="text-base font-bold text-emerald-600 dark:text-emerald-400"
+                                        className="text-sm md:text-base font-bold text-emerald-600 dark:text-emerald-400"
                                     />
                                 </div>
-                                <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-card p-3">
-                                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                                <div className="rounded-lg md:rounded-xl border border-slate-200 dark:border-white/10 bg-card p-2.5 md:p-3">
+                                    <p className="text-[9px] md:text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5 md:mb-1">
                                         Total Tarik
                                     </p>
                                     <Amount
                                         value={totalWithdraw}
-                                        className="text-base font-bold text-amber-600 dark:text-amber-400"
+                                        className="text-sm md:text-base font-bold text-amber-600 dark:text-amber-400"
                                     />
                                 </div>
                             </div>
 
                             {/* List */}
-                            <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card overflow-hidden divide-y divide-slate-100 dark:divide-white/5">
+                            <div className="rounded-xl md:rounded-2xl border border-slate-200 dark:border-white/10 bg-card overflow-hidden divide-y divide-slate-100 dark:divide-white/5">
                                 {transactions.map((tx) => {
                                     const isDeposit =
                                         tx.internal_ref_type ===
@@ -827,22 +827,22 @@ export function WishlistDetail({
                                     return (
                                         <div
                                             key={tx.id}
-                                            className="flex items-center gap-3 p-4"
+                                            className="flex items-center gap-2.5 md:gap-3 p-3 md:p-4"
                                         >
                                             <div
                                                 className={cn(
-                                                    'w-10 h-10 rounded-xl flex items-center justify-center shrink-0',
+                                                    'w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center shrink-0',
                                                     colorClass
                                                 )}
                                             >
-                                                <Icon className="w-4 h-4" />
+                                                <Icon className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                             </div>
 
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold truncate">
+                                                <p className="text-xs md:text-sm font-semibold truncate">
                                                     {label}
                                                 </p>
-                                                <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums truncate">
+                                                <p className="text-[10px] md:text-[11px] text-muted-foreground mt-0.5 tabular-nums truncate">
                                                     {formatDateTimeWIB(tx.date)}
                                                     {tx.note &&
                                                         ` · ${tx.note}`}
@@ -853,7 +853,7 @@ export function WishlistDetail({
                                                 value={Number(tx.amount_idr)}
                                                 sign={sign}
                                                 className={cn(
-                                                    'text-sm font-bold shrink-0',
+                                                    'text-xs md:text-sm font-bold shrink-0',
                                                     amountColor
                                                 )}
                                             />
@@ -867,14 +867,14 @@ export function WishlistDetail({
 
                 {/* ============ DANGER ZONE ============ */}
                 {!isDone && (
-                    <div className="pt-2">
-                        <div className="rounded-2xl border border-red-200 dark:border-red-500/20 bg-red-50/50 dark:bg-red-500/[0.02] p-4">
+                    <div className="pt-1 md:pt-2">
+                        <div className="rounded-xl md:rounded-2xl border border-red-200 dark:border-red-500/20 bg-red-50/50 dark:bg-red-500/[0.02] p-3 md:p-4">
                             <div className="flex items-start justify-between gap-3 flex-wrap">
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-semibold text-red-700 dark:text-red-300 mb-0.5">
+                                    <p className="text-xs md:text-sm font-semibold text-red-700 dark:text-red-300 mb-0.5">
                                         Hapus Wishlist
                                     </p>
-                                    <p className="text-[11px] text-red-600/80 dark:text-red-400/80 leading-relaxed">
+                                    <p className="text-[10px] md:text-[11px] text-red-600/80 dark:text-red-400/80 leading-relaxed">
                                         Hapus permanen. Uang tabungan (kalau
                                         ada) direfund otomatis ke akun asal.
                                     </p>
@@ -883,7 +883,7 @@ export function WishlistDetail({
                                     variant="outline"
                                     size="sm"
                                     onClick={handleDelete}
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-500/20 border-red-300 dark:border-red-500/40 shrink-0"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-500/20 border-red-300 dark:border-red-500/40 shrink-0 h-8 md:h-9 text-xs md:text-sm"
                                 >
                                     <Trash2 className="w-3.5 h-3.5" />
                                     Hapus
@@ -975,18 +975,18 @@ function InfoCard({
     return (
         <div
             className={cn(
-                'rounded-xl border border-slate-200 dark:border-white/10 bg-card p-4',
+                'rounded-lg md:rounded-xl border border-slate-200 dark:border-white/10 bg-card p-3 md:p-4',
                 fullWidth && 'md:col-span-2'
             )}
         >
-            <div className="flex items-center gap-1.5 mb-1.5">
-                <Icon className="w-3.5 h-3.5 text-slate-400" />
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+            <div className="flex items-center gap-1.5 mb-1 md:mb-1.5">
+                <Icon className="w-3 h-3 md:w-3.5 md:h-3.5 text-slate-400" />
+                <p className="text-[9px] md:text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                     {label}
                 </p>
             </div>
             {action || (
-                <p className="text-sm text-slate-900 dark:text-white whitespace-pre-wrap break-words">
+                <p className="text-xs md:text-sm text-slate-900 dark:text-white whitespace-pre-wrap break-words">
                     {value}
                 </p>
             )}

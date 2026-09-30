@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS public.group_members (
 CREATE INDEX IF NOT EXISTS idx_group_members_group ON public.group_members(group_id);
 
 -- =====================================================
--- 3. EVENT_RECEIPTS — junction many-to-many
+-- 3. EVENT_RECEIPTS - junction many-to-many
 -- 1 event bisa punya banyak receipt (misal: 3x makan di hari yang sama)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.event_receipts (
@@ -55,7 +55,7 @@ CREATE INDEX IF NOT EXISTS idx_event_receipts_event ON public.event_receipts(eve
 CREATE INDEX IF NOT EXISTS idx_event_receipts_receipt ON public.event_receipts(receipt_id);
 
 -- =====================================================
--- 4. Add group_id ke events (gak pakai receipt_id — pake junction)
+-- 4. Add group_id ke events (gak pakai receipt_id - pake junction)
 -- =====================================================
 ALTER TABLE public.events
   ADD COLUMN IF NOT EXISTS group_id uuid REFERENCES public.groups(id) ON DELETE SET NULL;
@@ -115,7 +115,7 @@ WHERE NOT EXISTS (
 );
 
 -- =====================================================
--- 8. Update seed function — tambah Split Bill + Settle Bill
+-- 8. Update seed function - tambah Split Bill + Settle Bill
 -- =====================================================
 CREATE OR REPLACE FUNCTION public.seed_default_categories(p_user_id uuid)
 RETURNS void

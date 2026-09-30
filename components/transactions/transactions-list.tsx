@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input'
 import { Amount } from '@/components/ui/amount'
 import { EmptyState } from '@/components/ui/empty-state'
 import { HideAmountsButton } from '@/components/shared/hide-amounts-button'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   Sheet,
   SheetContent,
@@ -62,7 +63,11 @@ import { usePagination } from '@/lib/hooks/use-pagination'
 import { Pagination } from '@/components/shared/pagination'
 import { BulkActionBar } from '@/components/shared/bulk-action-bar'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import { formatDateGroupWIB, formatTimeWIB, getDateKeyWIB } from '@/lib/utils/datetime'
+import {
+  formatDateGroupWIB,
+  formatTimeWIB,
+  getDateKeyWIB,
+} from '@/lib/utils/datetime'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/types/database'
 
@@ -111,6 +116,7 @@ export function TransactionsList({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const { deleteTransaction, bulkDeleteTransactions } = useTransactions()
+  const { confirm, Dialog: ConfirmDialog } = useConfirmDialog()
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -234,22 +240,46 @@ export function TransactionsList({
     setDateRange(EMPTY_DATE_RANGE)
   }
 
-  async function handleBulkDelete() {
+  function handleBulkDelete() {
     if (selectedIds.size === 0) return
     const count = selectedIds.size
-    if (!confirm(`Hapus ${count} transaksi? Bisa di-restore dari Trash.`)) return
 
-    const result = await bulkDeleteTransactions(Array.from(selectedIds))
-    if (result.success) {
-      clearSelection()
-    }
+    confirm({
+      title: `Hapus ${count} transaksi?`,
+      description:
+        'Transaksi yang dihapus bisa di-restore dari Trash dalam 30 hari.',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+      variant: 'destructive',
+      onConfirm: async () => {
+        const result = await bulkDeleteTransactions(Array.from(selectedIds))
+        if (result.success) {
+          clearSelection()
+        }
+      },
+    })
+  }
+
+  function handleDeleteOne(tx: Transaction) {
+    confirm({
+      title: `Hapus "${tx.name}"?`,
+      description:
+        'Transaksi yang dihapus bisa di-restore dari Trash dalam 30 hari.',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+      variant: 'destructive',
+      onConfirm: async () => {
+        await deleteTransaction(tx.id)
+        setDetailTx(null)
+      },
+    })
   }
 
   return (
     <>
-      {/* Summary */}
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div className="flex gap-5 flex-wrap">
+      {/* Summary - KEEP format lama (stacked) */}
+      <div className="flex items-start justify-between gap-3 mb-3 sm:mb-4">
+        <div className="flex gap-4 sm:gap-5 flex-wrap">
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
               Income
@@ -257,7 +287,7 @@ export function TransactionsList({
             <Amount
               value={totalIncome}
               sign="positive"
-              className="text-base font-bold text-emerald-600"
+              className="text-sm sm:text-base font-bold text-emerald-600"
             />
           </div>
           <div>
@@ -267,7 +297,7 @@ export function TransactionsList({
             <Amount
               value={totalExpense}
               sign="negative"
-              className="text-base font-bold text-red-600"
+              className="text-sm sm:text-base font-bold text-red-600"
             />
           </div>
         </div>
@@ -281,7 +311,7 @@ export function TransactionsList({
         </div>
       </div>
 
-      {/* Search + filter */}
+      {/* Search + filter - KEEP sama */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
@@ -418,12 +448,12 @@ export function TransactionsList({
             </span>
           </div>
           <p className="text-[11px] text-muted-foreground tabular-nums">
-            {from}–{to} dari {totalItems}
+            {from}-{to} dari {totalItems}
           </p>
         </div>
       )}
 
-      {/* List */}
+      {/* List - per-date card KEPT */}
       {filtered.length === 0 ? (
         <Card>
           <CardContent>
@@ -449,7 +479,7 @@ export function TransactionsList({
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-3 sm:space-y-5">
           {sortedDates.map((dateKey) => {
             const items = grouped[dateKey]
             const dayNet = items.reduce((sum, t) => {
@@ -460,7 +490,8 @@ export function TransactionsList({
 
             return (
               <div key={dateKey}>
-                <div className="flex items-center justify-between mb-2 px-1">
+                {/* Date label - di luar card, KEPT */}
+                <div className="flex items-center justify-between mb-1.5 sm:mb-2 px-1">
                   <p className="text-[10px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     {formatDateGroupWIB(items[0].date)}
                   </p>
@@ -474,8 +505,9 @@ export function TransactionsList({
                   />
                 </div>
 
-                <Card>
-                  <CardContent className="p-1.5">
+                {/* Card per tanggal */}
+                <Card className="py-0 gap-0 rounded-xl sm:rounded-2xl">
+                  <CardContent className="p-1 sm:p-1.5">
                     <div className="space-y-0.5">
                       {items.map((tx) => {
                         const account = accounts.find(
@@ -495,7 +527,7 @@ export function TransactionsList({
                           <div
                             key={tx.id}
                             className={cn(
-                              'group flex items-center gap-2 py-2.5 px-2 rounded-xl transition-colors',
+                              'group flex items-center gap-2 py-1.5 sm:py-2.5 px-1.5 sm:px-2 rounded-lg sm:rounded-xl transition-colors',
                               isSelected
                                 ? 'bg-brand/5 dark:bg-brand/10'
                                 : 'hover:bg-slate-50 dark:hover:bg-white/5'
@@ -511,10 +543,10 @@ export function TransactionsList({
                               onClick={() => setDetailTx(tx)}
                               className="flex items-center justify-between flex-1 min-w-0 cursor-pointer gap-2"
                             >
-                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                                 <div
                                   className={cn(
-                                    'w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0',
+                                    'w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0',
                                     isIncome
                                       ? 'bg-emerald-500/10 text-emerald-600'
                                       : isTransfer
@@ -535,11 +567,11 @@ export function TransactionsList({
                                   <p className="text-xs sm:text-sm font-medium truncate leading-tight">
                                     {tx.name}
                                   </p>
-                                  <div className="flex items-center gap-1.5 mt-0.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
-                                    <span className="tabular-nums">
+                                  <div className="flex items-center gap-1 sm:gap-1.5 mt-0.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
+                                    <span className="tabular-nums shrink-0">
                                       {formatTimeWIB(tx.date)}
                                     </span>
-                                    <span>·</span>
+                                    <span className="opacity-60">·</span>
                                     <span className="truncate">
                                       {isTransfer
                                         ? `${account?.name} → ${toAccount?.name}`
@@ -547,8 +579,10 @@ export function TransactionsList({
                                     </span>
                                     {category && !isTransfer && (
                                       <>
-                                        <span>·</span>
-                                        <span className="truncate">
+                                        <span className="opacity-60 hidden sm:inline">
+                                          ·
+                                        </span>
+                                        <span className="truncate hidden sm:inline">
                                           {category.name}
                                         </span>
                                       </>
@@ -575,7 +609,7 @@ export function TransactionsList({
                                       : 'negative'
                                 }
                                 className={cn(
-                                  'text-xs sm:text-sm font-semibold shrink-0',
+                                  'text-xs sm:text-sm font-semibold shrink-0 tabular-nums',
                                   isIncome
                                     ? 'text-emerald-600'
                                     : isTransfer
@@ -594,9 +628,9 @@ export function TransactionsList({
                                   <Button
                                     variant="ghost"
                                     size="icon-sm"
-                                    className="opacity-100"
+                                    className="h-7 w-7 sm:h-8 sm:w-8 opacity-100"
                                   >
-                                    <MoreVertical className="w-4 h-4" />
+                                    <MoreVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
@@ -611,7 +645,7 @@ export function TransactionsList({
                                     Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
-                                    onSelect={() => deleteTransaction(tx.id)}
+                                    onSelect={() => handleDeleteOne(tx)}
                                     className="text-red-600 focus:text-red-600 whitespace-nowrap"
                                   >
                                     <Trash2 className="w-4 h-4 mr-2 shrink-0" />
@@ -747,12 +781,7 @@ export function TransactionsList({
                 setDetailTx(null)
                 setTimeout(() => openEdit(tx), 200)
               }}
-              onDelete={() => {
-                if (confirm('Yakin hapus transaksi ini?')) {
-                  deleteTransaction(detailTx.id)
-                  setDetailTx(null)
-                }
-              }}
+              onDelete={() => handleDeleteOne(detailTx)}
             />
           )}
         </SheetContent>
@@ -782,12 +811,7 @@ export function TransactionsList({
                 setDetailTx(null)
                 setTimeout(() => openEdit(tx), 200)
               }}
-              onDelete={() => {
-                if (confirm('Yakin hapus transaksi ini?')) {
-                  deleteTransaction(detailTx.id)
-                  setDetailTx(null)
-                }
-              }}
+              onDelete={() => handleDeleteOne(detailTx)}
             />
           )}
         </DialogContent>
@@ -795,9 +819,14 @@ export function TransactionsList({
 
       {/* Form Sheet mobile */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="md:hidden max-h-[90vh] overflow-y-auto">
+        <SheetContent
+          side="bottom"
+          className="md:hidden max-h-[90vh] overflow-y-auto"
+        >
           <SheetHeader>
-            <SheetTitle>{editing ? 'Edit Transaksi' : 'Tambah Transaksi'}</SheetTitle>
+            <SheetTitle>
+              {editing ? 'Edit Transaksi' : 'Tambah Transaksi'}
+            </SheetTitle>
             <SheetDescription>
               {editing ? 'Update detail transaksi.' : 'Catat transaksi baru.'}
             </SheetDescription>
@@ -820,7 +849,9 @@ export function TransactionsList({
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="hidden md:block sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? 'Edit Transaksi' : 'Tambah Transaksi'}</DialogTitle>
+            <DialogTitle>
+              {editing ? 'Edit Transaksi' : 'Tambah Transaksi'}
+            </DialogTitle>
             <DialogDescription>
               {editing ? 'Update detail transaksi.' : 'Catat transaksi baru.'}
             </DialogDescription>
@@ -836,6 +867,8 @@ export function TransactionsList({
           />
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog />
     </>
   )
 }

@@ -13,7 +13,7 @@ export const WISHLIST_CATEGORIES = [
 ] as const
 
 export function getCategoryLabel(value: string | null): string {
-    if (!value) return '—'
+    if (!value) return '-'
     return (
         WISHLIST_CATEGORIES.find((c) => c.value === value)?.label || value
     )

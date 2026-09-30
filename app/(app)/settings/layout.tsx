@@ -56,7 +56,7 @@ export default function SettingsLayout({
                 description="Kelola preferensi & data akun lu"
             />
 
-            {/* MOBILE — Dropdown Select */}
+            {/* MOBILE - Dropdown Select */}
             <div className="md:hidden mb-6">
                 <Select
                     value={activeTab.href}
@@ -84,7 +84,7 @@ export default function SettingsLayout({
                 </Select>
             </div>
 
-            {/* DESKTOP — Tab bar */}
+            {/* DESKTOP - Tab bar */}
             <div className="hidden md:flex flex-wrap gap-1.5 mb-6">
                 {tabs.map((tab) => {
                     const Icon = tab.icon

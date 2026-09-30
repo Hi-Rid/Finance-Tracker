@@ -39,7 +39,7 @@ export default async function WishlistPage() {
         <PageWrapper>
             <PageHeader
                 title="Wishlist"
-                description="Barang yang pengen lu beli — direncanain dengan cermat"
+                description="Barang yang pengen lu beli - direncanain dengan cermat"
                 action={
                     <Button variant="outline" size="sm" asChild>
                         <Link href="/wishlist/statistics">

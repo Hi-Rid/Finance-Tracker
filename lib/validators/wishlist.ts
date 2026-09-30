@@ -71,7 +71,7 @@ export const DECISION_QUESTIONS: DecisionQuestion[] = [
     {
         key: 'need',
         label: 'Seberapa butuh barang ini?',
-        help: 'Jujur ya — butuh ≠ pengen.',
+        help: 'Jujur ya - butuh ≠ pengen.',
         low: 'Pengen doang',
         high: 'Butuh banget',
     },

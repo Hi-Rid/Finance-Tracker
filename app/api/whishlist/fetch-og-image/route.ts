@@ -83,7 +83,7 @@ export async function POST(req: Request) {
             {
                 error:
                     err?.name === 'AbortError'
-                        ? 'Halaman timeout — coba lagi'
+                        ? 'Halaman timeout - coba lagi'
                         : 'Gak bisa akses halaman. Coba upload manual.',
             },
             { status: 400 }

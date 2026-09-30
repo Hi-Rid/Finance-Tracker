@@ -53,3 +53,20 @@ export function parseNumber(value: string): number {
   const cleaned = value.replace(/[^\d.-]/g, '')
   return parseFloat(cleaned) || 0
 }
+
+/** Format Rupiah compact buat UI sempit: Rp 1.5jt, Rp 250rb, Rp 3M */
+export function formatCompactRupiah(value: number): string {
+  const abs = Math.abs(value)
+  const sign = value < 0 ? '-' : ''
+
+  if (abs >= 1_000_000_000_000)
+    return `${sign}Rp ${(abs / 1_000_000_000_000).toFixed(1)}T`
+  if (abs >= 1_000_000_000)
+    return `${sign}Rp ${(abs / 1_000_000_000).toFixed(1)}M`
+  if (abs >= 1_000_000) {
+    const jt = abs / 1_000_000
+    return `${sign}Rp ${jt >= 100 ? jt.toFixed(0) : jt.toFixed(1)}jt`
+  }
+  if (abs >= 1_000) return `${sign}Rp ${(abs / 1_000).toFixed(0)}rb`
+  return `${sign}Rp ${abs.toLocaleString('id-ID')}`
+}

@@ -6,7 +6,7 @@
 -- =====================================================
 
 -- =====================================================
--- BUDGET_PERIODS — income per bulan
+-- BUDGET_PERIODS - income per bulan
 -- =====================================================
 create table if not exists public.budget_periods (
   id uuid primary key default uuid_generate_v4(),
@@ -31,7 +31,7 @@ create policy "users_own_budget_periods" on public.budget_periods
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- =====================================================
--- RECEIPTS — struk OCR
+-- RECEIPTS - struk OCR
 -- =====================================================
 create table if not exists public.receipts (
   id uuid primary key default uuid_generate_v4(),

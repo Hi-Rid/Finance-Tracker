@@ -5,6 +5,7 @@ import { Wallet } from 'lucide-react'
 import { StatCard } from '@/components/dashboard/stat-card'
 import { NetWorthChart } from '@/components/charts/net-worth-chart'
 import { CHART_COLORS } from '@/lib/colors'
+import { useMediaQuery } from '@/lib/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 
 type Range = '3M' | '6M' | '1Y' | 'ALL'
@@ -40,6 +41,8 @@ function formatLabel(month: string): string {
 
 export function NetWorthCard({ value, trend, history }: NetWorthCardProps) {
     const [range, setRange] = useState<Range>('6M')
+    const isMobile = useMediaQuery('(max-width: 767px)')
+    const chartHeight = isMobile ? 140 : 240
 
     const sliced = useMemo(() => {
         const opt = RANGE_OPTIONS.find((o) => o.value === range)
@@ -55,7 +58,7 @@ export function NetWorthCard({ value, trend, history }: NetWorthCardProps) {
     const availableMonths = history.length
 
     const rangePicker = (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1">
             {RANGE_OPTIONS.map((opt) => {
                 const isDisabled = opt.months !== null && opt.months > availableMonths
                 const isActive = range === opt.value
@@ -67,8 +70,8 @@ export function NetWorthCard({ value, trend, history }: NetWorthCardProps) {
                         disabled={isDisabled}
                         onClick={() => setRange(opt.value)}
                         className={cn(
-                            'px-2.5 py-1 rounded-md text-[11px] font-semibold tabular-nums transition-all cursor-pointer',
-                            'min-w-[36px]',
+                            'px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-[11px] font-semibold tabular-nums transition-all cursor-pointer',
+                            'min-w-[30px] sm:min-w-[36px]',
                             isActive
                                 ? 'bg-brand text-white shadow-sm shadow-brand/30'
                                 : isDisabled
@@ -98,7 +101,7 @@ export function NetWorthCard({ value, trend, history }: NetWorthCardProps) {
                 <NetWorthChart
                     data={chartData}
                     labels={chartLabels}
-                    height={240}
+                    height={chartHeight}
                 />
             }
         />

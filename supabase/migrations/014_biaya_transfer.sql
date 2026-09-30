@@ -4,7 +4,7 @@
 -- Idempotent
 -- =====================================================
 
--- 1. Update seed function — tambah kategori
+-- 1. Update seed function - tambah kategori
 CREATE OR REPLACE FUNCTION public.seed_default_categories(p_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql

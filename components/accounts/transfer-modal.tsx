@@ -137,7 +137,7 @@ export function TransferModal({
                                 Ke
                             </p>
                             <p className="text-sm font-bold truncate">
-                                {destAccount?.name || '—'}
+                                {destAccount?.name || '-'}
                             </p>
                             {destAccount ? (
                                 <Amount
@@ -145,7 +145,7 @@ export function TransferModal({
                                     className="text-xs text-muted-foreground mt-0.5"
                                 />
                             ) : (
-                                <p className="text-xs text-muted-foreground mt-0.5">—</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">-</p>
                             )}
                         </div>
                     </div>
@@ -295,7 +295,7 @@ export function TransferModal({
                                         value={sourceBalance}
                                         className="inline text-xs font-medium"
                                     />
-                                    <span>— kurang</span>
+                                    <span>- kurang</span>
                                     <Amount
                                         value={totalDeduct - sourceBalance}
                                         className="inline text-xs font-bold"

@@ -57,33 +57,40 @@ export function BudgetPage({
                 description="Rencanakan & track pengeluaran lu"
             />
 
-            {/* Row: Month Picker + Actions */}
-            <div className="flex flex-col md:flex-row md:items-center gap-2.5 md:gap-3 mb-3 md:mb-4">
-                <div className="flex-1 min-w-0">
-                    <MonthPicker value={month} onChange={setMonth} />
-                </div>
+            {/* Toolbar: Month picker + Actions */}
+            <div className="flex items-center justify-between gap-2 mb-3 md:mb-4">
+                <MonthPicker value={month} onChange={setMonth} />
 
-                <div className="flex items-center gap-2 shrink-0 justify-end">
+                <div className="flex items-center gap-1.5 shrink-0">
                     <HideAmountsButton size="icon-sm" />
-                    <Button
-                        size="sm"
+                    <button
+                        type="button"
                         onClick={() => setAiWizardOpen(true)}
                         disabled={income <= 0}
                         className={cn(
-                            'gap-1.5 h-9 md:h-10 px-3 md:px-4',
-                            'bg-gradient-to-br from-brand to-brand/85 hover:from-brand/95 hover:to-brand/80',
+                            'flex items-center gap-1.5 h-9 px-2.5 sm:px-3.5 rounded-lg shrink-0',
+                            'bg-gradient-to-br from-brand to-brand/85',
+                            'hover:from-brand/95 hover:to-brand/80',
                             'text-white font-semibold',
                             'shadow-md shadow-brand/25 hover:shadow-lg hover:shadow-brand/30',
                             'border border-brand/40',
-                            'transition-all'
+                            'transition-all cursor-pointer',
+                            'disabled:opacity-50 disabled:cursor-not-allowed',
+                            'active:scale-[0.97]'
                         )}
                     >
-                        <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                        <span className="hidden sm:inline">
-                            AI Auto-Budgeting
+                        <Sparkles className="w-3.5 h-3.5 shrink-0" />
+
+                        {/* Mobile: 2 baris, text kecil */}
+                        <span className="sm:hidden text-[10px] font-bold leading-[1.1] text-left">
+                            AI Auto-
+                            <br />
+                            Budgeting
                         </span>
-                        <span className="sm:hidden">AI Budget</span>
-                    </Button>
+
+                        {/* Desktop: 1 baris */}
+                        <span className="hidden sm:inline text-xs">AI Auto-Budgeting</span>
+                    </button>
                 </div>
             </div>
 
@@ -91,9 +98,9 @@ export function BudgetPage({
                 <div className="mb-3 md:mb-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-3 flex items-start gap-2.5">
                     <Sparkles className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                     <div className="text-xs text-muted-foreground leading-relaxed">
-                        <strong className="text-foreground">Tips:</strong>{' '}
-                        Set income bulan ini dulu (klik card Income & Alokasi
-                        di bawah), baru pakai fitur AI Auto-Budgeting.
+                        <strong className="text-foreground">Tips:</strong> Set income bulan
+                        ini dulu (klik card Income & Alokasi di bawah), baru pakai fitur AI
+                        Auto-Budgeting.
                     </div>
                 </div>
             )}

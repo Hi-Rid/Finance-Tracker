@@ -20,7 +20,7 @@ function getModelId(): string {
 
 /**
  * Upload file ke Nanonets OCR (sync mode).
- * Return raw response — parsing di-handle terpisah.
+ * Return raw response - parsing di-handle terpisah.
  */
 export async function scanReceiptWithNanonets(file: File | Blob): Promise<any> {
     const modelId = getModelId()

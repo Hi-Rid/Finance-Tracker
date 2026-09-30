@@ -32,7 +32,7 @@ WHERE NOT EXISTS (
   WHERE c.user_id = u.id AND c.name = 'Bond'
 );
 
--- 3. Update seed function — tambah Bond
+-- 3. Update seed function - tambah Bond
 CREATE OR REPLACE FUNCTION public.seed_default_categories(p_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql

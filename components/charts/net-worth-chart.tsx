@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import {
     Area,
     AreaChart,
@@ -9,6 +10,8 @@ import {
     YAxis,
     CartesianGrid,
 } from 'recharts'
+import { AlertTriangle } from 'lucide-react'
+import { TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type NetWorthChartProps = {
@@ -19,12 +22,17 @@ type NetWorthChartProps = {
 }
 
 function formatShortRupiah(value: number): string {
-    if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)}M`
-    if (value >= 1_000_000) {
+    if (Math.abs(value) >= 1_000_000_000_000)
+        return `${(value / 1_000_000_000_000).toFixed(1)}T`
+    if (Math.abs(value) >= 1_000_000_000)
+        return `${(value / 1_000_000_000).toFixed(1)}M`
+    if (Math.abs(value) >= 1_000_000) {
         const jt = value / 1_000_000
-        return jt >= 100 ? `${jt.toFixed(0)}jt` : `${jt.toFixed(1)}jt`
+        return jt >= 100 || jt <= -100
+            ? `${jt.toFixed(0)}jt`
+            : `${jt.toFixed(1)}jt`
     }
-    if (value >= 1_000) return `${(value / 1_000).toFixed(0)}rb`
+    if (Math.abs(value) >= 1_000) return `${(value / 1_000).toFixed(0)}rb`
     return value.toString()
 }
 
@@ -33,6 +41,27 @@ function formatMonthLabel(month: string): string {
     const d = new Date(Number(y), Number(m) - 1, 1)
     const monthShort = d.toLocaleDateString('id-ID', { month: 'short' })
     return `${monthShort} '${y.slice(-2)}`
+}
+
+/**
+ * Deteksi anomaly: nilai negatif ekstrem / lonjakan > 10x baseline.
+ * Ini terjadi kalau user ubah asset value / balance manual tanpa transaksi.
+ */
+function hasAnomaly(values: number[]): boolean {
+    if (values.length < 2) return false
+
+    const current = values[values.length - 1] ?? 0
+    const baseline = Math.max(Math.abs(current), 10_000_000)
+
+    // Cek kalau ada gap ekstrem (rentang lebih dari 20x nilai sekarang)
+    const min = Math.min(...values)
+    const max = Math.max(...values)
+    const range = max - min
+
+    if (range > baseline * 20) return true
+
+    // Atau kalau ada nilai negatif yang lebih dari 3x current
+    return values.some((v) => v < -baseline * 3)
 }
 
 export function NetWorthChart({
@@ -58,6 +87,31 @@ export function NetWorthChart({
         }
     }
 
+    const anomaly = useMemo(() => hasAnomaly(safeData), [safeData])
+
+    if (anomaly) {
+        return (
+            <div
+                className={cn(
+                    'w-full flex flex-col items-center justify-center text-center px-6',
+                    className
+                )}
+                style={{ height }}
+            >
+                <div className="w-12 h-12 rounded-xl bg-brand/10 flex items-center justify-center mb-3">
+                    <TrendingUp className="w-5 h-5 text-brand" />
+                </div>
+                <p className="text-sm font-semibold mb-1">
+                    Chart mulai terbentuk
+                </p>
+                <p className="text-xs text-muted-foreground max-w-[260px] leading-relaxed">
+                    Grafik bakal makin akurat seiring waktu. Awal pemakaian
+                    sering belum ada pembanding.
+                </p>
+            </div>
+        )
+    }
+
     const chartData = safeData.map((value, index) => ({
         index,
         value,
@@ -74,7 +128,7 @@ export function NetWorthChart({
     const max = Math.max(...safeData)
     const range = max - min || 1
     const yPadding = range * 0.15
-    const yMin = Math.max(0, min - yPadding)
+    const yMin = Math.min(0, min - yPadding)
     const yMax = max + yPadding
 
     const showAllLabels = safeData.length <= 8
@@ -87,7 +141,13 @@ export function NetWorthChart({
                     margin={{ top: 8, right: 0, left: 0, bottom: 0 }}
                 >
                     <defs>
-                        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient
+                            id={gradientId}
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                        >
                             <stop offset="0%" stopColor={color} stopOpacity={0.3} />
                             <stop offset="100%" stopColor={color} stopOpacity={0} />
                         </linearGradient>
@@ -121,7 +181,7 @@ export function NetWorthChart({
                         axisLine={false}
                         tickFormatter={formatShortRupiah}
                         domain={[yMin, yMax]}
-                        width={44}
+                        width={48}
                         tickMargin={6}
                     />
 
