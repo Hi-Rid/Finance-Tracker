@@ -26,7 +26,11 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Skip auth check untuk public routes (landing page share, dll)
+  const pathname = request.nextUrl.pathname
+
+  // ============================================================
+  // Public route: skip auth check — landing page share instan
+  // ============================================================
   if (pathname.startsWith('/s/')) {
     return supabaseResponse
   }
@@ -35,8 +39,6 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const pathname = request.nextUrl.pathname
-
   // Public paths
   const isPublicPath =
     pathname === '/' ||
@@ -44,7 +46,6 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/setup-pin') ||
     pathname.startsWith('/unlock') ||
     pathname.startsWith('/auth') ||
-    pathname.startsWith('/s/') ||
     pathname.startsWith('/api/ocr/file') ||
     pathname.startsWith('/_next') ||
     pathname === '/favicon.ico'
