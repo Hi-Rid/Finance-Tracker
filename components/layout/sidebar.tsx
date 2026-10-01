@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { SynmonyMark } from '@/components/brand/synmony-logo'
 import {
   LayoutDashboard,
   Receipt,
@@ -50,9 +51,8 @@ export function Sidebar({ userEmail }: SidebarProps) {
         {/* Logo */}
         <div className="relative p-6 pb-4">
           <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center font-bold text-lg text-white shadow-lg shadow-brand/30 transition-transform group-hover:scale-105">
-              S
-              <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-sidebar" />
+            <div className="relative w-10 h-10 transition-transform group-hover:scale-105">
+              <SynmonyMark size="lg" showDot className="w-10 h-10 !border-sidebar" />
             </div>
             <div>
               <div className="text-lg font-bold tracking-tight leading-none">

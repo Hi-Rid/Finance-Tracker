@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SynmonyMark } from '@/components/brand/synmony-logo'
 import {
     Sheet,
     SheetContent,

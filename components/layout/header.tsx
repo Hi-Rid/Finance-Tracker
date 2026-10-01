@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { NotificationBell } from '@/components/notifications/notification-bell'
+import { SynmonyMark } from '@/components/brand/synmony-logo'
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -59,9 +60,7 @@ export function Header({ userEmail }: HeaderProps) {
           <MobileSidebar userEmail={userEmail} />
 
           <div className="md:hidden flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-brand/30">
-              S
-            </div>
+            <SynmonyMark size="md" showDot className="w-8 h-8" />
           </div>
           <div className="min-w-0">
             <h1 className="text-base md:text-lg font-semibold tracking-tight truncate">

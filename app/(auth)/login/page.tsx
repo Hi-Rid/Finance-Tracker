@@ -10,6 +10,7 @@ import { Loader2, CheckCircle2 } from 'lucide-react'
 import { lockSession } from '@/lib/hooks/use-pin'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { SynmonyMark } from '@/components/brand/synmony-logo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -105,8 +106,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-700 items-center justify-center text-white font-bold text-2xl shadow-lg shadow-brand/30 mb-4">
-            S
+          <div className="inline-flex mb-4">
+            <SynmonyMark size="xl" />
           </div>
           <h1 className="text-4xl font-bold text-primary-500 mb-2">
             Synmony

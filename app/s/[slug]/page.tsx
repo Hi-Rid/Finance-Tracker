@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { formatDateLongWIB, formatTimeWIB } from '@/lib/utils/datetime'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { SynmonyMark } from '@/components/brand/synmony-logo'
 import {
     Receipt,
     Users,
@@ -113,10 +114,7 @@ export default async function SharedEventPage({ params }: PageProps) {
             <header className="sticky top-0 z-10 backdrop-blur-xl bg-background/70 border-b border-border/60">
                 <div className="max-w-2xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2.5">
-                        <div className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center font-bold text-sm text-white shadow-md shadow-brand/30">
-                            S
-                            <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-background" />
-                        </div>
+                        <SynmonyMark size="md" showDot className="w-8 h-8" />
                         <span className="text-sm font-bold tracking-tight">
                             Synmony
                         </span>
@@ -275,6 +273,87 @@ export default async function SharedEventPage({ params }: PageProps) {
                         ))}
                     </div>
                 </div>
+
+                {/* Detail Item */}
+                {items.length > 0 && (
+                    <div className="mt-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-card overflow-hidden shadow-sm">
+                        <div className="px-5 py-3 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Receipt className="w-4 h-4 text-slate-400" />
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                                    Detail Item
+                                </p>
+                            </div>
+                            <span className="text-xs md:text-sm font-bold tabular-nums text-slate-700 dark:text-slate-300">
+                                Rp{' '}
+                                {Number(event.subtotal).toLocaleString('id-ID')}
+                            </span>
+                        </div>
+                        <div className="divide-y divide-slate-100 dark:divide-white/5">
+                            {items.map((item: any, idx: number) => (
+                                <div
+                                    key={item.id}
+                                    className="px-5 py-2.5 md:py-3 flex items-center gap-3"
+                                >
+                                    <span className="w-5 text-[10px] font-bold tabular-nums text-slate-400 shrink-0">
+                                        {String(idx + 1).padStart(2, '0')}
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs md:text-sm font-medium truncate">
+                                            {item.name}
+                                        </p>
+                                        <p className="text-[10px] md:text-[11px] text-muted-foreground tabular-nums mt-0.5">
+                                            {item.quantity} × Rp{' '}
+                                            {Number(item.unit_price).toLocaleString('id-ID')}
+                                        </p>
+                                    </div>
+                                    <span className="text-xs md:text-sm font-semibold tabular-nums text-slate-900 dark:text-white shrink-0">
+                                        Rp{' '}
+                                        {Number(item.subtotal).toLocaleString('id-ID')}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                        {/* Rincian */}
+                        <div className="px-5 py-3 bg-slate-50/50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/5 space-y-1">
+                            <div className="flex justify-between text-[11px]">
+                                <span className="text-muted-foreground">Subtotal</span>
+                                <span className="font-medium tabular-nums">
+                                    Rp {Number(event.subtotal).toLocaleString('id-ID')}
+                                </span>
+                            </div>
+                            {Number(event.ppn_amount) > 0 && (
+                                <div className="flex justify-between text-[11px]">
+                                    <span className="text-muted-foreground">
+                                        PPN ({(Number(event.ppn_rate) * 100).toFixed(0)}%)
+                                    </span>
+                                    <span className="font-medium tabular-nums">
+                                        Rp {Number(event.ppn_amount).toLocaleString('id-ID')}
+                                    </span>
+                                </div>
+                            )}
+                            {Number(event.service_amount) > 0 && (
+                                <div className="flex justify-between text-[11px]">
+                                    <span className="text-muted-foreground">
+                                        Service ({(Number(event.service_rate) * 100).toFixed(0)}%)
+                                    </span>
+                                    <span className="font-medium tabular-nums">
+                                        Rp {Number(event.service_amount).toLocaleString('id-ID')}
+                                    </span>
+                                </div>
+                            )}
+                            {Number(event.discount_amount) > 0 && (
+                                <div className="flex justify-between text-[11px]">
+                                    <span className="text-muted-foreground">Diskon</span>
+                                    <span className="font-medium tabular-nums">
+                                        - Rp{' '}
+                                        {Number(event.discount_amount).toLocaleString('id-ID')}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {/* CTA */}
                 <div className="mt-4 rounded-2xl bg-gradient-to-br from-brand/5 to-brand/[0.02] border border-brand/20 p-5 flex items-center gap-4">
