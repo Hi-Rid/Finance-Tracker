@@ -23,6 +23,11 @@ export type ItemInput = {
     quantity: number
     unit_price: number
     assigned_to: string[]
+    /**
+     * 'share' = 1 porsi dibagi rata ke assignees (default)
+     * 'each'  = tiap assignee bayar full qty × unit_price
+     */
+    assignment_mode?: 'share' | 'each'
 }
 
 export type SplitConfig = {

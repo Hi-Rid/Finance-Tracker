@@ -40,10 +40,7 @@ export function DonutChart({
       onMouseDown={(e) => e.preventDefault()}
     >
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart
-          tabIndex={-1}
-          style={{ outline: 'none' }}
-        >
+        <PieChart tabIndex={-1} style={{ outline: 'none' }}>
           <Pie
             data={data}
             dataKey="value"
@@ -81,15 +78,14 @@ export function DonutChart({
               fontWeight: 700,
               color: 'var(--color-card-foreground)',
             }}
-            formatter={(value: number, name: string) => [
+            formatter={((value: number, name: string) => [
               formatRupiah(value),
               name,
-            ]}
+            ]) as any}
           />
         </PieChart>
       </ResponsiveContainer>
 
-      {/* Inner text */}
       <div className="absolute inset-0 z-0 flex flex-col items-center justify-center pointer-events-none px-6">
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-2">
           {totalLabel}

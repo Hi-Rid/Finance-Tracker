@@ -48,6 +48,28 @@ type DailyItemFormProps = {
     onCancel?: () => void
 }
 
+type BudgetInfo = {
+    hasBudget: boolean
+    monthlyTotal: number
+    daysInMonth: number
+    usedBudget: number
+    remainingBudget: number
+    remainingPerDay: number
+    isOver: boolean
+    isNegative: boolean
+}
+
+const EMPTY_BUDGET_INFO: BudgetInfo = {
+    hasBudget: false,
+    monthlyTotal: 0,
+    daysInMonth: 0,
+    usedBudget: 0,
+    remainingBudget: 0,
+    remainingPerDay: 0,
+    isOver: false,
+    isNegative: false,
+}
+
 export function DailyItemForm({
     profileId,
     categories,
@@ -80,7 +102,7 @@ export function DailyItemForm({
     const selectedCategoryId = watch('category_id')
     const currentAmount = watch('amount')
 
-    const budgetInfo = useMemo(() => {
+    const budgetInfo: BudgetInfo | null = useMemo(() => {
         if (!selectedCategoryId) return null
 
         const monthlyBudget = monthlyBudgets.find(
@@ -88,7 +110,7 @@ export function DailyItemForm({
         )
 
         if (!monthlyBudget) {
-            return { hasBudget: false }
+            return { ...EMPTY_BUDGET_INFO, hasBudget: false }
         }
 
         const daysInMonth = getDaysInMonth(month)
@@ -150,7 +172,6 @@ export function DailyItemForm({
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                {/* Name */}
                 <FormField
                     control={form.control}
                     name="name"
@@ -168,7 +189,6 @@ export function DailyItemForm({
                     )}
                 />
 
-                {/* Category */}
                 <FormField
                     control={form.control}
                     name="category_id"
@@ -203,7 +223,6 @@ export function DailyItemForm({
                     )}
                 />
 
-                {/* Amount */}
                 <FormField
                     control={form.control}
                     name="amount"
@@ -229,7 +248,6 @@ export function DailyItemForm({
                                 </div>
                             </FormControl>
 
-                            {/* Budget info */}
                             {budgetInfo && (
                                 <div
                                     className={cn(
@@ -309,7 +327,6 @@ export function DailyItemForm({
                     )}
                 />
 
-                {/* Actions */}
                 <div className="flex gap-3 pt-2">
                     {onCancel && (
                         <Button

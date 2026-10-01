@@ -3,7 +3,16 @@ import type { Database } from '@/types/database'
 type AssetRow = Database['public']['Tables']['assets']['Row']
 type InvestmentDetailRow = Database['public']['Tables']['investment_details']['Row']
 
-export type AssetType = 'property' | 'vehicle' | 'gold' | 'stock' | 'crypto' | 'mutual_fund' | 'collectible' | 'other'
+export type AssetType =
+    | 'property'
+    | 'vehicle'
+    | 'gold'
+    | 'stock'
+    | 'crypto'
+    | 'mutual_fund'
+    | 'collectible'
+    | 'other'
+    | 'bond'
 
 export type PriceSource = 'yahoo' | 'coingecko' | 'manual'
 
@@ -23,7 +32,6 @@ export type InvestmentPosition = {
     price_source: PriceSource
     price_fetched_at: string | null
 
-    // Computed
     lot_held: number
     avg_price: number
     invested: number
@@ -48,7 +56,6 @@ export type PortfolioData = {
     positions: InvestmentPosition[]
 }
 
-// Tipe aset yang dianggap "investment" (punya ticker & harga pasar)
 export const INVESTMENT_ASSET_TYPES: AssetType[] = [
     'stock',
     'crypto',
@@ -57,8 +64,7 @@ export const INVESTMENT_ASSET_TYPES: AssetType[] = [
     'bond',
 ]
 
-// Cache TTL
-export const PRICE_CACHE_TTL_MS = 15 * 60 * 1000 // 15 menit
+export const PRICE_CACHE_TTL_MS = 15 * 60 * 1000
 
 export type SearchSuggestion = {
     ticker: string
