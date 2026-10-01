@@ -26,6 +26,11 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  // Skip auth check untuk public routes (landing page share, dll)
+  if (pathname.startsWith('/s/')) {
+    return supabaseResponse
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
