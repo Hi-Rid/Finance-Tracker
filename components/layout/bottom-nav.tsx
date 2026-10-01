@@ -9,7 +9,7 @@ const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/transactions', label: 'Transaksi', icon: List },
   { href: '/transactions?new=1', label: 'Add', icon: Plus, isCenter: true },
-  { href: '/budget', label: 'Budget', icon: Wallet },
+  { href: '/accounts', label: 'Akun', icon: Wallet },
   { href: '/settings', label: 'Profil', icon: User },
 ]
 

@@ -120,7 +120,7 @@ export default async function HomePage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-[#050F2E] dark:via-[#091F5C] dark:to-[#050F2E]">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-[#050F2E] dark:via-[#091F5C] dark:to-[#050F2E]">
       {/* ============ HEADER ============ */}
       <header className="sticky top-0 z-10 backdrop-blur-xl bg-background/70 border-b border-border/60">
         <div className="max-w-6xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
@@ -162,8 +162,9 @@ export default async function HomePage() {
 
       {/* ============ HERO ============ */}
       <section className="relative max-w-6xl mx-auto px-4 md:px-8 pt-16 md:pt-24 pb-12 md:pb-16">
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-brand/10 blur-3xl pointer-events-none" />
-
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-brand/10 blur-3xl" />
+        </div>
         <div className="relative text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 text-[11px] md:text-xs font-bold uppercase tracking-widest mb-6">
             <Crown className="w-3.5 h-3.5" />
@@ -246,7 +247,7 @@ export default async function HomePage() {
       {/* ============ FINANCIAL FREEDOM SECTION (HERO FEATURE) ============ */}
       <section
         id="financial-freedom"
-        className="max-w-6xl mx-auto px-4 md:px-8 pb-16 md:pb-24"
+        className="max-w-6xl mx-auto px-4 md:px-8 pb-16 md:pb-24 scroll-mt-20"
       >
         <div className="relative overflow-hidden rounded-2xl md:rounded-3xl border-2 border-amber-200 dark:border-amber-500/30 bg-gradient-to-br from-amber-50 via-amber-50/50 to-white dark:from-amber-500/[0.08] dark:via-amber-500/[0.03] dark:to-transparent p-6 md:p-12">
           <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
@@ -282,20 +283,22 @@ export default async function HomePage() {
                 return (
                   <div
                     key={f.title}
-                    className="rounded-xl md:rounded-2xl border border-amber-200/60 dark:border-amber-500/20 bg-white/70 dark:bg-white/[0.02] backdrop-blur-sm p-4 md:p-5 hover:border-amber-400/60 transition-colors"
+                    className="rounded-xl md:rounded-2xl border border-amber-200/60 dark:border-amber-500/20 bg-white/70 dark:bg-white/[0.02] backdrop-blur-sm p-4 md:p-5 hover:border-amber-400/60 transition-colors flex items-start gap-3 md:gap-4"
                   >
-                    <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-amber-500/15 flex items-center justify-center mb-3 md:mb-4">
+                    <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
                       <Icon
                         className="w-4 h-4 md:w-5 md:h-5 text-amber-600 dark:text-amber-400"
                         strokeWidth={2.2}
                       />
                     </div>
-                    <h3 className="text-sm md:text-base font-bold mb-1.5 md:mb-2">
-                      {f.title}
-                    </h3>
-                    <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
-                      {f.desc}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm md:text-base font-bold mb-1 md:mb-1.5">
+                        {f.title}
+                      </h3>
+                      <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
+                        {f.desc}
+                      </p>
+                    </div>
                   </div>
                 )
               })}
@@ -338,26 +341,26 @@ export default async function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-          {features.map((f) => {
+          {ffFeatures.map((f) => {
             const Icon = f.icon
             return (
               <div
                 key={f.title}
-                className="rounded-2xl border border-border bg-card p-5 md:p-6 hover:border-brand/30 hover:shadow-md transition-all"
+                className="rounded-xl md:rounded-2xl border border-amber-200/60 dark:border-amber-500/20 bg-white/70 dark:bg-white/[0.02] backdrop-blur-sm p-4 md:p-5 hover:border-amber-400/60 transition-colors"
               >
-                <div
-                  className="w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-4 md:mb-5"
-                  style={{ backgroundColor: `${f.color}15` }}
-                >
-                  <Icon
-                    className="w-5 h-5 md:w-6 md:h-6"
-                    style={{ color: f.color }}
-                    strokeWidth={2.2}
-                  />
+                {/* Icon + Title — sejajar */}
+                <div className="flex items-center gap-3 md:gap-3.5 mb-2.5 md:mb-3">
+                  <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
+                    <Icon
+                      className="w-4 h-4 md:w-5 md:h-5 text-amber-600 dark:text-amber-400"
+                      strokeWidth={2.2}
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold">
+                    {f.title}
+                  </h3>
                 </div>
-                <h3 className="text-sm md:text-base font-bold mb-1.5 md:mb-2">
-                  {f.title}
-                </h3>
+                {/* Description full width */}
                 <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
                   {f.desc}
                 </p>

@@ -113,7 +113,7 @@ export default function LoginPage() {
             Synmony
           </h1>
           <p className="text-muted-foreground text-sm">
-            Your Second Brain for Your Money.
+            Second Brain for Your Money.
           </p>
         </div>
 
@@ -201,7 +201,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Synmony v0.1.0 - Your Second Brain for Your Money
+          Synmony v0.1.0 - Second Brain for Your Money
         </p>
       </div>
     </div>

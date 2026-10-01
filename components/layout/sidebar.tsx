@@ -18,7 +18,7 @@ import {
   Settings,
   Sparkles,
 } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogoutButton } from '@/components/shared/logout-button'
 
 const navItems = [
@@ -35,13 +35,20 @@ const navItems = [
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
-type SidebarProps = {
-  userEmail?: string | null
+type SidebarProfile = {
+  name?: string | null
+  avatar_url?: string | null
 }
 
-export function Sidebar({ userEmail }: SidebarProps) {
+type SidebarProps = {
+  userEmail?: string | null
+  profile?: SidebarProfile | null
+}
+
+export function Sidebar({ userEmail, profile }: SidebarProps) {
   const pathname = usePathname()
-  const initial = userEmail?.[0]?.toUpperCase() || 'U'
+  const displayName = profile?.name || userEmail?.split('@')[0] || 'User'
+  const initial = displayName.charAt(0).toUpperCase()
 
   return (
     <aside className="hidden md:flex flex-col w-64 shrink-0 p-3">
@@ -106,13 +113,19 @@ export function Sidebar({ userEmail }: SidebarProps) {
         <div className="relative p-3 space-y-2">
           <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-3 flex items-center gap-3">
             <Avatar className="size-9 ring-2 ring-white/20">
+              {profile?.avatar_url && (
+                <AvatarImage
+                  src={profile.avatar_url}
+                  alt={displayName}
+                />
+              )}
               <AvatarFallback className="bg-gradient-to-br from-primary-400 to-primary-700 text-white font-semibold text-sm">
                 {initial}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold truncate">
-                {userEmail?.split('@')[0] || 'User'}
+                {displayName}
               </div>
               <div className="text-[10px] text-sidebar-muted truncate flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5" />

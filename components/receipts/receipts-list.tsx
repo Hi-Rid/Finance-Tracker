@@ -224,7 +224,7 @@ export function ReceiptsList({ receipts }: ReceiptsListProps) {
                 </Card>
             ) : (
                 <>
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 xl:gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 xl:gap-5">
                         {paginatedItems.map((r) => {
                             const parsed = r.parsed_data as ParsedReceipt | null
                             const isSelected = selectedIds.has(r.id)
@@ -244,7 +244,7 @@ export function ReceiptsList({ receipts }: ReceiptsListProps) {
                                             : 'border-slate-200/70 dark:border-white/15 hover:border-brand/40 hover:shadow-lg dark:hover:shadow-black/50'
                                     )}
                                 >
-                                    <div className="relative w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-xl overflow-hidden bg-slate-100 dark:bg-white/5 shrink-0">
+                                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-lg sm:rounded-xl overflow-hidden bg-slate-100 dark:bg-white/5 shrink-0">
                                         {imageUrl ? (
                                             <img
                                                 src={imageUrl}

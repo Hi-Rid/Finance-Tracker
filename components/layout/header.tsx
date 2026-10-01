@@ -5,9 +5,10 @@ import { MobileSidebar } from './mobile-sidebar'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { NotificationBell } from '@/components/notifications/notification-bell'
 import { SynmonyMark } from '@/components/brand/synmony-logo'
+
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -32,13 +33,21 @@ function getPageTitle(pathname: string): string {
   return 'Finance'
 }
 
-type HeaderProps = {
-  userEmail?: string | null
+type HeaderProfile = {
+  name?: string | null
+  avatar_url?: string | null
 }
 
-export function Header({ userEmail }: HeaderProps) {
+type HeaderProps = {
+  userEmail?: string | null
+  profile?: HeaderProfile | null
+}
+
+export function Header({ userEmail, profile }: HeaderProps) {
   const pathname = usePathname()
-  const initial = userEmail?.[0]?.toUpperCase() || 'U'
+  const initial = (profile?.name || userEmail || 'U')
+    .charAt(0)
+    .toUpperCase()
   const pageTitle = getPageTitle(pathname)
 
   function triggerCommandPalette() {
@@ -109,6 +118,12 @@ export function Header({ userEmail }: HeaderProps) {
           <NotificationBell />
 
           <Avatar className="size-8 ml-1 ring-2 ring-primary-400/30">
+            {profile?.avatar_url && (
+              <AvatarImage
+                src={profile.avatar_url}
+                alt={profile.name || 'User'}
+              />
+            )}
             <AvatarFallback className="bg-brand text-brand-foreground font-semibold text-xs">
               {initial}
             </AvatarFallback>

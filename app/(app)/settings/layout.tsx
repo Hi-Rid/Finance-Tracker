@@ -12,7 +12,6 @@ import {
     ScrollText,
     Wallet,
     Tags,
-    Settings2,
 } from 'lucide-react'
 import { PageWrapper, PageHeader } from '@/components/layout/page-wrapper'
 import {
@@ -56,7 +55,7 @@ export default function SettingsLayout({
                 description="Kelola preferensi & data akun lu"
             />
 
-            {/* MOBILE - Dropdown Select */}
+            {/* MOBILE — Dropdown Select (icon cuma di trigger, item text only) */}
             <div className="md:hidden mb-6">
                 <Select
                     value={activeTab.href}
@@ -65,7 +64,9 @@ export default function SettingsLayout({
                     <SelectTrigger className="w-full h-11">
                         <div className="flex items-center gap-2 min-w-0">
                             <activeTab.icon className="w-4 h-4 shrink-0 opacity-60" />
-                            <SelectValue />
+                            <span className="truncate text-sm font-medium">
+                                {activeTab.label}
+                            </span>
                         </div>
                     </SelectTrigger>
                     <SelectContent>
@@ -84,13 +85,14 @@ export default function SettingsLayout({
                 </Select>
             </div>
 
-            {/* DESKTOP - Tab bar */}
+            {/* DESKTOP — Tab bar */}
             <div className="hidden md:flex flex-wrap gap-1.5 mb-6">
                 {tabs.map((tab) => {
                     const Icon = tab.icon
                     const isActive =
                         pathname === tab.href ||
-                        (tab.href !== '/settings' && pathname.startsWith(tab.href))
+                        (tab.href !== '/settings' &&
+                            pathname.startsWith(tab.href))
 
                     return (
                         <Link

@@ -1,10 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { formatDateLongWIB, formatTimeWIB } from '@/lib/utils/datetime'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { SynmonyMark } from '@/components/brand/synmony-logo'
 import {
     Receipt,
     Users,
@@ -14,61 +11,71 @@ import {
     Crown,
     AlertTriangle,
 } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { SynmonyMark } from '@/components/brand/synmony-logo'
 
 type PageProps = {
     params: Promise<{ slug: string }>
 }
 
-type SharedEventData = {
-    event: any
-    items: any[]
-    participants: any[]
-    item_shares: any[]
-} | { error: string }
-
-async function fetchSharedEvent(slug: string): Promise<SharedEventData | null> {
-    const supabase = await createClient()
-    const { data, error } = await supabase.rpc('get_shared_event' as any, {
-        p_slug: slug,
-    })
-    if (error || !data) return null
-    return data as SharedEventData
+async function fetchSharedEvent(slug: string): Promise<any | null> {
+    try {
+        const supabase = await createClient()
+        const { data, error } = await supabase.rpc('get_shared_event' as any, {
+            p_slug: slug,
+        })
+        if (error) {
+            console.error('[share] RPC error:', error)
+            return null
+        }
+        return data
+    } catch (err) {
+        console.error('[share] fetch exception:', err)
+        return null
+    }
 }
 
 export async function generateMetadata({
     params,
 }: PageProps): Promise<Metadata> {
-    const { slug } = await params
-    const result = await fetchSharedEvent(slug)
+    try {
+        const { slug } = await params
+        const result = await fetchSharedEvent(slug)
 
-    if (!result || 'error' in result) {
+        if (!result || result.error || !result.event) {
+            return {
+                title: 'Split Bill - Synmony',
+                description: 'Link split bill udah expired atau gak valid.',
+            }
+        }
+
+        const event = result.event
+        const grandTotal = Number(event.grand_total) || 0
+        const formatted = `Rp ${grandTotal.toLocaleString('id-ID')}`
+
+        const title = `${event.name || 'Split Bill'} — ${formatted}`
+        const description = `Split bill untuk ${(result.participants || []).length
+            } orang. Total ${formatted}. Lihat detail lengkap di Synmony.`
+
+        return {
+            title,
+            description,
+            openGraph: {
+                title,
+                description,
+                type: 'website',
+            },
+            twitter: {
+                card: 'summary_large_image',
+                title,
+                description,
+            },
+        }
+    } catch (err) {
+        console.error('[share] metadata exception:', err)
         return {
             title: 'Split Bill - Synmony',
-            description: 'Link split bill udah expired atau gak valid.',
         }
-    }
-
-    const event = result.event
-    const grandTotal = Number(event.grand_total)
-    const formatted = `Rp ${grandTotal.toLocaleString('id-ID')}`
-
-    const title = `${event.name} — ${formatted}`
-    const description = `Split bill untuk ${result.participants.length} orang. Total ${formatted}. Lihat detail lengkap di Synmony.`
-    const imageUrl = event.share_image_url
-
-    return {
-        title,
-        description,
-        openGraph: {
-            title,
-            description,
-            type: 'website',
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title,
-            description,
-        },
     }
 }
 
@@ -76,28 +83,39 @@ export default async function SharedEventPage({ params }: PageProps) {
     const { slug } = await params
     const result = await fetchSharedEvent(slug)
 
-    // Not found
-    if (!result || ('error' in result && result.error === 'not_found')) {
+    if (!result || typeof result !== 'object') {
         return <ErrorScreen type="not_found" />
     }
 
-    // Expired
-    if ('error' in result && result.error === 'expired') {
+    if (result.error === 'not_found') {
+        return <ErrorScreen type="not_found" />
+    }
+
+    if (result.error === 'expired') {
         return <ErrorScreen type="expired" />
     }
 
-    if ('error' in result) {
+    if (!result.event) {
         return <ErrorScreen type="not_found" />
     }
 
-    const { event, participants } = result
-    const grandTotal = Number(event.grand_total)
+    const event = result.event
+    const participants = Array.isArray(result.participants)
+        ? result.participants
+        : []
+    const items = Array.isArray(result.items) ? result.items : []
+    const itemShares = Array.isArray(result.item_shares)
+        ? result.item_shares
+        : []
+
+    const grandTotal = Number(event.grand_total) || 0
     const expiresAt = event.share_expires_at
         ? new Date(event.share_expires_at)
         : null
 
     const totalPaid = participants.filter((p: any) => p.paid).length
-    const allSettled = totalPaid === participants.length
+    const allSettled =
+        participants.length > 0 && totalPaid === participants.length
 
     const daysLeft = expiresAt
         ? Math.max(
@@ -131,15 +149,14 @@ export default async function SharedEventPage({ params }: PageProps) {
                 </div>
             </header>
 
-            {/* Main */}
             <main className="max-w-2xl mx-auto px-4 md:px-6 py-6 md:py-10">
-                {/* Expiry banner */}
                 {expiresAt && (
                     <div className="mb-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 p-3 flex items-start gap-2.5">
                         <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                         <div className="text-xs md:text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
                             <strong>Link aktif {daysLeft} hari lagi.</strong>{' '}
-                            Setelah {expiresAt.toLocaleDateString('id-ID', {
+                            Setelah{' '}
+                            {expiresAt.toLocaleDateString('id-ID', {
                                 day: 'numeric',
                                 month: 'long',
                                 year: 'numeric',
@@ -150,7 +167,7 @@ export default async function SharedEventPage({ params }: PageProps) {
                     </div>
                 )}
 
-                {/* Hero card */}
+                {/* Hero */}
                 <div className="relative rounded-2xl border border-slate-200 dark:border-white/10 bg-card overflow-hidden shadow-sm">
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-violet-500" />
                     <div className="p-5 md:p-6 pl-6">
@@ -213,66 +230,68 @@ export default async function SharedEventPage({ params }: PageProps) {
                     </div>
                 </div>
 
-                {/* Breakdown per participant */}
-                <div className="mt-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-card overflow-hidden shadow-sm">
-                    <div className="px-5 py-3 border-b border-slate-100 dark:border-white/5 flex items-center gap-2">
-                        <Users className="w-4 h-4 text-slate-400" />
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                            Breakdown Per Orang
-                        </p>
-                    </div>
-                    <div className="divide-y divide-slate-100 dark:divide-white/5">
-                        {participants.map((p: any) => (
-                            <div
-                                key={p.id}
-                                className="px-5 py-3.5 flex items-center gap-3"
-                            >
+                {/* Breakdown per orang */}
+                {participants.length > 0 && (
+                    <div className="mt-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-card overflow-hidden shadow-sm">
+                        <div className="px-5 py-3 border-b border-slate-100 dark:border-white/5 flex items-center gap-2">
+                            <Users className="w-4 h-4 text-slate-400" />
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                                Breakdown Per Orang
+                            </p>
+                        </div>
+                        <div className="divide-y divide-slate-100 dark:divide-white/5">
+                            {participants.map((p: any) => (
                                 <div
-                                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-[11px] font-bold ${p.is_user
-                                        ? 'bg-brand/15 text-brand'
-                                        : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400'
-                                        }`}
+                                    key={p.id}
+                                    className="px-5 py-3.5 flex items-center gap-3"
                                 >
-                                    {(p.display_name || 'XX')
-                                        .split(' ')
-                                        .map((s: string) => s[0])
-                                        .slice(0, 2)
-                                        .join('')
-                                        .toUpperCase()}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-semibold truncate">
-                                        {p.display_name}
-                                        {p.is_user && (
-                                            <span className="ml-1.5 text-[10px] font-bold text-brand">
-                                                (Bikin)
-                                            </span>
-                                        )}
-                                    </p>
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                        {p.paid ? (
-                                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-                                                <CheckCircle2 className="w-3 h-3" />
-                                                Lunas
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400">
-                                                <Clock className="w-3 h-3" />
-                                                Belum
-                                            </span>
-                                        )}
+                                    <div
+                                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-[11px] font-bold ${p.is_user
+                                            ? 'bg-brand/15 text-brand'
+                                            : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400'
+                                            }`}
+                                    >
+                                        {(p.display_name || 'XX')
+                                            .split(' ')
+                                            .map((s: string) => s[0])
+                                            .slice(0, 2)
+                                            .join('')
+                                            .toUpperCase()}
                                     </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-semibold truncate">
+                                            {p.display_name}
+                                            {p.is_user && (
+                                                <span className="ml-1.5 text-[10px] font-bold text-brand">
+                                                    (Bikin)
+                                                </span>
+                                            )}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            {p.paid ? (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                                                    <CheckCircle2 className="w-3 h-3" />
+                                                    Lunas
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                                                    <Clock className="w-3 h-3" />
+                                                    Belum
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <p className="text-base md:text-lg font-bold tabular-nums text-slate-900 dark:text-white shrink-0">
+                                        Rp{' '}
+                                        {Number(
+                                            p.total_share || 0
+                                        ).toLocaleString('id-ID')}
+                                    </p>
                                 </div>
-                                <p className="text-base md:text-lg font-bold tabular-nums text-slate-900 dark:text-white shrink-0">
-                                    Rp{' '}
-                                    {Number(p.total_share).toLocaleString(
-                                        'id-ID'
-                                    )}
-                                </p>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Detail Item */}
                 {items.length > 0 && (
@@ -286,7 +305,9 @@ export default async function SharedEventPage({ params }: PageProps) {
                             </div>
                             <span className="text-xs md:text-sm font-bold tabular-nums text-slate-700 dark:text-slate-300">
                                 Rp{' '}
-                                {Number(event.subtotal).toLocaleString('id-ID')}
+                                {Number(event.subtotal || 0).toLocaleString(
+                                    'id-ID'
+                                )}
                             </span>
                         </div>
                         <div className="divide-y divide-slate-100 dark:divide-white/5">
@@ -304,53 +325,19 @@ export default async function SharedEventPage({ params }: PageProps) {
                                         </p>
                                         <p className="text-[10px] md:text-[11px] text-muted-foreground tabular-nums mt-0.5">
                                             {item.quantity} × Rp{' '}
-                                            {Number(item.unit_price).toLocaleString('id-ID')}
+                                            {Number(
+                                                item.unit_price || 0
+                                            ).toLocaleString('id-ID')}
                                         </p>
                                     </div>
                                     <span className="text-xs md:text-sm font-semibold tabular-nums text-slate-900 dark:text-white shrink-0">
                                         Rp{' '}
-                                        {Number(item.subtotal).toLocaleString('id-ID')}
+                                        {Number(item.subtotal || 0).toLocaleString(
+                                            'id-ID'
+                                        )}
                                     </span>
                                 </div>
                             ))}
-                        </div>
-                        {/* Rincian */}
-                        <div className="px-5 py-3 bg-slate-50/50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/5 space-y-1">
-                            <div className="flex justify-between text-[11px]">
-                                <span className="text-muted-foreground">Subtotal</span>
-                                <span className="font-medium tabular-nums">
-                                    Rp {Number(event.subtotal).toLocaleString('id-ID')}
-                                </span>
-                            </div>
-                            {Number(event.ppn_amount) > 0 && (
-                                <div className="flex justify-between text-[11px]">
-                                    <span className="text-muted-foreground">
-                                        PPN ({(Number(event.ppn_rate) * 100).toFixed(0)}%)
-                                    </span>
-                                    <span className="font-medium tabular-nums">
-                                        Rp {Number(event.ppn_amount).toLocaleString('id-ID')}
-                                    </span>
-                                </div>
-                            )}
-                            {Number(event.service_amount) > 0 && (
-                                <div className="flex justify-between text-[11px]">
-                                    <span className="text-muted-foreground">
-                                        Service ({(Number(event.service_rate) * 100).toFixed(0)}%)
-                                    </span>
-                                    <span className="font-medium tabular-nums">
-                                        Rp {Number(event.service_amount).toLocaleString('id-ID')}
-                                    </span>
-                                </div>
-                            )}
-                            {Number(event.discount_amount) > 0 && (
-                                <div className="flex justify-between text-[11px]">
-                                    <span className="text-muted-foreground">Diskon</span>
-                                    <span className="font-medium tabular-nums">
-                                        - Rp{' '}
-                                        {Number(event.discount_amount).toLocaleString('id-ID')}
-                                    </span>
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}
@@ -370,7 +357,7 @@ export default async function SharedEventPage({ params }: PageProps) {
                         </p>
                     </div>
                     <Link
-                        href="/login"
+                        href="/"
                         className="shrink-0 inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-brand text-white text-xs font-semibold hover:bg-brand-hover transition-colors"
                     >
                         Coba
