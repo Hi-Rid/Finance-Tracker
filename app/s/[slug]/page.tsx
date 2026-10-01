@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { formatDateLongWIB, formatTimeWIB } from '@/lib/utils/datetime'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import {
     Receipt,
     Users,
@@ -61,22 +62,11 @@ export async function generateMetadata({
             title,
             description,
             type: 'website',
-            images: imageUrl
-                ? [
-                    {
-                        url: imageUrl,
-                        width: 1080,
-                        height: 1920,
-                        alt: event.name,
-                    },
-                ]
-                : [],
         },
         twitter: {
             card: 'summary_large_image',
             title,
             description,
-            images: imageUrl ? [imageUrl] : [],
         },
     }
 }
@@ -131,12 +121,15 @@ export default async function SharedEventPage({ params }: PageProps) {
                             Synmony
                         </span>
                     </Link>
-                    <Link
-                        href="/login"
-                        className="text-xs font-semibold text-brand hover:underline"
-                    >
-                        Coba Gratis
-                    </Link>
+                    <div className="flex items-center gap-1">
+                        <ThemeToggle />
+                        <Link
+                            href="/"
+                            className="text-xs font-semibold text-brand hover:underline px-2"
+                        >
+                            Coba Gratis
+                        </Link>
+                    </div>
                 </div>
             </header>
 
@@ -166,8 +159,8 @@ export default async function SharedEventPage({ params }: PageProps) {
                         <div className="flex items-start gap-3 mb-4">
                             <div
                                 className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${allSettled
-                                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                                        : 'bg-violet-500/10 text-violet-600 dark:text-violet-400'
+                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                    : 'bg-violet-500/10 text-violet-600 dark:text-violet-400'
                                     }`}
                             >
                                 {allSettled ? (
@@ -188,8 +181,8 @@ export default async function SharedEventPage({ params }: PageProps) {
                             </div>
                             <span
                                 className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] md:text-xs font-bold ${allSettled
-                                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
-                                        : 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
+                                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
+                                    : 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
                                     }`}
                             >
                                 {allSettled
@@ -238,8 +231,8 @@ export default async function SharedEventPage({ params }: PageProps) {
                             >
                                 <div
                                     className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-[11px] font-bold ${p.is_user
-                                            ? 'bg-brand/15 text-brand'
-                                            : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400'
+                                        ? 'bg-brand/15 text-brand'
+                                        : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400'
                                         }`}
                                 >
                                     {(p.display_name || 'XX')
@@ -339,8 +332,8 @@ function ErrorScreen({ type }: { type: 'not_found' | 'expired' }) {
             <div className="max-w-md w-full text-center">
                 <div
                     className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 ${config.color === 'amber'
-                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                            : 'bg-slate-500/15 text-slate-600 dark:text-slate-400'
+                        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                        : 'bg-slate-500/15 text-slate-600 dark:text-slate-400'
                         }`}
                 >
                     <Icon className="w-7 h-7" />

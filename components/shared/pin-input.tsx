@@ -44,7 +44,6 @@ export function PinInput({
     const joined = newValue.join("").slice(0, length)
     onChange(joined)
 
-    // Auto-focus next
     if (digit && index < length - 1) {
       inputsRef.current[index + 1]?.focus()
     }
@@ -83,12 +82,24 @@ export function PinInput({
           }}
           type="password"
           inputMode="numeric"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          data-form-type="other"
+          data-lpignore="true"
+          data-1p-ignore
+          name={`pin-digit-${i}-${Math.random().toString(36).slice(2, 6)}`}
           maxLength={1}
           value={value[i] || ""}
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
+          onFocus={(e) => e.target.select()}
           disabled={disabled}
+          style={{
+            WebkitTextSecurity: 'disc',
+          } as React.CSSProperties}
           className={cn(
             "w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 bg-card transition-all outline-none",
             "focus:border-primary-400 focus:ring-2 focus:ring-primary-400/30",

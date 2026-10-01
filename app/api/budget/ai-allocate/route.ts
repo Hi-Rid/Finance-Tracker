@@ -282,7 +282,7 @@ Sekarang generate JSON-nya.`
     // ============ CALL GROQ ============
     let aiResult: AIResult
     try {
-        const completion = await groq.chat.completions.create({
+        const completion = await getGroq().chat.completions.create({
             model: 'openai/gpt-oss-120b',
             messages: [
                 {

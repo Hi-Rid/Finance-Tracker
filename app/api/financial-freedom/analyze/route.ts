@@ -175,7 +175,7 @@ export async function POST() {
 
     // ============ CALL GROQ ============
     try {
-        const completion = await groq.chat.completions.create({
+        const completion = await getGroq().chat.completions.create({
             model: 'openai/gpt-oss-120b',
             messages: [
                 {

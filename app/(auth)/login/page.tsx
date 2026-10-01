@@ -9,6 +9,7 @@ import { loginSchema, type LoginInput } from '@/lib/validators/auth'
 import { Loader2, CheckCircle2 } from 'lucide-react'
 import { lockSession } from '@/lib/hooks/use-pin'
 import { cn } from '@/lib/utils'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -95,7 +96,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+    <div className="relative min-h-screen flex items-center justify-center p-4 bg-background">
+      {/* Theme toggle */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+
       <div className="w-full max-w-md">
         {/* Brand */}
         <div className="text-center mb-8">
