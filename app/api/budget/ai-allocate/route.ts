@@ -5,9 +5,19 @@ import Groq from 'groq-sdk'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY,
-})
+let groqClient: Groq | null = null
+
+function getGroq(): Groq {
+    if (!groqClient) {
+        if (!process.env.GROQ_API_KEY) {
+            throw new Error('GROQ_API_KEY belum di-set')
+        }
+        groqClient = new Groq({
+            apiKey: process.env.GROQ_API_KEY,
+        })
+    }
+    return groqClient
+}
 
 type ExpenseInput = { name: string; amount: number }
 type RequestBody = { income: number; expenses: ExpenseInput[] }
