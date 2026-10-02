@@ -40,6 +40,7 @@ export default async function InvestmentsPage() {
             .select('*')
             .eq('profile_id', profileId)
             .eq('is_archived', false)
+            .neq('type', 'envelope')
             .order('created_at'),
     ])
 

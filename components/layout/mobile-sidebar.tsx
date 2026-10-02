@@ -27,6 +27,7 @@ import {
     ScanLine,
     FileText,
     Settings,
+    Trophy,
 } from 'lucide-react'
 
 const navItems = [
@@ -34,6 +35,7 @@ const navItems = [
     { href: '/transactions', label: 'Transaksi', icon: Receipt },
     { href: '/accounts', label: 'Akun', icon: Wallet },
     { href: '/budget', label: 'Budget', icon: Target },
+    { href: '/goals', label: 'Goals', icon: Trophy },
     { href: '/financial-freedom', label: 'Financial Freedom', icon: Crown },
     { href: '/wishlist', label: 'Wishlist', icon: Heart },
     { href: '/split-bill', label: 'Split Bill', icon: Users },

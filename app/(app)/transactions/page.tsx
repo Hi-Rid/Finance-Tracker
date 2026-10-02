@@ -46,6 +46,7 @@ export default async function TransactionsPage() {
       .select('*')
       .eq('profile_id', profile.id)
       .eq('is_archived', false)
+      .neq('type', 'envelope')
       .order('created_at'),
     supabase
       .from('categories')

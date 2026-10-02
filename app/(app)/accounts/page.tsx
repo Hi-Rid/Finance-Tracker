@@ -1,9 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { PageWrapper, PageHeader } from '@/components/layout/page-wrapper'
-import { AccountsList } from '@/components/accounts/accounts-list'
+import { AccountsPage } from '@/components/accounts/accounts-page'
+import type { Database } from '@/types/database'
 
-export default async function AccountsPage() {
+type Debt = Database['public']['Tables']['debts']['Row']
+
+export default async function AccountsPageContainer() {
   const supabase = await createClient()
   const {
     data: { user },
@@ -33,13 +36,13 @@ export default async function AccountsPage() {
     )
   }
 
-  // Fetch accounts + income categories
-  const [accountsRes, categoriesRes] = await Promise.all([
+  const [accountsRes, categoriesRes, debtsRes] = await Promise.all([
     supabase
       .from('accounts')
       .select('*')
       .eq('profile_id', profile.id)
       .eq('is_archived', false)
+      .neq('type', 'envelope')
       .order('created_at', { ascending: true }),
     supabase
       .from('categories')
@@ -49,11 +52,16 @@ export default async function AccountsPage() {
       .eq('is_archived', false)
       .order('sort_order')
       .order('name'),
+    supabase
+      .from('debts')
+      .select('*')
+      .eq('profile_id', profile.id)
+      .order('created_at', { ascending: false }),
   ])
 
   const accounts = accountsRes.data || []
 
-  // Cek akun mana yang udah punya transaksi (buat lock saldo awal)
+  // Cek akun mana yang udah punya transaksi
   let accountHasTx: Record<string, boolean> = {}
   if (accounts.length > 0) {
     const accountIds = accounts.map((a) => a.id)
@@ -78,11 +86,12 @@ export default async function AccountsPage() {
         title="Akun"
         description="Semua dompet, rekening, dan e-wallet lu"
       />
-      <AccountsList
+      <AccountsPage
         accounts={accounts}
-        profileId={profile.id}
         incomeCategories={categoriesRes.data || []}
         accountHasTx={accountHasTx}
+        debts={(debtsRes.data || []) as Debt[]}
+        profileId={profile.id}
       />
     </PageWrapper>
   )

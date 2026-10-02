@@ -13,13 +13,15 @@ import { SynmonyMark } from '@/components/brand/synmony-logo'
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/transactions': 'Transaksi',
+  '/cash-flow': 'Cash Flow',
   '/receipts': 'Struk',
   '/accounts': 'Akun',
   '/budget': 'Budget',
+  '/goals': 'Goals',
+  '/financial-freedom': 'Financial Freedom',
   '/wishlist': 'Wishlist',
   '/split-bill': 'Split Bill',
   '/investments': 'Investasi',
-  '/trips': 'Travel',
   '/reports': 'Laporan',
   '/settings': 'Settings',
 }

@@ -20,6 +20,7 @@ import {
     ScrollText,
     Loader2,
     CornerDownLeft,
+    Trophy,
 } from 'lucide-react'
 import {
     CommandDialog,
@@ -44,6 +45,7 @@ const PAGES = [
     { href: '/transactions', label: 'Transaksi', icon: Receipt },
     { href: '/accounts', label: 'Akun', icon: Wallet },
     { href: '/budget', label: 'Budget', icon: Target },
+    { href: '/goals', label: 'Goals', icon: Trophy },
     { href: '/financial-freedom', label: 'Financial Freedom', icon: Crown },
     { href: '/wishlist', label: 'Wishlist', icon: Heart },
     { href: '/split-bill', label: 'Split Bill', icon: Users },

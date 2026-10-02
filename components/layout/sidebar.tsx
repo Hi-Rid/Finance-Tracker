@@ -17,6 +17,7 @@ import {
   FileText,
   Settings,
   Sparkles,
+  Trophy,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogoutButton } from '@/components/shared/logout-button'
@@ -26,6 +27,7 @@ const navItems = [
   { href: '/transactions', label: 'Transaksi', icon: Receipt },
   { href: '/accounts', label: 'Akun', icon: Wallet },
   { href: '/budget', label: 'Budget', icon: Target },
+  { href: '/goals', label: 'Goals', icon: Trophy },
   { href: '/financial-freedom', label: 'Financial Freedom', icon: Crown },
   { href: '/wishlist', label: 'Wishlist', icon: Heart },
   { href: '/split-bill', label: 'Split Bill', icon: Users },
