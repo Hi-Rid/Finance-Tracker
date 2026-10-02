@@ -29,9 +29,16 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // ============================================================
-  // Public route: skip auth check — landing page share instan
+  // Public routes: skip auth check
   // ============================================================
-  if (pathname.startsWith('/s/')) {
+  // - /s/*                     → landing share instan
+  // - /api/financial-freedom/snapshot (cron, Bearer auth)
+  // - /api/networth/snapshot          (cron, Bearer auth)
+  if (
+    pathname.startsWith('/s/') ||
+    pathname === '/api/financial-freedom/snapshot' ||
+    pathname === '/api/networth/snapshot'
+  ) {
     return supabaseResponse
   }
 
@@ -39,28 +46,43 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Public paths
+  // Public paths (gak butuh login)
   const isPublicPath =
     pathname === '/' ||
     pathname.startsWith('/login') ||
+    pathname.startsWith('/register') ||
+    pathname.startsWith('/verify-email') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password') ||
     pathname.startsWith('/setup-pin') ||
     pathname.startsWith('/unlock') ||
     pathname.startsWith('/auth') ||
-    pathname.startsWith('/api/ocr/file') ||
+    pathname.startsWith('/privacy') ||
+    pathname.startsWith('/terms') ||
     pathname.startsWith('/_next') ||
-    pathname === '/favicon.ico'
+    pathname === '/favicon.ico' ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml'
 
-  // Belum login → redirect ke login
+  // Belum login & bukan public path → redirect ke login
   if (!user && !isPublicPath) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    // Simpan path asli biar bisa balik setelah login (opsional)
+    if (pathname !== '/') {
+      url.searchParams.set('next', pathname)
+    }
     return NextResponse.redirect(url)
   }
 
-  // Udah login tapi di /login → redirect ke dashboard
-  if (user && pathname === '/login') {
+  // Udah login tapi akses /login, /register → redirect ke dashboard
+  if (
+    user &&
+    (pathname === '/login' || pathname === '/register')
+  ) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
+    url.search = ''
     return NextResponse.redirect(url)
   }
 

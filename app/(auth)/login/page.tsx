@@ -1,209 +1,259 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Loader2, AlertCircle, Mail, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { loginSchema, type LoginInput } from '@/lib/validators/auth'
-import { Loader2, CheckCircle2 } from 'lucide-react'
 import { lockSession } from '@/lib/hooks/use-pin'
-import { cn } from '@/lib/utils'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { SynmonyMark } from '@/components/brand/synmony-logo'
+import { AuthShell } from '@/components/auth/auth-shell'
+import { PasswordInput } from '@/components/auth/password-input'
 
-export default function LoginPage() {
+const schema = z.object({
+  email: z.string().email('Email gak valid'),
+  password: z.string().min(1, 'Password wajib diisi'),
+})
+
+type FormValues = z.infer<typeof schema>
+
+// ============================================================
+// INNER (butuh Suspense karena useSearchParams)
+// ============================================================
+
+function LoginPageInner() {
   const router = useRouter()
-  const [mode, setMode] = useState<'login' | 'register'>('login')
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const searchParams = useSearchParams()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Pre-fill email kalau dari register / verify-email
+  const presetEmail = searchParams.get('email') || ''
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema) as any,
+    defaultValues: { email: presetEmail, password: '' },
   })
 
-  async function onSubmit(data: LoginInput) {
+  // Handle "registered=1" notification
+  useEffect(() => {
+    if (searchParams.get('registered') === '1') {
+      form.setFocus('email')
+    }
+  }, [searchParams, form])
+
+  async function onSubmit(data: FormValues) {
     setLoading(true)
     setError(null)
-    setSuccess(null)
 
     const supabase = createClient()
 
-    if (mode === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      })
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    })
 
-      if (error) {
-        setError(error.message)
+    if (authError) {
+      // Handle spesifik: email not confirmed
+      const msg = authError.message || ''
+      if (msg.toLowerCase().includes('email not confirmed')) {
+        router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
+        return
+      }
+
+      // Handle: invalid credentials
+      if (
+        msg.toLowerCase().includes('invalid login credentials') ||
+        msg.toLowerCase().includes('invalid_credentials')
+      ) {
+        setError('Email atau password salah')
         setLoading(false)
         return
       }
 
-      // Cek apakah user udah punya PIN
-      const {
-        data: { user: loggedUser },
-      } = await supabase.auth.getUser()
-
-      if (loggedUser) {
-        const { data: settings } = await supabase
-          .from('user_settings')
-          .select('pin_hash')
-          .eq('user_id', loggedUser.id)
-          .single()
-
-        // Session lama di-clear biar gak nyangkut
-        lockSession()
-
-        if (!settings?.pin_hash) {
-          router.push('/setup-pin')
-        } else {
-          router.push('/unlock')
-        }
-        router.refresh()
-        return
-      }
-
-      router.push('/unlock')
-      router.refresh()
-    } else {
-      const { error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-      })
-
-      if (error) {
-        setError(error.message)
-        setLoading(false)
-        return
-      }
-
-      setSuccess('Akun berhasil dibuat. Silakan masuk.')
-      setMode('login')
+      // Fallback
+      setError(msg || 'Gagal masuk. Coba lagi.')
       setLoading(false)
+      return
     }
-  }
 
-  function switchMode() {
-    setMode(mode === 'login' ? 'register' : 'login')
-    setError(null)
-    setSuccess(null)
+    // Success — clear session lama biar gak nyangkut, cek PIN
+    const {
+      data: { user: loggedUser },
+    } = await supabase.auth.getUser()
+
+    if (!loggedUser) {
+      setError('Sesi gagal dibuat. Coba lagi.')
+      setLoading(false)
+      return
+    }
+
+    const { data: settings } = await supabase
+      .from('user_settings')
+      .select('pin_hash')
+      .eq('user_id', loggedUser.id)
+      .maybeSingle()
+
+    lockSession()
+
+    if (!settings?.pin_hash) {
+      router.push('/setup-pin')
+    } else {
+      router.push('/unlock')
+    }
+    router.refresh()
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4 bg-background">
-      {/* Theme toggle */}
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
-
-      <div className="w-full max-w-md">
-        {/* Brand */}
-        <div className="text-center mb-8">
-          <div className="inline-flex mb-4">
-            <SynmonyMark size="xl" />
+    <AuthShell
+      eyebrow="Selamat Datang Kembali"
+      title="Masuk ke Synmony"
+      subtitle="Lanjutin perjalanan keuangan lu. Semua data lu udah nunggu di dalam."
+      footer={
+        <span className="text-muted-foreground">
+          Belum punya akun?{' '}
+          <Link
+            href="/register"
+            className="font-semibold text-brand hover:underline"
+          >
+            Daftar gratis
+          </Link>
+        </span>
+      }
+    >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Registered banner */}
+        {searchParams.get('registered') === '1' && !error && (
+          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-4 py-3 flex items-start gap-2.5">
+            <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
+              <svg
+                viewBox="0 0 20 20"
+                fill="none"
+                className="w-3 h-3 text-white"
+              >
+                <path
+                  d="M5 10.5l3 3 7-7"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-emerald-900 dark:text-emerald-200">
+                Akun udah dibuat!
+              </p>
+              <p className="text-[11px] text-emerald-700 dark:text-emerald-300 mt-0.5 leading-relaxed">
+                Masuk pakai email & password yang lu daftarin.
+              </p>
+            </div>
           </div>
-          <h1 className="text-4xl font-bold text-primary-500 mb-2">
-            Synmony
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Second Brain for Your Money.
-          </p>
+        )}
+
+        {/* Email */}
+        <div className="space-y-1.5">
+          <label
+            htmlFor="email"
+            className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+          >
+            Email
+          </label>
+          <div className="relative">
+            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="email@contoh.com"
+              {...form.register('email')}
+              className="flex h-11 w-full rounded-lg border bg-white dark:bg-white/5 border-slate-200 dark:border-white/15 pl-10 pr-3.5 text-base md:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/30"
+            />
+          </div>
+          {form.formState.errors.email && (
+            <p className="text-xs text-red-500">
+              {form.formState.errors.email.message}
+            </p>
+          )}
         </div>
 
-        {/* Card */}
-        <div className="bg-card rounded-2xl border shadow-sm p-6 sm:p-8">
-          <h2 className="text-xl font-semibold mb-6">
-            {mode === 'login' ? 'Masuk' : 'Daftar'}
-          </h2>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1.5">
-                Email
-              </label>
-              <input
-                type="email"
-                {...register('email')}
-                autoComplete="email"
-                className="w-full px-3 py-2.5 rounded-lg border bg-background focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition"
-                placeholder="email@contoh.com"
-              />
-              {errors.email && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1.5">
-                Password
-              </label>
-              <input
-                type="password"
-                {...register('password')}
-                autoComplete={
-                  mode === 'login' ? 'current-password' : 'new-password'
-                }
-                className="w-full px-3 py-2.5 rounded-lg border bg-background focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition"
-                placeholder="••••••••"
-              />
-              {errors.password && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-sm px-3 py-2.5 rounded-lg">
-                {error}
-              </div>
-            )}
-
-            {/* Success Message */}
-            {success && (
-              <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-400 text-sm px-3 py-2.5 rounded-lg flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{success}</span>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer"
+        {/* Password */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="password"
+              className="text-xs font-semibold text-slate-700 dark:text-slate-300"
             >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {loading ? 'Loading...' : mode === 'login' ? 'Masuk' : 'Daftar'}
-            </button>
-          </form>
-
-          <div className="mt-6 pt-6 border-t text-center">
-            <button
-              type="button"
-              onClick={switchMode}
-              className="text-sm text-primary-500 hover:text-primary-600 transition-colors cursor-pointer"
+              Password
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-[11px] font-medium text-brand hover:underline"
             >
-              {mode === 'login'
-                ? 'Belum punya akun? Daftar'
-                : 'Sudah punya akun? Masuk'}
-            </button>
+              Lupa password?
+            </Link>
           </div>
+          <PasswordInput
+            id="password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            {...form.register('password')}
+            error={!!form.formState.errors.password}
+          />
+          {form.formState.errors.password && (
+            <p className="text-xs text-red-500">
+              {form.formState.errors.password.message}
+            </p>
+          )}
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          Synmony v0.1.0 - Second Brain for Your Money
-        </p>
-      </div>
-    </div>
+        {/* Error */}
+        {error && (
+          <div className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 px-3.5 py-3 flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-red-700 dark:text-red-300 leading-relaxed">
+              {error}
+            </p>
+          </div>
+        )}
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full h-11 rounded-lg bg-brand hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm shadow-brand/20"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Masuk...
+            </>
+          ) : (
+            'Masuk'
+          )}
+        </button>
+      </form>
+    </AuthShell>
+  )
+}
+
+// ============================================================
+// WRAPPER (Suspense boundary)
+// ============================================================
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-brand" />
+        </div>
+      }
+    >
+      <LoginPageInner />
+    </Suspense>
   )
 }

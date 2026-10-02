@@ -12,7 +12,6 @@ import {
     Users,
     TrendingUp,
     ScanLine,
-    FileText,
     Settings,
     Plus,
     Camera,
@@ -51,7 +50,6 @@ const PAGES = [
     { href: '/split-bill', label: 'Split Bill', icon: Users },
     { href: '/investments', label: 'Investasi', icon: TrendingUp },
     { href: '/receipts', label: 'Struk', icon: ScanLine },
-    { href: '/reports', label: 'Laporan', icon: FileText },
     { href: '/settings', label: 'Settings', icon: Settings },
     { href: '/settings/audit-log', label: 'Audit Log', icon: ScrollText },
 ]

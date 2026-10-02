@@ -284,18 +284,9 @@ export function useEvents() {
                     .eq('id', event.transaction_id)
             }
 
-            const { data: parts } = await supabase
-                .from('event_participants')
-                .select('id')
-                .eq('event_id', eventId)
-
-            if (parts && parts.length > 0) {
-                const partIds = parts.map((p) => p.id)
-                await supabase
-                    .from('debts')
-                    .delete()
-                    .in('event_participant_id', partIds)
-            }
+            // Debts terkait event kehapus otomatis via FK CASCADE
+            // (debts.event_participant_id → event_participants ON DELETE CASCADE)
+            // Event delete → cascade event_participants → cascade debts
 
             const { error } = await supabase
                 .from('events')

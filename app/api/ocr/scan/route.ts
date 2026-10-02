@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { scanReceiptWithNanonets } from '@/lib/ocr/nanonets'
 import { parseReceiptResponse } from '@/lib/ocr/parse-receipt'
 import { matchCategoryByName } from '@/lib/ocr/match-category'
+import { consumeQuota, quotaExceededResponse } from '@/lib/ai/quota'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60 // 60 detik max (Vercel hobby limit)
@@ -25,6 +26,12 @@ export async function POST(req: Request) {
 
     if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    // Quota check — 5× per hari per user
+    const quota = await consumeQuota(supabase, 'ff-analyze')
+    if (!quota.ok) {
+        const body = quotaExceededResponse(quota.limit, 'ff-analyze')
+        return NextResponse.json(body, { status: 429 })
     }
 
     // Ambil profile default

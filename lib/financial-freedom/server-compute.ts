@@ -1,6 +1,7 @@
-import 'server-only'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentMonth, getMonthRange, addMonths } from '@/lib/utils/month'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/database'
 
 // ============================================================
 // NET WORTH - investable only
@@ -22,9 +23,20 @@ export type NetWorthBreakdown = {
 }
 
 /**
+ * Resolve supabase client: pakai yang dikirim, atau fallback ke cookie-based.
+ * Di cron, caller WAJIB kirim admin client (RLS bypass).
+ * Di user flow, caller bisa gak kirim → fallback ke cookie client.
+ */
+async function resolveSupabase(
+    client?: SupabaseClient<Database>
+): Promise<SupabaseClient<Database>> {
+    return client ?? (await createClient())
+}
+
+/**
  * Hitung net worth untuk FI Progress.
  *
- * Definisi (dari plan Final Decision #1 → opsi B):
+ * Definisi:
  * - Semua accounts non-archived (cash, bank, ewallet, investment, envelope)
  * - Investment assets non-archived (stock, crypto, mutual_fund, gold, bond)
  * - MINUS active debts (utang outstanding)
@@ -32,23 +44,24 @@ export type NetWorthBreakdown = {
  * Kenapa exclude property/vehicle: bukan investable asset buat FI.
  */
 export async function computeNetWorth(
-    profileId: string
+    profileId: string,
+    supabase?: SupabaseClient<Database>
 ): Promise<NetWorthBreakdown> {
-    const supabase = await createClient()
+    const sb = await resolveSupabase(supabase)
 
     const [accountsRes, assetsRes, debtsRes] = await Promise.all([
-        supabase
+        sb
             .from('accounts')
             .select('current_balance')
             .eq('profile_id', profileId)
             .eq('is_archived', false),
-        supabase
+        sb
             .from('assets')
             .select('current_value')
             .eq('profile_id', profileId)
             .eq('is_archived', false)
             .in('type', INVESTMENT_ASSET_TYPES as unknown as string[]),
-        supabase
+        sb
             .from('debts')
             .select('outstanding')
             .eq('profile_id', profileId)
@@ -75,28 +88,18 @@ export async function computeNetWorth(
 // AVERAGE EXPENSE - 3 bulan terakhir
 // ============================================================
 
-/**
- * Rata-rata monthly expense dari 3 bulan terakhir (WIB).
- *
- * Filter:
- * - type = 'expense'
- * - exclude_from_reports = false (paling ketat & konsisten)
- * - is_deleted = false
- *
- * Fallback kalau belum ada transaksi expense: pakai 0
- * (page nanti handle: kalau 0, section parameter minta user override manual).
- */
 export async function computeAvgMonthlyExpense(
-    profileId: string
+    profileId: string,
+    supabase?: SupabaseClient<Database>
 ): Promise<number> {
-    const supabase = await createClient()
+    const sb = await resolveSupabase(supabase)
 
     const currentMonth = getCurrentMonth()
     const threeMonthsAgo = addMonths(currentMonth, -3)
     const { start } = getMonthRange(threeMonthsAgo)
     const { end } = getMonthRange(currentMonth)
 
-    const { data } = await supabase
+    const { data } = await sb
         .from('transactions')
         .select('amount_idr')
         .eq('profile_id', profileId)
@@ -114,21 +117,15 @@ export async function computeAvgMonthlyExpense(
 // AVERAGE INCOME - hybrid
 // ============================================================
 
-/**
- * Income bulanan dengan prioritas:
- * 1. `budget_periods.income` bulan ini (kalau user set di /budget)
- * 2. Avg income transactions 3 bulan terakhir (fallback)
- *
- * Return { value, source } biar UI bisa nunjukin asalnya.
- */
 export async function computeMonthlyIncome(
-    profileId: string
+    profileId: string,
+    supabase?: SupabaseClient<Database>
 ): Promise<{ value: number; source: 'budget' | 'transactions' | 'none' }> {
-    const supabase = await createClient()
+    const sb = await resolveSupabase(supabase)
     const currentMonth = getCurrentMonth()
 
     // Priority 1: budget_periods bulan ini
-    const { data: period } = await supabase
+    const { data: period } = await sb
         .from('budget_periods')
         .select('income')
         .eq('profile_id', profileId)
@@ -144,7 +141,7 @@ export async function computeMonthlyIncome(
     const { start } = getMonthRange(threeMonthsAgo)
     const { end } = getMonthRange(currentMonth)
 
-    const { data } = await supabase
+    const { data } = await sb
         .from('transactions')
         .select('amount_idr')
         .eq('profile_id', profileId)
@@ -172,16 +169,13 @@ export type CategorySpending = {
     percent: number
 }
 
-/**
- * Top N kategori expense dari 3 bulan terakhir.
- * Buat AI context - biar advisor bisa tunjuk mana yang bisa dipangkas.
- */
 export async function computeTopCategories(
     profileId: string,
     userId: string,
-    limit = 5
+    limit = 5,
+    supabase?: SupabaseClient<Database>
 ): Promise<CategorySpending[]> {
-    const supabase = await createClient()
+    const sb = await resolveSupabase(supabase)
 
     const currentMonth = getCurrentMonth()
     const threeMonthsAgo = addMonths(currentMonth, -3)
@@ -189,7 +183,7 @@ export async function computeTopCategories(
     const { end } = getMonthRange(currentMonth)
 
     const [txRes, catRes] = await Promise.all([
-        supabase
+        sb
             .from('transactions')
             .select('category_id, amount_idr')
             .eq('profile_id', profileId)
@@ -198,7 +192,7 @@ export async function computeTopCategories(
             .eq('exclude_from_reports', false)
             .gte('date', start)
             .lte('date', end),
-        supabase.from('categories').select('id, name').eq('user_id', userId),
+        sb.from('categories').select('id, name').eq('user_id', userId),
     ])
 
     const catMap = new Map((catRes.data || []).map((c) => [c.id, c.name]))
@@ -206,7 +200,10 @@ export async function computeTopCategories(
 
     for (const tx of txRes.data || []) {
         if (!tx.category_id) continue
-        agg.set(tx.category_id, (agg.get(tx.category_id) || 0) + Number(tx.amount_idr))
+        agg.set(
+            tx.category_id,
+            (agg.get(tx.category_id) || 0) + Number(tx.amount_idr)
+        )
     }
 
     const grandTotal = Array.from(agg.values()).reduce((s, v) => s + v, 0)
@@ -236,12 +233,15 @@ export type FinancialFreedomServerData = {
 export async function fetchFinancialFreedomServerData(params: {
     profileId: string
     userId: string
+    supabase?: SupabaseClient<Database>
 }): Promise<FinancialFreedomServerData> {
+    const { profileId, userId, supabase } = params
+
     const [netWorth, avgExpense, income, topCategories] = await Promise.all([
-        computeNetWorth(params.profileId),
-        computeAvgMonthlyExpense(params.profileId),
-        computeMonthlyIncome(params.profileId),
-        computeTopCategories(params.profileId, params.userId),
+        computeNetWorth(profileId, supabase),
+        computeAvgMonthlyExpense(profileId, supabase),
+        computeMonthlyIncome(profileId, supabase),
+        computeTopCategories(profileId, userId, 5, supabase),
     ])
 
     return { netWorth, avgExpense, income, topCategories }

@@ -1,42 +1,44 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { isAuthorizedCron } from '@/lib/utils/cron-auth'
 import { resolveFiParams } from '@/lib/utils/financial-freedom'
 import { fetchFinancialFreedomServerData } from '@/lib/financial-freedom/server-compute'
 import { getCurrentMonth } from '@/lib/utils/month'
 import type { FiType } from '@/lib/validators/financial-freedom'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/database'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
 /**
- * Snapshot bulanan FF.
+ * Snapshot bulanan Financial Freedom.
  *
- * 2 mode:
- * - **Cron mode**: Header `x-cron-secret` match `CRON_SECRET` → proses SEMUA user
- * - **User mode**: auth user → snapshot 1 profile user sendiri (manual trigger)
+ * **GET** → Vercel Cron (Bearer auth dari CRON_SECRET).
+ *          Proses SEMUA user yang onboarding_completed = true.
+ *          Pakai service-role admin client (RLS bypass).
  *
- * Idempotent: pakai UNIQUE(profile_id, snapshot_month), re-run same month = update.
+ * **POST** → User manual trigger dari UI.
+ *          Cuma proses profile default user sendiri.
+ *          Pakai cookie client (RLS aktif).
  *
- * Setup Vercel Cron (vercel.json):
- *   { "crons": [{ "path": "/api/financial-freedom/snapshot", "schedule": "0 17 * * *" }] }
- *   → 17:00 UTC = 00:00 WIB tanggal 1 tiap bulan
+ * Idempotent: UNIQUE(profile_id, snapshot_month), re-run = update.
+ *
+ * Cron jadwal: `0 17 * * *` (UTC) = 00:00 WIB, HARIAN.
+ * 17:00 UTC = 00:00 WIB. Vercel Hobby max 1×/hari.
  */
-export async function POST(req: Request) {
-    const cronSecret = req.headers.get('x-cron-secret')
-    const isCron = cronSecret && cronSecret === process.env.CRON_SECRET
 
-    if (isCron) {
-        return handleCronMode()
+// ============================================================
+// GET — CRON MODE
+// ============================================================
+
+export async function GET(req: Request) {
+    if (!isAuthorizedCron(req)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    return handleUserMode()
-}
 
-// ============================================================
-// CRON MODE - proses semua user
-// ============================================================
-
-async function handleCronMode() {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data: settingsList, error } = await supabase
         .from('financial_freedom_settings')
@@ -52,11 +54,18 @@ async function handleCronMode() {
 
     for (const s of settingsList || []) {
         try {
-            const result = await snapshotOne(s.profile_id)
-            results.push({ profileId: s.profile_id, status: result })
+            const status = await snapshotOne(
+                supabase,
+                s.profile_id,
+                s.user_id
+            )
+            results.push({ profileId: s.profile_id, status })
         } catch (err: any) {
             console.error(`[ff/snapshot] ${s.profile_id} failed:`, err)
-            results.push({ profileId: s.profile_id, status: `error: ${err.message}` })
+            results.push({
+                profileId: s.profile_id,
+                status: `error: ${err.message}`,
+            })
         }
     }
 
@@ -69,10 +78,10 @@ async function handleCronMode() {
 }
 
 // ============================================================
-// USER MODE - manual trigger dari UI
+// POST — USER MODE (manual trigger dari UI)
 // ============================================================
 
-async function handleUserMode() {
+export async function POST() {
     const supabase = await createClient()
     const {
         data: { user },
@@ -95,7 +104,7 @@ async function handleUserMode() {
         return NextResponse.json({ error: 'Profile gak ada' }, { status: 404 })
     }
 
-    const status = await snapshotOne(profile.id)
+    const status = await snapshotOne(supabase, profile.id, user.id)
     return NextResponse.json({ success: true, mode: 'user', status })
 }
 
@@ -103,9 +112,11 @@ async function handleUserMode() {
 // CORE: snapshot 1 profile
 // ============================================================
 
-async function snapshotOne(profileId: string): Promise<string> {
-    const supabase = await createClient()
-
+async function snapshotOne(
+    supabase: SupabaseClient<Database>,
+    profileId: string,
+    userId: string
+): Promise<string> {
     const { data: settings } = await supabase
         .from('financial_freedom_settings')
         .select('*')
@@ -114,18 +125,10 @@ async function snapshotOne(profileId: string): Promise<string> {
 
     if (!settings) return 'no_settings'
 
-    // Ambil user_id dari profile untuk fetch server data
-    const { data: profileRow } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('id', profileId)
-        .single()
-
-    if (!profileRow) return 'no_profile'
-
     const serverData = await fetchFinancialFreedomServerData({
         profileId,
-        userId: profileRow.user_id,
+        userId,
+        supabase,
     })
 
     const monthlyExpense =
@@ -163,7 +166,7 @@ async function snapshotOne(profileId: string): Promise<string> {
         .from('financial_freedom_snapshots')
         .upsert(
             {
-                user_id: profileRow.user_id,
+                user_id: userId,
                 profile_id: profileId,
                 snapshot_month: snapshotMonth,
                 net_worth: resolved.currentNetWorth,
@@ -171,13 +174,17 @@ async function snapshotOne(profileId: string): Promise<string> {
                 fi_progress: resolved.fiProgress,
                 savings_rate: resolved.savingsRate / 100,
                 lean_fi_progress:
-                    leanFiNumber > 0 ? (resolved.currentNetWorth / leanFiNumber) * 100 : 0,
+                    leanFiNumber > 0
+                        ? (resolved.currentNetWorth / leanFiNumber) * 100
+                        : 0,
                 regular_fi_progress:
                     regularFiNumber > 0
                         ? (resolved.currentNetWorth / regularFiNumber) * 100
                         : 0,
                 fat_fi_progress:
-                    fatFiNumber > 0 ? (resolved.currentNetWorth / fatFiNumber) * 100 : 0,
+                    fatFiNumber > 0
+                        ? (resolved.currentNetWorth / fatFiNumber) * 100
+                        : 0,
                 coast_fi_progress: resolved.coastFiProgress,
                 estimated_fi_date: resolved.fiDate
                     ? resolved.fiDate.toISOString().split('T')[0]

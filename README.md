@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Synmony
 
-## Getting Started
+**Second Brain for Your Money.**
 
-First, run the development server:
+Personal finance app — transaksi, budget, goals, utang, investasi, wishlist, split bill, dan Financial Freedom dalam satu sistem yang saling terhubung.
+
+## Tech Stack
+
+- **Frontend:** Next.js 16 (App Router), React 19, TypeScript 5, Tailwind v4, shadcn/ui
+- **Backend:** Supabase (Postgres + Auth + RLS + Storage)
+- **AI:** Groq (`openai/gpt-oss-120b`)
+- **OCR:** Nanonets
+- **Deploy:** Vercel (region `sin1`)
+
+## Setup Lokal
+
+### 1. Prasyarat
+
+- Node.js 20+
+- Supabase project (free tier cukup)
+- Akun Groq + Nanonets (opsional, buat AI + OCR)
+
+### 2. Install
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+npm install

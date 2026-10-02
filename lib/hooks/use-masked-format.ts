@@ -1,7 +1,6 @@
 'use client'
 
-import { useHideAmounts } from '@/lib/stores/hide-amounts'
-import { MASKED_AMOUNT } from '@/lib/stores/hide-amounts'
+import { useHideAmounts, MASKED_AMOUNT } from '@/lib/stores/hide-amounts'
 
 export function useMaskedFormat() {
     const { hidden } = useHideAmounts()

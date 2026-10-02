@@ -14,7 +14,6 @@ import {
   Heart,
   Users,
   TrendingUp,
-  FileText,
   Settings,
   Sparkles,
   Trophy,
@@ -33,7 +32,6 @@ const navItems = [
   { href: '/split-bill', label: 'Split Bill', icon: Users },
   { href: '/investments', label: 'Investasi', icon: TrendingUp },
   { href: '/receipts', label: 'Struk', icon: ScanLine },
-  { href: '/reports', label: 'Laporan', icon: FileText },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 

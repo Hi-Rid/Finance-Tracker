@@ -1,19 +1,36 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { isAuthorizedCron } from '@/lib/utils/cron-auth'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-export async function POST(req: Request) {
-    const cronSecret = req.headers.get('x-cron-secret')
-    const isCron = cronSecret && cronSecret === process.env.CRON_SECRET
+/**
+ * Snapshot net worth bulanan.
+ *
+ * **GET** → Vercel Cron (Bearer auth).
+ *          Proses SEMUA profile default.
+ *          Pakai service-role admin client.
+ *
+ * **POST** → User manual trigger.
+ *          Cuma profile default user sendiri.
+ *          Pakai cookie client.
+ *
+ * Cron jadwal: `5 17 * * *` (UTC) = 00:05 WIB, HARIAN.
+ * 5 menit setelah FF snapshot biar gak overlap.
+ */
 
-    if (isCron) return handleCron()
-    return handleUser()
-}
+// ============================================================
+// GET — CRON MODE
+// ============================================================
 
-async function handleCron() {
-    const supabase = await createClient()
+export async function GET(req: Request) {
+    if (!isAuthorizedCron(req)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const supabase = createAdminClient()
 
     const { data: profiles, error } = await supabase
         .from('profiles')
@@ -50,7 +67,11 @@ async function handleCron() {
     })
 }
 
-async function handleUser() {
+// ============================================================
+// POST — USER MODE
+// ============================================================
+
+export async function POST() {
     const supabase = await createClient()
     const {
         data: { user },

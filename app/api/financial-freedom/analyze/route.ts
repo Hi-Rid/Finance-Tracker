@@ -7,6 +7,7 @@ import { fetchFinancialFreedomServerData } from '@/lib/financial-freedom/server-
 import { getCurrentMonth, formatMonthDisplay } from '@/lib/utils/month'
 import { formatRupiah } from '@/lib/normalize'
 import type { FiType } from '@/lib/validators/financial-freedom'
+import { consumeQuota, quotaExceededResponse } from '@/lib/ai/quota'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -51,6 +52,12 @@ export async function POST() {
 
     if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    // Quota check — 5× per hari per user
+    const quota = await consumeQuota(supabase, 'ff-analyze')
+    if (!quota.ok) {
+        const body = quotaExceededResponse(quota.limit, 'ff-analyze')
+        return NextResponse.json(body, { status: 429 })
     }
 
     if (!process.env.GROQ_API_KEY) {

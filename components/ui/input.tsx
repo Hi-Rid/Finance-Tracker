@@ -17,7 +17,6 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         className
       )}
       {...props}
-      style={{ color: undefined, ...props.style }}
     />
   )
 }

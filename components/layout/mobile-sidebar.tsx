@@ -3,13 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, Sparkles, X } from 'lucide-react'
+import { Menu, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
     Sheet,
     SheetContent,
     SheetTrigger,
-    SheetClose,
 } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogoutButton } from '@/components/shared/logout-button'
@@ -25,7 +24,6 @@ import {
     Users,
     TrendingUp,
     ScanLine,
-    FileText,
     Settings,
     Trophy,
 } from 'lucide-react'
@@ -41,7 +39,6 @@ const navItems = [
     { href: '/split-bill', label: 'Split Bill', icon: Users },
     { href: '/investments', label: 'Investasi', icon: TrendingUp },
     { href: '/receipts', label: 'Struk', icon: ScanLine },
-    { href: '/reports', label: 'Laporan', icon: FileText },
     { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -101,7 +98,6 @@ export function MobileSidebar({ userEmail, profile }: MobileSidebarProps) {
                     {navItems.map((item) => {
                         const Icon = item.icon
 
-                        // FIX: match hanya exact atau sub-route
                         let isActive = false
                         if (item.href === '/transactions') {
                             isActive =

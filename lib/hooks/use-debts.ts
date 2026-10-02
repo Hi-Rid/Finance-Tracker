@@ -112,7 +112,7 @@ export function useDebts() {
     )
 
     // ============================================================
-    // RECORD PAYMENT (auto-create transaction)
+    // RECORD PAYMENT (auto-create transaction + sync ke split bill)
     // ============================================================
     const recordPayment = useCallback(
         async (debtId: string, data: PaymentInput) => {
@@ -126,7 +126,9 @@ export function useDebts() {
 
             const { data: debt } = await supabase
                 .from('debts')
-                .select('id, name, type, principal, outstanding, status, profile_id')
+                .select(
+                    'id, name, type, principal, outstanding, status, profile_id, event_participant_id'
+                )
                 .eq('id', debtId)
                 .maybeSingle()
 
@@ -205,6 +207,29 @@ export function useDebts() {
                     status: newStatus,
                 })
                 .eq('id', debtId)
+
+            // ============================================================
+            // SYNC KE SPLIT BILL: kalau debt ini linked ke event_participant
+            // & fully paid → tandai participant sebagai paid
+            // ============================================================
+            if (debt.event_participant_id && newStatus === 'paid') {
+                const { error: participantErr } = await supabase
+                    .from('event_participants')
+                    .update({
+                        paid: true,
+                        paid_at: new Date().toISOString(),
+                        settled_transaction_id: tx.id,
+                    })
+                    .eq('id', debt.event_participant_id)
+
+                if (participantErr) {
+                    // Gak blocking - debt tetap ke-update
+                    console.error(
+                        '[debts] sync to event_participants failed:',
+                        participantErr
+                    )
+                }
+            }
 
             toast.success(
                 `Pembayaran ${formatRupiah(data.amount)} dicatat`,

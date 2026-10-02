@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import Groq from 'groq-sdk'
+import { consumeQuota, quotaExceededResponse } from '@/lib/ai/quota'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -58,6 +59,12 @@ export async function POST(req: Request) {
 
     if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    // Quota check — 10× per hari per user
+    const quota = await consumeQuota(supabase, 'budget-allocate')
+    if (!quota.ok) {
+        const body = quotaExceededResponse(quota.limit, 'budget-allocate')
+        return NextResponse.json(body, { status: 429 })
     }
 
     let body: RequestBody
