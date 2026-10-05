@@ -64,6 +64,7 @@ export async function updateSession(request: NextRequest) {
     pathname === '/robots.txt' ||
     pathname === '/sitemap.xml'
 
+
   // Belum login & bukan public path → redirect ke login
   if (!user && !isPublicPath) {
     const url = request.nextUrl.clone()
