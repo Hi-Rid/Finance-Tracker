@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import { useFinancialFreedom } from '@/lib/hooks/use-financial-freedom'
 import { cn } from '@/lib/utils'
 import type { FiInsight, FiImprovement } from '@/lib/financial-freedom/types'
@@ -74,7 +75,7 @@ export function FiAiAdvisor({
         : 'Analisis'
 
     return (
-        <Card className="py-0 gap-0 overflow-hidden">
+        <Card className="relative overflow-hidden py-0 gap-0">
             {/* Header */}
             <div className="relative p-4 sm:p-5 md:p-6 pb-4 border-b border-slate-100 dark:border-white/5">
                 <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-brand/10 blur-3xl pointer-events-none" />
@@ -133,22 +134,6 @@ export function FiAiAdvisor({
             </div>
 
             <CardContent className="p-4 sm:p-5 md:p-6">
-                {loading && (
-                    <div className="flex flex-col items-center justify-center py-8 sm:py-10 text-center">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-brand/10 flex items-center justify-center mb-3">
-                            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-brand animate-pulse" />
-                        </div>
-                        <p className="text-sm font-semibold mb-1">
-                            AI lagi menganalisis...
-                        </p>
-                        <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
-                            {isFiAchieved
-                                ? 'Nyusun strategi maintenance dari data keuangan lu. Butuh 5-10 detik.'
-                                : 'Nyusun insight personal dari data keuangan lu. Butuh 5-10 detik.'}
-                        </p>
-                    </div>
-                )}
-
                 {!loading && error && (
                     <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
                         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-red-500/10 flex items-center justify-center mb-3">
@@ -182,17 +167,16 @@ export function FiAiAdvisor({
                             Belum ada analisis
                         </p>
                         <p className="text-xs text-muted-foreground max-w-sm leading-relaxed mb-4">
-                            Klik <strong>{buttonLabel}</strong> di atas buat dapet{' '}
+                            Klik <strong>{buttonLabel}</strong> di atas untuk mendapatkan{' '}
                             {isFiAchieved
-                                ? 'strategi maintenance dari AI, berdasarkan data kekayaan lu.'
-                                : 'saran personal dari AI berdasarkan data FI lu.'}
+                                ? 'strategi maintenance dari AI, berdasarkan data kekayaan Anda.'
+                                : 'saran personal dari AI berdasarkan data FI Anda.'}
                         </p>
                     </div>
                 )}
 
                 {!loading && !error && hasInsight && (
                     <div className="space-y-4 sm:space-y-5">
-                        {/* Overall status */}
                         <div
                             className={cn(
                                 'rounded-xl sm:rounded-2xl border p-4',
@@ -223,13 +207,12 @@ export function FiAiAdvisor({
                             </p>
                         </div>
 
-                        {/* Flexibility / Savings rate */}
                         {latestInsight.savings_rate_analysis && (
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
                                     <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-slate-400 shrink-0" />
                                     <p className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                                        {isFiAchieved ? 'Fleksibilitas Lu' : 'Savings Rate'}
+                                        {isFiAchieved ? 'Fleksibilitas Anda' : 'Savings Rate'}
                                     </p>
                                 </div>
                                 <p className="text-sm md:text-[15px] text-slate-700 dark:text-slate-200 leading-relaxed">
@@ -238,7 +221,6 @@ export function FiAiAdvisor({
                             </div>
                         )}
 
-                        {/* Improvements */}
                         {latestInsight.improvements &&
                             latestInsight.improvements.length > 0 && (
                                 <div>
@@ -308,7 +290,6 @@ export function FiAiAdvisor({
                                 </div>
                             )}
 
-                        {/* Next milestone (khusus growth) */}
                         {!isFiAchieved &&
                             latestInsight.next_milestone &&
                             latestInsight.next_milestone !== '-' && (
@@ -326,6 +307,16 @@ export function FiAiAdvisor({
                     </div>
                 )}
             </CardContent>
+
+            {/* Loading overlay */}
+            <LoadingOverlay
+                show={loading}
+                message={
+                    isFiAchieved
+                        ? 'AI sedang menyusun strategi maintenance...'
+                        : 'AI sedang menganalisis data keuangan Anda...'
+                }
+            />
         </Card>
     )
 }

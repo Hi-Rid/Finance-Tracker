@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/header'
 import { AuthGuard } from '@/components/shared/auth-guard'
 import { CommandPalette } from '@/components/shared/command-palette'
 import { syncCoolingOffNotifications } from '@/lib/notifications/actions'
+import { RouteProgress } from '@/components/shared/route-progress'
 
 export default async function AppLayout({
   children,
@@ -37,6 +38,7 @@ export default async function AppLayout({
 
   return (
     <AuthGuard>
+      <RouteProgress />
       <div className="relative flex min-h-screen bg-background">
         <div className="app-bg-blob" aria-hidden />
 

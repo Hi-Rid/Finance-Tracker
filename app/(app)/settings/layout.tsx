@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select'
 
 const tabs = [
-    { href: '/settings', label: 'Profile', icon: User },
+    { href: '/settings', label: 'Profil', icon: User },
     { href: '/settings/security', label: 'Keamanan', icon: Shield },
     { href: '/settings/notifications', label: 'Notifikasi', icon: Bell },
     { href: '/settings/appearance', label: 'Tampilan', icon: Palette },
@@ -52,10 +52,10 @@ export default function SettingsLayout({
         <PageWrapper>
             <PageHeader
                 title="Settings"
-                description="Kelola preferensi & data akun lu"
+                description="Kelola preferensi & data akun Anda"
             />
 
-            {/* MOBILE — Dropdown Select (icon cuma di trigger, item text only) */}
+            {/* MOBILE — Dropdown Select */}
             <div className="md:hidden mb-6">
                 <Select
                     value={activeTab.href}
@@ -91,8 +91,7 @@ export default function SettingsLayout({
                     const Icon = tab.icon
                     const isActive =
                         pathname === tab.href ||
-                        (tab.href !== '/settings' &&
-                            pathname.startsWith(tab.href))
+                        (tab.href !== '/settings' && pathname.startsWith(tab.href))
 
                     return (
                         <Link

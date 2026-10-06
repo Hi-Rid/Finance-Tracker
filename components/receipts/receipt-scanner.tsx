@@ -28,6 +28,7 @@ import {
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
+import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import type { ParsedReceipt } from '@/lib/ocr/types'
 
 type ReceiptScannerProps = {

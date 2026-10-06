@@ -16,7 +16,7 @@ const CONSENT_VERSION = 'v1.0-2026-10'
 
 const schema = z
     .object({
-        email: z.string().email('Email gak valid'),
+        email: z.string().email('Email tidak valid'),
         password: z
             .string()
             .min(8, 'Password minimal 8 karakter')
@@ -24,10 +24,10 @@ const schema = z
         confirmPassword: z.string().min(1, 'Konfirmasi password wajib diisi'),
         consent: z
             .boolean()
-            .refine((v) => v === true, 'Lu harus setuju dulu buat lanjut'),
+            .refine((v) => v === true, 'Anda harus menyetujui untuk melanjutkan'),
     })
     .refine((d) => d.password === d.confirmPassword, {
-        message: 'Password gak sama',
+        message: 'Password tidak sama',
         path: ['confirmPassword'],
     })
 
@@ -52,7 +52,6 @@ export default function RegisterPage() {
     const watchedPassword = form.watch('password') || ''
     const watchedConsent = form.watch('consent')
 
-    // Password strength heuristic
     const pwStrength = (() => {
         const len = watchedPassword.length
         if (len === 0) return { level: 0, label: '', color: 'bg-slate-200 dark:bg-white/10' }
@@ -100,7 +99,7 @@ export default function RegisterPage() {
                 msg.toLowerCase().includes('already been registered') ||
                 msg.toLowerCase().includes('user already exists')
             ) {
-                setError('Email ini udah terdaftar. Coba masuk atau reset password.')
+                setError('Email ini sudah terdaftar. Silakan masuk atau reset password.')
                 setLoading(false)
                 return
             }
@@ -111,35 +110,32 @@ export default function RegisterPage() {
                 return
             }
 
-            setError(msg || 'Gagal daftar. Coba lagi.')
+            setError(msg || 'Gagal mendaftar. Silakan coba lagi.')
             setLoading(false)
             return
         }
 
-        // Supabase bisa return 200 dengan identities kosong kalau email udah ada
-        // (edge case di beberapa config)
         if (
             signUpData?.user &&
             Array.isArray(signUpData.user.identities) &&
             signUpData.user.identities.length === 0
         ) {
-            setError('Email ini udah terdaftar. Coba masuk atau reset password.')
+            setError('Email ini sudah terdaftar. Silakan masuk atau reset password.')
             setLoading(false)
             return
         }
 
-        // Success — arahkan ke halaman verify-email
         router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
     }
 
     return (
         <AuthShell
             eyebrow="Mulai Gratis"
-            title="Bikin Akun Synmony"
-            subtitle="Satu akun buat semua. Gak perlu kartu kredit, gak ada biaya tersembunyi."
+            title="Buat Akun Synmony"
+            subtitle="Satu akun untuk semuanya. Tidak perlu kartu kredit, tanpa biaya tersembunyi."
             footer={
                 <span className="text-muted-foreground">
-                    Udah punya akun?{' '}
+                    Sudah punya akun?{' '}
                     <Link
                         href="/login"
                         className="font-semibold text-brand hover:underline"
@@ -192,7 +188,6 @@ export default function RegisterPage() {
                         error={!!form.formState.errors.password}
                     />
 
-                    {/* Strength bar */}
                     {watchedPassword.length > 0 && (
                         <div className="flex items-center gap-2 pt-0.5">
                             <div className="flex-1 flex gap-1">
@@ -282,13 +277,13 @@ export default function RegisterPage() {
                             </div>
                         </div>
                         <span className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Saya udah baca & setuju dengan{' '}
+                            Saya sudah membaca & menyetujui{' '}
                             <Link
                                 href="/terms"
                                 target="_blank"
                                 className="font-semibold text-brand hover:underline"
                             >
-                                Syarat & Ketentuan
+                                Syarat &amp; Ketentuan
                             </Link>{' '}
                             dan{' '}
                             <Link
@@ -327,7 +322,7 @@ export default function RegisterPage() {
                     {loading ? (
                         <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            Bikin akun...
+                            Membuat akun...
                         </>
                     ) : (
                         'Daftar Gratis'
@@ -336,8 +331,8 @@ export default function RegisterPage() {
 
                 {/* Info bawah */}
                 <p className="text-[10px] text-center text-muted-foreground/70 leading-relaxed pt-1">
-                    Setelah daftar, lu bakal dapet email verifikasi. Klik link di email
-                    buat aktifin akun.
+                    Setelah mendaftar, Anda akan menerima email verifikasi. Klik link di
+                    email untuk mengaktifkan akun.
                 </p>
             </form>
         </AuthShell>

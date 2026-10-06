@@ -1,9 +1,21 @@
-export default function AccountsSettingsPage() {
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { AccountsAuthSettingsClient } from '@/components/settings/accounts-auth-settings-client'
+
+export default async function AccountsSettingsPage() {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) redirect('/login')
+
     return (
-        <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-card p-6">
-            <p className="text-sm text-muted-foreground">
-                Pengaturan Akun - coming soon.
-            </p>
-        </div>
+        <AccountsAuthSettingsClient
+            email={user.email || ''}
+            userId={user.id}
+            createdAt={user.created_at}
+            lastSignInAt={user.last_sign_in_at || null}
+        />
     )
 }

@@ -21,15 +21,15 @@ type AuthShellProps = {
 
 const FEATURES = [
     { icon: Crown, label: 'Financial Freedom', accent: '#F59E0B' },
-    { icon: Wallet, label: 'Semua Akun Nyambung', accent: '#10B981' },
-    { icon: TrendingUp, label: 'Portfolio Auto-Update', accent: '#8B5CF6' },
-    { icon: Target, label: 'Budget yang Jalan', accent: '#0EA5E9' },
+    { icon: Wallet, label: 'Semua Akun Terhubung', accent: '#10B981' },
+    { icon: TrendingUp, label: 'Portofolio Auto-Update', accent: '#8B5CF6' },
+    { icon: Target, label: 'Anggaran yang Berjalan', accent: '#0EA5E9' },
 ]
 
 const TRUST = [
     { icon: ShieldCheck, label: 'Data Terenkripsi' },
     { icon: Zap, label: 'Cepat & Ringan' },
-    { icon: Award, label: 'Gratis 100%' },
+    { icon: Award, label: 'Tanpa Iklan' },
 ]
 
 export function AuthShell({
@@ -124,15 +124,15 @@ export function AuthShell({
                         {/* Headline                                      */}
                         {/* ============================================ */}
                         <h2 className="text-[38px] xl:text-[44px] font-bold tracking-[-0.028em] leading-[1.08] mb-6">
-                            <span className="text-white">Bukan cuma catat uang.</span>
+                            <span className="text-white">Bukan sekadar mencatat.</span>
                             <br />
-                            <span className="text-white">Kami bantu lu bebas</span>{' '}
+                            <span className="text-white">Kami bantu Anda bebas</span>{' '}
                             <span className="text-amber-400">finansial.</span>
                         </h2>
 
                         <p className="text-[15px] text-[#C8DCF0] leading-relaxed mb-10 max-w-[500px]">
-                            Semua tentang uang lu dalam satu sistem. Transaksi,
-                            budget, aset, investasi, dan tujuan — terhubung dalam
+                            Semua tentang keuangan Anda dalam satu sistem. Transaksi,
+                            anggaran, aset, investasi, dan tujuan — terhubung dalam
                             harmoni.
                         </p>
 
@@ -232,8 +232,8 @@ export function AuthShell({
 
                             {/* Floating badge — bottom left */}
                             <div className="absolute -bottom-3 -left-3 px-3 py-2 rounded-lg bg-white shadow-xl shadow-black/50 border border-white/20">
-                                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-slate-500 leading-none mb-1.5">
-                                    Goal · Liburan Bali
+                                <p className="text-[7.5px] font-bold uppercase tracking-[0.14em] text-slate-500 leading-none mb-1">
+                                    Goal · Edinburgh
                                 </p>
                                 <p className="text-xs font-bold text-emerald-600 leading-none flex items-center gap-1">
                                     <span>✓</span> Tercapai

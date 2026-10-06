@@ -6,14 +6,14 @@ import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2, AlertCircle, Mail, Lock } from 'lucide-react'
+import { Loader2, AlertCircle, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { lockSession } from '@/lib/hooks/use-pin'
 import { AuthShell } from '@/components/auth/auth-shell'
 import { PasswordInput } from '@/components/auth/password-input'
 
 const schema = z.object({
-  email: z.string().email('Email gak valid'),
+  email: z.string().email('Email tidak valid'),
   password: z.string().min(1, 'Password wajib diisi'),
 })
 
@@ -30,7 +30,6 @@ function LoginPageInner() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Pre-fill email kalau dari register / verify-email
   const presetEmail = searchParams.get('email') || ''
 
   const form = useForm<FormValues>({
@@ -38,7 +37,6 @@ function LoginPageInner() {
     defaultValues: { email: presetEmail, password: '' },
   })
 
-  // Handle "registered=1" notification
   useEffect(() => {
     if (searchParams.get('registered') === '1') {
       form.setFocus('email')
@@ -57,36 +55,32 @@ function LoginPageInner() {
     })
 
     if (authError) {
-      // Handle spesifik: email not confirmed
       const msg = authError.message || ''
       if (msg.toLowerCase().includes('email not confirmed')) {
         router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
         return
       }
 
-      // Handle: invalid credentials
       if (
         msg.toLowerCase().includes('invalid login credentials') ||
         msg.toLowerCase().includes('invalid_credentials')
       ) {
-        setError('Email atau password salah')
+        setError('Email atau password salah.')
         setLoading(false)
         return
       }
 
-      // Fallback
-      setError(msg || 'Gagal masuk. Coba lagi.')
+      setError(msg || 'Gagal masuk. Silakan coba lagi.')
       setLoading(false)
       return
     }
 
-    // Success — clear session lama biar gak nyangkut, cek PIN
     const {
       data: { user: loggedUser },
     } = await supabase.auth.getUser()
 
     if (!loggedUser) {
-      setError('Sesi gagal dibuat. Coba lagi.')
+      setError('Sesi gagal dibuat. Silakan coba lagi.')
       setLoading(false)
       return
     }
@@ -111,7 +105,7 @@ function LoginPageInner() {
     <AuthShell
       eyebrow="Selamat Datang Kembali"
       title="Masuk ke Synmony"
-      subtitle="Lanjutin perjalanan keuangan lu. Semua data lu udah nunggu di dalam."
+      subtitle="Lanjutkan perjalanan keuangan Anda. Semua data Anda sudah menunggu di dalam."
       footer={
         <span className="text-muted-foreground">
           Belum punya akun?{' '}
@@ -125,7 +119,6 @@ function LoginPageInner() {
       }
     >
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Registered banner */}
         {searchParams.get('registered') === '1' && !error && (
           <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-4 py-3 flex items-start gap-2.5">
             <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
@@ -145,10 +138,10 @@ function LoginPageInner() {
             </div>
             <div className="min-w-0">
               <p className="text-xs font-bold text-emerald-900 dark:text-emerald-200">
-                Akun udah dibuat!
+                Akun berhasil dibuat!
               </p>
               <p className="text-[11px] text-emerald-700 dark:text-emerald-300 mt-0.5 leading-relaxed">
-                Masuk pakai email & password yang lu daftarin.
+                Silakan masuk dengan email dan password yang telah Anda daftarkan.
               </p>
             </div>
           </div>
@@ -220,7 +213,6 @@ function LoginPageInner() {
           </div>
         )}
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={loading}
@@ -239,10 +231,6 @@ function LoginPageInner() {
     </AuthShell>
   )
 }
-
-// ============================================================
-// WRAPPER (Suspense boundary)
-// ============================================================
 
 export default function LoginPage() {
   return (
